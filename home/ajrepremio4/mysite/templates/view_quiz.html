@@ -1,0 +1,114 @@
+<!-- templates/view_quiz.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quiz.title }} - QuizPlatform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { background: white; border-radius: 20px; padding: 40px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .header h1 { color: #333; font-size: 2.5em; margin-bottom: 15px; }
+        .header p { color: #666; font-size: 1.1em; margin-bottom: 20px; }
+        .pin-display { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; display: inline-block; margin-top: 10px; }
+        .pin-display h2 { font-size: 3em; letter-spacing: 5px; }
+        .pin-display p { color: white; opacity: 0.9; margin-top: 5px; }
+        .quiz-meta { display: flex; justify-content: center; gap: 30px; margin-top: 20px; flex-wrap: wrap; }
+        .meta-item { display: flex; align-items: center; gap: 10px; font-size: 1.1em; color: #666; }
+        .meta-icon { font-size: 1.5em; }
+        .question-list { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .question-list h2 { color: #333; margin-bottom: 30px; font-size: 2em; }
+        .question-item { background: #f8f9fa; border-radius: 15px; padding: 25px; margin-bottom: 20px; border-left: 5px solid #667eea; }
+        .question-item:last-child { margin-bottom: 0; }
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .question-number { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+        .question-timer { color: #666; font-weight: 500; }
+        .question-text { font-size: 1.3em; color: #333; margin-bottom: 15px; font-weight: 500; }
+        .question-media { margin: 15px 0; }
+        .question-media img { max-width: 400px; width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .options-list { margin-top: 15px; }
+        .option-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 10px; }
+        .option-item:last-child { margin-bottom: 0; }
+        .option-item.correct { border-color: #4caf50; background: #f1f8f4; }
+        .option-letter { width: 35px; height: 35px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        .option-item.correct .option-letter { background: #4caf50; }
+        .option-text { flex: 1; color: #333; }
+        .correct-badge { background: #4caf50; color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-weight: bold; }
+        .actions { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; font-size: 1.1em; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: white; color: #667eea; border: 2px solid #667eea; }
+        .btn-secondary:hover { background: #f0f4ff; }
+        @media (max-width: 768px) { .header h1 { font-size: 2em; } .pin-display h2 { font-size: 2em; } .quiz-meta { flex-direction: column; gap: 15px; } .question-media img { max-width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ quiz.title }}</h1>
+            <p>{{ quiz.description or 'Sin descripción' }}</p>
+            <div class="pin-display">
+                <h2>{{ quiz.pin_code }}</h2>
+                <p>Código PIN para unirse</p>
+            </div>
+            <div class="quiz-meta">
+                <div class="meta-item"><span class="meta-icon">📝</span><span>{{ questions|length }} Preguntas</span></div>
+                <div class="meta-item"><span class="meta-icon">🎮</span><span>Modo {{ 'Grupal' if quiz.mode == 'group' else 'Individual' }}</span></div>
+                <div class="meta-item"><span class="meta-icon">⏱️</span><span>{{ quiz.countdown_time }} segundos por pregunta</span></div>
+                <div class="meta-item"><span class="meta-icon">{{ '🌐' if quiz.is_public else '🔒' }}</span><span>{{ 'Público' if quiz.is_public else 'Privado' }}</span></div>
+            </div>
+            <div class="actions">
+                <a href="/play" class="btn">🎮 Jugar Ahora</a>
+                <button class="btn btn-secondary" onclick="copyLink()">🔗 Copiar Enlace</button>
+                <a href="/" class="btn btn-secondary">🏠 Inicio</a>
+            </div>
+        </div>
+        <div class="question-list">
+            <h2>📚 Contenido del Quiz</h2>
+            {% for question in questions %}
+            <div class="question-item">
+                <div class="question-header">
+                    <div class="question-number">Pregunta {{ loop.index }}</div>
+                    <div class="question-timer">⏱️ {{ question.time_limit }} segundos</div>
+                </div>
+                <div class="question-text">{{ question.question_text }}</div>
+                {% if question.image_url %}
+                <div class="question-media"><img src="{{ question.image_url }}" alt="Imagen de la pregunta"></div>
+                {% endif %}
+                {% if question.video_url %}
+                <div class="question-media"><p>📹 Video: <a href="{{ question.video_url }}" target="_blank" style="color: #667eea;">Ver video</a></p></div>
+                {% endif %}
+                <div class="options-list">
+                    {% for option in question.options %}
+                    <div class="option-item {% if option.is_correct %}correct{% endif %}">
+                        <div class="option-letter">{{ 'ABCD'[loop.index0] }}</div>
+                        <div class="option-text">{{ option.option_text }}</div>
+                        {% if option.is_correct %}<div class="correct-badge">✓ Correcta</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% if questions|length == 0 %}
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <p style="font-size: 3em; margin-bottom: 20px;">📝</p>
+                <h3>No hay preguntas aún</h3>
+                <p>Este quiz aún no tiene preguntas agregadas</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        function copyLink() {
+            const url = window.location.href;
+            const pinCode = "{{ quiz.pin_code }}";
+            const text = `¡Únete a mi quiz!\n\nEnlace: ${url}\nPIN: ${pinCode}`;
+            navigator.clipboard.writeText(text).then(() => { alert('✅ Enlace y PIN copiados al portapapeles'); }).catch(err => {
+                const textarea = document.createElement('textarea'); textarea.value = text; document.body.appendChild(textarea); textarea.select(); document.execCommand('copy'); document.body.removeChild(textarea); alert('✅ Enlace y PIN copiados al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - QuizPlatform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .navbar h1 { font-size: 1.8em; }
+        .navbar-right { display: flex; align-items: center; gap: 20px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; transition: all 0.3s ease; }
+        .btn:hover { background: white; color: #667eea; border: 2px solid #667eea;}
+        .btn-primary { background: white; color: #667eea; }
+        .btn-primary:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; }
+        .stat-icon { font-size: 3em; }
+        .stat-info h3 { color: #333; font-size: 2em; margin-bottom: 5px; }
+        .stat-info p { color: #666; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .section-header h2 { color: #333; font-size: 2em; }
+        .quizzes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .quiz-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; }
+        .quiz-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .quiz-card h3 { color: #333; margin-bottom: 10px; font-size: 1.5em; }
+        .quiz-card p { color: #666; margin-bottom: 15px; }
+        .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.9em; color: #999; }
+        .pin-code { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; letter-spacing: 2px; }
+        .quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-small { padding: 8px 15px; font-size: 0.9em; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .btn-edit { background: #4caf50; color: white; }
+        .btn-edit:hover { background: #45a049; }
+        .btn-share { background: #2196f3; color: white; }
+        .btn-share:hover { background: #0d8bf2; }
+        .btn-delete { background: #f44336; color: white; }
+        .btn-delete:hover { background: #da190b; }
+        .btn-duplicate { background: #ff9800; color: white; }
+        .btn-duplicate:hover { background: #e68900; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { color: #333; }
+        .close-btn { background: none; border: none; font-size: 2em; cursor: pointer; color: #999; }
+        .close-btn:hover { color: #333; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input { width: auto; }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state-icon { font-size: 5em; margin-bottom: 20px; opacity: 0.3; }
+        .empty-state h3 { color: #666; margin-bottom: 10px; }
+        .empty-state p { color: #999; margin-bottom: 20px; }
+        .confirm-dialog { text-align: center; }
+        .confirm-dialog h3 { color: #333; margin-bottom: 15px; }
+        .confirm-dialog p { color: #666; margin-bottom: 30px; }
+        .confirm-actions { display: flex; gap: 15px; justify-content: center; }
+        .btn-confirm { padding: 12px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; font-size: 1em; }
+        .btn-yes { background: #f44336; color: white; }
+        .btn-no { background: #e0e0e0; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🎯 QuizPlatform</h1>
+        <div class="navbar-right">
+            <span>Bienvenido, <strong id="username"></strong></span>
+            <button class="btn btn-primary" onclick="openCreateModal()">+ Crear Quiz</button>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-info">
+                    <h3 id="totalQuizzes">0</h3>
+                    <p>Quizzes Creados</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎮</div>
+                <div class="stat-info">
+                    <h3 id="totalGames">0</h3>
+                    <p>Partidas Jugadas</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3 id="totalParticipants">0</h3>
+                    <p>Participantes</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-info">
+                    <h3 id="totalPublic">0</h3>
+                    <p>Quizzes Públicos</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section-header">
+            <h2>Mis Quizzes</h2>
+            <div>
+                <button class="btn" onclick="loadQuizzes('all')">Todos</button>
+                <button class="btn" onclick="loadQuizzes('my')">Míos</button>
+                <button class="btn" onclick="loadQuizzes('public')">Públicos</button>
+            </div>
+        </div>
+        
+        <div id="quizzesContainer"></div>
+    </div>
+    
+    <!-- Modal Crear/Editar Quiz -->
+    <div class="modal" id="quizModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Crear Nuevo Quiz</h2>
+                <button class="close-btn" onclick="closeModal('quizModal')">&times;</button>
+            </div>
+            <form id="quizForm">
+                <input type="hidden" id="quizId">
+                <div class="form-group">
+                    <label for="title">Título del Quiz:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descripción:</label>
+                    <textarea id="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="mode">Modo de Juego:</label>
+                    <select id="mode">
+                        <option value="individual">Individual</option>
+                        <option value="group">Grupal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="countdownTime">Tiempo por pregunta (segundos):</label>
+                    <input type="number" id="countdownTime" min="10" max="120" value="30">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isPublic" checked>
+                        <label for="isPublic">Hacer público (otros usuarios pueden usarlo)</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Guardar Quiz</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Confirmación -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="confirm-dialog">
+                <h3 id="confirmTitle">¿Estás seguro?</h3>
+                <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+                <div class="confirm-actions">
+                    <button class="btn-confirm btn-yes" onclick="confirmAction()">Sí, continuar</button>
+                    <button class="btn-confirm btn-no" onclick="closeModal('confirmModal')">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentQuizId = null;
+        let confirmCallback = null;
+        async function loadQuizzes(filter = 'all') {
+            try { const response = await fetch('/api/quizzes'); const quizzes = await response.json(); const container = document.getElementById('quizzesContainer'); if (quizzes.length === 0) { container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="btn" onclick="openCreateModal()">Crear Quiz</button></div>`; return; }
+                let filteredQuizzes = quizzes; if (filter === 'my') { filteredQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId()); } else if (filter === 'public') { filteredQuizzes = quizzes.filter(q => q.is_public); }
+                container.innerHTML = '<div class="quizzes-grid">' + filteredQuizzes.map(quiz => `
+                        <div class="quiz-card">
+                            <h3>${quiz.title}</h3>
+                            <p>${quiz.description || 'Sin descripción'}</p>
+                            <div class="quiz-meta">
+                                <span>🎮 ${quiz.mode === 'group' ? 'Grupal' : 'Individual'}</span>
+                                <span>⏱️ ${quiz.countdown_time}s</span>
+                                <span>${quiz.is_public ? '🌐 Público' : '🔒 Privado'}</span>
+                            </div>
+                            <div class="pin-code">PIN: ${quiz.pin_code}</div>
+                            <div class="quiz-actions" style="margin-top: 15px;">
+                                <button class="btn-small btn-edit" onclick="editQuiz(${quiz.id})">✏️ Editar</button>
+                                <button class="btn-small btn-edit" onclick="manageQuestions(${quiz.id})">📝 Preguntas</button>
+                                <button class="btn-small btn-share" onclick="shareQuiz('${quiz.pin_code}')">🔗 Compartir</button>
+                                <button class="btn-small btn-duplicate" onclick="duplicateQuiz(${quiz.id})">📋 Duplicar</button>
+                                <button class="btn-small btn-delete" onclick="confirmDeleteQuiz(${quiz.id})">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `).join('') + '</div>';
+                updateStats(quizzes);
+            } catch (error) { console.error('Error cargando quizzes:', error); }
+        }
+        function updateStats(quizzes) { document.getElementById('totalQuizzes').textContent = quizzes.length; document.getElementById('totalPublic').textContent = quizzes.filter(q => q.is_public).length; }
+        function openCreateModal() { 
+            document.getElementById('modalTitle').textContent = 'Crear Nuevo Quiz'; 
+            document.getElementById('quizForm').reset(); document.getElementById('quizId').value = ''; 
+            document.getElementById('quizModal').classList.add('active'); }
+        async function editQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); document.getElementById('modalTitle').textContent = 'Editar Quiz'; document.getElementById('quizId').value = quiz.id; document.getElementById('title').value = quiz.title; document.getElementById('description').value = quiz.description || ''; document.getElementById('mode').value = quiz.mode; document.getElementById('countdownTime').value = quiz.countdown_time; document.getElementById('isPublic').checked = quiz.is_public; document.getElementById('quizModal').classList.add('active'); } catch (error) { alert('Error cargando el quiz'); } }
+        function manageQuestions(quizId) { window.location.href = `/quiz_editor/${quizId}`; }
+        function shareQuiz(pinCode) { const url = `${window.location.origin}/quiz/${pinCode}`; navigator.clipboard.writeText(url).then(() => { alert(`✅ Enlace copiado al portapapeles:\n${url}\n\nPIN: ${pinCode}`); }); }
+        async function duplicateQuiz(quizId) { if (confirm('¿Deseas duplicar este quiz?')) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); const newQuiz = { title: quiz.title + ' (Copia)', description: quiz.description, mode: quiz.mode, countdown_time: quiz.countdown_time, is_public: false }; const createResponse = await fetch('/api/quizzes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newQuiz) }); if (createResponse.ok) { alert('✅ Quiz duplicado exitosamente'); loadQuizzes(); } } catch (error) { alert('Error duplicando el quiz'); } } }
+        function confirmDeleteQuiz(quizId) { document.getElementById('confirmTitle').textContent = '¿Eliminar Quiz?'; document.getElementById('confirmMessage').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.'; confirmCallback = () => deleteQuiz(quizId); document.getElementById('confirmModal').classList.add('active'); }
+        async function deleteQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`, { method: 'DELETE' }); if (response.ok) { alert('✅ Quiz eliminado'); closeModal('confirmModal'); loadQuizzes(); } else { alert('❌ Error eliminando el quiz'); } } catch (error) { alert('Error de conexión'); } }
+        function confirmAction() { if (confirmCallback) { confirmCallback(); confirmCallback = null; } }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        document.getElementById('quizForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!confirm('¿Deseas guardar este quiz?')) { return; } const quizId = document.getElementById('quizId').value; const quizData = { title: document.getElementById('title').value, description: document.getElementById('description').value, mode: document.getElementById('mode').value, countdown_time: parseInt(document.getElementById('countdownTime').value), is_public: document.getElementById('isPublic').checked }; try { const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes'; const method = quizId ? 'PUT' : 'POST'; const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) }); const data = await response.json(); if (response.ok) { alert('✅ Quiz guardado exitosamente'); closeModal('quizModal'); loadQuizzes(); if (!quizId && data.quiz_id) { if (confirm('¿Deseas agregar preguntas ahora?')) { manageQuestions(data.quiz_id); } } } else { alert('❌ Error guardando el quiz'); } } catch (error) { alert('Error de conexión'); } });
+        function getCurrentUserId() { return null; }
+        loadQuizzes();
+    </script>
+</body>
+</html>

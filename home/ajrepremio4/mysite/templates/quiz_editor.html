@@ -1,0 +1,144 @@
+<!-- templates/quiz_editor.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Preguntas - QuizPlatform</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f5f7fa}
+    .navbar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+    .btn{background:#fff;color:#667eea;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;text-decoration:none}
+    .container{max-width:1000px;margin:0 auto;padding:24px}
+    .quiz-info{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .question-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px}
+    .question-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .qnum{background:#667eea;color:#fff;padding:6px 10px;border-radius:14px;font-weight:700}
+    .options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .opt{display:flex;align-items:center;gap:10px;border:2px solid #e0e0e0;border-radius:10px;padding:10px}
+    .opt.correct{background:#f1f8f4;border-color:#4caf50}
+    .letter{width:34px;height:34px;border-radius:50%;background:#667eea;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .opt.correct .letter{background:#4caf50}
+    .empty{background:#fff;border-radius:12px;text-align:center;padding:40px;color:#666}
+    .fab{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:30px;padding:12px 20px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(102,126,234,.35)}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:1000}
+    .modal.active{display:flex}
+    .modal-content{background:#fff;border-radius:14px;padding:24px;max-width:720px;width:92%;max-height:90vh;overflow:auto}
+    .form-group{margin-bottom:12px}
+    .form-group label{display:block;font-weight:700;margin-bottom:6px;color:#333}
+    .form-group input,.form-group textarea{width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-family:inherit}
+    .opt-edit{display:flex;gap:10px;align-items:center;background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h3>📝 Editor de Preguntas</h3>
+    <a href="../templates/dashboard.html" class="btn">← Dashboard</a>
+  </div>
+  <div class="container">
+    <div class="quiz-info">
+      <h2 id="quizTitle">Cargando...</h2>
+      <p id="quizDescription"></p>
+    </div>
+    <div id="questionsContainer"></div>
+    <button class="fab" onclick="openQuestionModal()">+ Agregar Pregunta</button>
+  </div>
+
+  <div class="modal" id="questionModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Nueva Pregunta</h3>
+      <form id="questionForm">
+        <input type="hidden" id="questionId" />
+        <div class="form-group">
+          <label for="questionText">Pregunta</label>
+          <textarea id="questionText" required placeholder="Escribe tu pregunta..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="imageUrl">URL de Imagen (opcional)</label>
+          <input id="imageUrl" type="url" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label for="videoUrl">URL de Video (opcional)</label>
+          <input id="videoUrl" type="url" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label for="timeLimit">Tiempo límite (segundos)</label>
+          <input id="timeLimit" type="number" min="10" max="120" value="30" />
+        </div>
+        <div style="margin:8px 0 10px 0; color:#666; font-weight:700">Opciones (marca la correcta ✓)</div>
+        <div class="opt-edit"><div class="letter">A</div><input id="option1" placeholder="Opción A" required /><label><input type="checkbox" name="correct" value="0" onchange="pickCorrect(0)"> Correcta</label></div>
+        <div class="opt-edit"><div class="letter">B</div><input id="option2" placeholder="Opción B" required /><label><input type="checkbox" name="correct" value="1" onchange="pickCorrect(1)"> Correcta</label></div>
+        <div class="opt-edit"><div class="letter">C</div><input id="option3" placeholder="Opción C" required /><label><input type="checkbox" name="correct" value="2" onchange="pickCorrect(2)"> Correcta</label></div>
+        <div class="opt-edit"><div class="letter">D</div><input id="option4" placeholder="Opción D" required /><label><input type="checkbox" name="correct" value="3" onchange="pickCorrect(3)"> Correcta</label></div>
+        <button class="btn" type="submit" style="width:100%;margin-top:8px">Guardar</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const quizId = window.location.pathname.split('/').pop();
+    let questions = [];
+    let correctIndex = -1;
+
+    async function loadQuiz(){
+      try{ const res = await fetch(`/api/quizzes/${quizId}`); const quiz = await res.json();
+        document.getElementById('quizTitle').textContent = quiz.title;
+        document.getElementById('quizDescription').textContent = quiz.description || 'Sin descripción';
+        questions = quiz.questions || []; renderQuestions();
+      }catch(e){ alert('Error cargando el quiz'); }
+    }
+
+    function renderQuestions(){
+      const c = document.getElementById('questionsContainer');
+      if(!questions.length){ c.innerHTML = `<div class="empty"><div style="font-size:46px">❓</div><h3>No hay preguntas aún</h3><p>Agrega tu primera pregunta</p></div>`; return; }
+      c.innerHTML = questions.map((q,i)=>`
+        <div class="question-card">
+          <div class="question-header">
+            <div class="qnum">Pregunta ${i+1}</div>
+            <div>
+              <button class="btn" onclick="openEdit(${q.id})">✏️ Editar</button>
+              <button class="btn" style="background:#f44336;color:#fff" onclick="delQuestion(${q.id})">🗑️ Eliminar</button>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;color:#333;font-weight:600">${q.question_text}</div>
+          ${q.image_url?`<img src="${q.image_url}" alt="img" style="max-width:280px;border-radius:10px;margin:6px 0">`:''}
+          ${q.video_url?`<div style="color:#667">📹 <a href="${q.video_url}" target="_blank">Ver video</a></div>`:''}
+          <div style="color:#666;margin:8px 0">⏱️ ${q.time_limit} s</div>
+          <div class="options">
+            ${q.options.map((op,idx)=>`<div class="opt ${op.is_correct?'correct':''}"><div class="letter">${String.fromCharCode(65+idx)}</div><div>${op.option_text}</div></div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function pickCorrect(i){ document.querySelectorAll('input[name="correct"]').forEach((el,idx)=>{ if(idx!==i) el.checked=false; }); correctIndex = i; }
+    function openQuestionModal(){ document.getElementById('modalTitle').textContent='Nueva Pregunta'; document.getElementById('questionForm').reset(); document.getElementById('questionId').value=''; correctIndex=-1; document.querySelectorAll('input[name="correct"]').forEach(el=>el.checked=false); toggleModal(true); }
+    function openEdit(id){ const q = questions.find(x=>x.id===id); if(!q) return; document.getElementById('modalTitle').textContent='Editar Pregunta'; document.getElementById('questionId').value=q.id; document.getElementById('questionText').value=q.question_text; document.getElementById('imageUrl').value=q.image_url||''; document.getElementById('videoUrl').value=q.video_url||''; document.getElementById('timeLimit').value=q.time_limit; q.options.forEach((o,idx)=>{ document.getElementById('option'+(idx+1)).value=o.option_text; const cb=document.querySelector(`input[name="correct"][value="${idx}"]`); cb.checked=!!o.is_correct; if(o.is_correct) correctIndex=idx; }); toggleModal(true); }
+    function toggleModal(v){ document.getElementById('questionModal').classList.toggle('active', !!v); }
+
+    async function delQuestion(id){ if(!confirm('¿Eliminar pregunta?')) return; try{ const r=await fetch(`/api/questions/${id}`,{method:'DELETE'}); if(r.ok){ alert('✅ Pregunta eliminada'); loadQuiz(); } else alert('❌ Error eliminando'); }catch(e){ alert('Error de conexión'); }}
+
+    document.getElementById('questionForm').addEventListener('submit', async (e)=>{
+      e.preventDefault(); if(correctIndex===-1){ alert('Selecciona una respuesta correcta'); return; }
+      const qid = document.getElementById('questionId').value;
+      const payload = {
+        question_text: document.getElementById('questionText').value,
+        image_url: document.getElementById('imageUrl').value,
+        video_url: document.getElementById('videoUrl').value,
+        time_limit: parseInt(document.getElementById('timeLimit').value||'30'),
+        position: questions.length,
+        options: [0,1,2,3].map(i=>({ text: document.getElementById('option'+(i+1)).value, is_correct: correctIndex===i }))
+      };
+      try{
+        const url = qid? `/api/questions/${qid}` : `/api/quizzes/${quizId}/questions`;
+        const method = qid? 'PUT' : 'POST';
+        const r = await fetch(url,{method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        if(r.ok){ alert('✅ Guardado'); toggleModal(false); loadQuiz(); } else { alert('❌ Error guardando'); }
+      }catch(e){ alert('Error de conexión'); }
+    });
+
+    loadQuiz();
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') toggleModal(false); });
+  </script>
+</body>
+</html>
