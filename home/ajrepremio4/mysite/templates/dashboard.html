@@ -216,6 +216,15 @@
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
         document.getElementById('quizForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!confirm('¿Deseas guardar este quiz?')) { return; } const quizId = document.getElementById('quizId').value; const quizData = { title: document.getElementById('title').value, description: document.getElementById('description').value, mode: document.getElementById('mode').value, countdown_time: parseInt(document.getElementById('countdownTime').value), is_public: document.getElementById('isPublic').checked }; try { const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes'; const method = quizId ? 'PUT' : 'POST'; const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) }); const data = await response.json(); if (response.ok) { alert('✅ Quiz guardado exitosamente'); closeModal('quizModal'); loadQuizzes(); if (!quizId && data.quiz_id) { if (confirm('¿Deseas agregar preguntas ahora?')) { manageQuestions(data.quiz_id); } } } else { alert('❌ Error guardando el quiz'); } } catch (error) { alert('Error de conexión'); } });
         function getCurrentUserId() { return null; }
+        // Cargar nombre de usuario desde la sesión
+        fetch('/api/session_info')
+            .then(res => res.json())
+            .then(data => {
+                if (data.username) {
+                    document.getElementById('username').textContent = data.username;
+                }
+            })
+            .catch(err => console.error('Error cargando sesión:', err));
         loadQuizzes();
     </script>
 </body>

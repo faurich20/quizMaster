@@ -17,8 +17,8 @@ app.secret_key = secrets.token_hex(32)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'tu_email@gmail.com'  # Configurar
-app.config['MAIL_PASSWORD'] = 'tu_contraseña'  # Configurar
+app.config['MAIL_USERNAME'] = 'ajrepremio4@gmail.com'  # Tu correo de Gmail
+app.config['MAIL_PASSWORD'] = 'elpmdftpncxzgsca'  # ⚠️ Contraseña de aplicación SIN ESPACIOS (16 caracteres)
 mail = Mail(app)
 
 def obtener_bd():
@@ -479,6 +479,118 @@ def resultados_juego(session_id):
     conn.close()
     
     return jsonify(ranking)
+
+@app.route('/dashboard')
+@requiere_sesion
+@requiere_docente
+def dashboard():
+    """Dashboard para docentes"""
+    return render_template('dashboard.html')
+
+@app.route('/api/quizzes', methods=['GET', 'POST'])
+@requiere_sesion
+@requiere_docente
+def gestionar_quizzes():
+    """Obtener todos los quizzes o crear uno nuevo"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    if request.method == 'GET':
+        cursor.execute('''
+            SELECT * FROM quizzes 
+            WHERE teacher_id = %s OR is_public = 1
+            ORDER BY created_at DESC
+        ''', (session['user_id'],))
+        quizzes = cursor.fetchall()
+        conn.close()
+        return jsonify(quizzes)
+    
+    elif request.method == 'POST':
+        data = request.json
+        pin_code = generar_pin()
+        
+        cursor.execute('''
+            INSERT INTO quizzes (teacher_id, title, description, mode, 
+                               countdown_time, is_public, pin_code)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ''', (session['user_id'], data.get('title'), data.get('description'),
+              data.get('mode', 'individual'), data.get('countdown_time', 30),
+              data.get('is_public', True), pin_code))
+        
+        quiz_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'quiz_id': quiz_id, 'pin_code': pin_code})
+
+@app.route('/api/quizzes/<int:quiz_id>', methods=['GET', 'PUT', 'DELETE'])
+@requiere_sesion
+def gestionar_quiz(quiz_id):
+    """Obtener, actualizar o eliminar un quiz específico"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM quizzes WHERE id = %s', (quiz_id,))
+        quiz = cursor.fetchone()
+        conn.close()
+        
+        if quiz:
+            return jsonify(quiz)
+        return jsonify({'error': 'Quiz no encontrado'}), 404
+    
+    elif request.method == 'PUT':
+        # Verificar que el usuario es el creador
+        cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+        quiz = cursor.fetchone()
+        
+        if not quiz or quiz['teacher_id'] != session['user_id']:
+            conn.close()
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        data = request.json
+        cursor.execute('''
+            UPDATE quizzes 
+            SET title = %s, description = %s, mode = %s, 
+                countdown_time = %s, is_public = %s
+            WHERE id = %s
+        ''', (data.get('title'), data.get('description'), data.get('mode'),
+              data.get('countdown_time'), data.get('is_public'), quiz_id))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        # Verificar que el usuario es el creador
+        cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+        quiz = cursor.fetchone()
+        
+        if not quiz or quiz['teacher_id'] != session['user_id']:
+            conn.close()
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        cursor.execute('DELETE FROM quizzes WHERE id = %s', (quiz_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+@app.route('/quiz_editor/<int:quiz_id>')
+@requiere_sesion
+@requiere_docente
+def editor_quiz(quiz_id):
+    """Editor de preguntas del quiz"""
+    return render_template('quiz_editor.html', quiz_id=quiz_id)
+
+@app.route('/api/session_info')
+@requiere_sesion
+def info_sesion():
+    """Obtener información de la sesión actual"""
+    return jsonify({
+        'user_id': session.get('user_id'),
+        'username': session.get('username'),
+        'is_teacher': session.get('is_teacher', False)
+    })
 
 @app.route('/logout')
 def cerrar_sesion():
