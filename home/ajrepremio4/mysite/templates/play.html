@@ -7,7 +7,15 @@
     <title>Jugar - QuizPlatform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .navbar.show { display: flex; }
+        .navbar h1 { font-size: 1.8em; }
+        .navbar-right { display: flex; align-items: center; gap: 20px; }
+        .btn-nav { background: white; color: #667eea; border: 2px solid white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; transition: all 0.3s ease; }
+        .btn-nav:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px); }
+        .page-content { display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
+        .navbar.show + .page-content { min-height: calc(100vh - 60px); }
         .play-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; text-align: center; }
         .play-header { margin-bottom: 30px; }
         .play-header h1 { color: #333; font-size: 3em; margin-bottom: 10px; }
@@ -26,6 +34,10 @@
         .link-container { margin-top: 20px; }
         .link-container a { color: #667eea; text-decoration: none; font-weight: bold; }
         .link-container a:hover { text-decoration: underline; }
+        .btn-secondary { width: 100%; background: white; color: #667eea; border: 2px solid #667eea; padding: 15px; font-size: 1.2em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; margin-top: 15px; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-secondary:hover { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        #backToHomeBtn { display: none; }
+        #backToHomeBtn.show { display: inline-block; }
         .game-screen { display: none; }
         .game-screen.active { display: block; }
         .question-container { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; }
@@ -64,7 +76,16 @@
     </style>
 </head>
 <body>
-    <div class="play-container">
+    <div class="navbar" id="navbar">
+        <h1>🎯 QuizPlatform</h1>
+        <div class="navbar-right">
+            <span>Bienvenido, <strong id="navUsername"></strong></span>
+            <a href="/logout" class="btn-nav">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <div class="page-content">
+        <div class="play-container">
         <div id="joinScreen" class="join-screen active">
             <div class="play-header">
                 <h1>🎮</h1>
@@ -83,6 +104,7 @@
                 </div>
                 <button type="submit" class="btn">Unirse al Juego</button>
             </form>
+            <a href="/" class="btn-secondary" id="backToHomeBtn">← Volver a Inicio</a>
         </div>
         <div id="gameScreen" class="game-screen">
             <div class="question-container">
@@ -100,6 +122,7 @@
             <button class="btn" onclick="location.reload()">Jugar Otra Vez</button>
         </div>
     </div>
+    </div>
     <script>
         let currentQuestion = 0; let questions = []; let participantId = null; let sessionId = null; let score = 0; let timerInterval = null;
         let loggedInUsername = null;
@@ -109,21 +132,25 @@
             .then(res => res.json())
             .then(data => {
                 if (data.username && !data.is_teacher) {
-                    // Usuario alumno logueado
+                    // Usuario alumno logueado - mostrar navbar
                     loggedInUsername = data.username;
+                    document.getElementById('navUsername').textContent = data.username;
+                    document.getElementById('navbar').classList.add('show');
                     document.getElementById('usernameGroup').style.display = 'none';
                     document.getElementById('username').value = data.username;
                 } else if (data.username && data.is_teacher) {
                     // Usuario docente logueado - redirigir al dashboard
                     window.location.href = '/dashboard';
                 } else {
-                    // Usuario no logueado - mostrar campo de nombre
+                    // Usuario no logueado - mostrar campo de nombre y botón volver
                     document.getElementById('username').required = true;
+                    document.getElementById('backToHomeBtn').classList.add('show');
                 }
             })
             .catch(err => {
-                // No hay sesión - mostrar campo de nombre
+                // No hay sesión - mostrar campo de nombre y botón volver
                 document.getElementById('username').required = true;
+                document.getElementById('backToHomeBtn').classList.add('show');
             });
         
         document.getElementById('joinForm').addEventListener('submit', async function(e){ 
