@@ -533,11 +533,34 @@ def gestionar_quiz(quiz_id):
     if request.method == 'GET':
         cursor.execute('SELECT * FROM quizzes WHERE id = %s', (quiz_id,))
         quiz = cursor.fetchone()
+        
+        if not quiz:
+            conn.close()
+            return jsonify({'error': 'Quiz no encontrado'}), 404
+        
+        # Obtener preguntas del quiz
+        cursor.execute('''
+            SELECT * FROM questions 
+            WHERE quiz_id = %s 
+            ORDER BY position, id
+        ''', (quiz_id,))
+        
+        questions = cursor.fetchall()
+        
+        # Obtener opciones para cada pregunta
+        for question in questions:
+            cursor.execute('''
+                SELECT id, option_text, is_correct 
+                FROM options 
+                WHERE question_id = %s
+                ORDER BY id
+            ''', (question['id'],))
+            question['options'] = cursor.fetchall()
+        
+        quiz['questions'] = questions
         conn.close()
         
-        if quiz:
-            return jsonify(quiz)
-        return jsonify({'error': 'Quiz no encontrado'}), 404
+        return jsonify(quiz)
     
     elif request.method == 'PUT':
         # Verificar que el usuario es el creador
@@ -582,10 +605,170 @@ def editor_quiz(quiz_id):
     """Editor de preguntas del quiz"""
     return render_template('quiz_editor.html', quiz_id=quiz_id)
 
-@app.route('/api/session_info')
+@app.route('/api/quizzes/<int:quiz_id>/questions', methods=['POST'])
 @requiere_sesion
+@requiere_docente
+def crear_pregunta(quiz_id):
+    """Crear una nueva pregunta para un quiz"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Verificar que el usuario es el creador del quiz
+    cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+    quiz = cursor.fetchone()
+    
+    if not quiz or quiz['teacher_id'] != session['user_id']:
+        conn.close()
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    data = request.json
+    
+    try:
+        # Insertar la pregunta
+        cursor.execute('''
+            INSERT INTO questions (quiz_id, question_text, image_url, video_url, 
+                                 time_limit, position)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (quiz_id, data.get('question_text'), data.get('image_url'),
+              data.get('video_url'), data.get('time_limit', 30),
+              data.get('position', 0)))
+        
+        question_id = cursor.lastrowid
+        
+        # Insertar las opciones
+        for option in data.get('options', []):
+            cursor.execute('''
+                INSERT INTO options (question_id, option_text, is_correct)
+                VALUES (%s, %s, %s)
+            ''', (question_id, option.get('text'), option.get('is_correct', False)))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'question_id': question_id})
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/questions/<int:question_id>', methods=['GET', 'PUT', 'DELETE'])
+@requiere_sesion
+def gestionar_pregunta(question_id):
+    """Obtener, actualizar o eliminar una pregunta"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    if request.method == 'GET':
+        cursor.execute('''
+            SELECT q.*, qz.teacher_id 
+            FROM questions q
+            JOIN quizzes qz ON q.quiz_id = qz.id
+            WHERE q.id = %s
+        ''', (question_id,))
+        
+        question = cursor.fetchone()
+        
+        if not question:
+            conn.close()
+            return jsonify({'error': 'Pregunta no encontrada'}), 404
+        
+        # Obtener opciones
+        cursor.execute('''
+            SELECT id, option_text, is_correct 
+            FROM options 
+            WHERE question_id = %s
+            ORDER BY id
+        ''', (question_id,))
+        
+        question['options'] = cursor.fetchall()
+        conn.close()
+        
+        return jsonify(question)
+    
+    elif request.method == 'PUT':
+        # Verificar permisos
+        cursor.execute('''
+            SELECT qz.teacher_id 
+            FROM questions q
+            JOIN quizzes qz ON q.quiz_id = qz.id
+            WHERE q.id = %s
+        ''', (question_id,))
+        
+        result = cursor.fetchone()
+        
+        if not result or result['teacher_id'] != session['user_id']:
+            conn.close()
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        data = request.json
+        
+        try:
+            # Actualizar pregunta
+            cursor.execute('''
+                UPDATE questions 
+                SET question_text = %s, image_url = %s, video_url = %s, 
+                    time_limit = %s, position = %s
+                WHERE id = %s
+            ''', (data.get('question_text'), data.get('image_url'),
+                  data.get('video_url'), data.get('time_limit', 30),
+                  data.get('position', 0), question_id))
+            
+            # Eliminar opciones antiguas
+            cursor.execute('DELETE FROM options WHERE question_id = %s', (question_id,))
+            
+            # Insertar nuevas opciones
+            for option in data.get('options', []):
+                cursor.execute('''
+                    INSERT INTO options (question_id, option_text, is_correct)
+                    VALUES (%s, %s, %s)
+                ''', (question_id, option.get('text'), option.get('is_correct', False)))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'success': True})
+        
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return jsonify({'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        # Verificar permisos
+        cursor.execute('''
+            SELECT qz.teacher_id 
+            FROM questions q
+            JOIN quizzes qz ON q.quiz_id = qz.id
+            WHERE q.id = %s
+        ''', (question_id,))
+        
+        result = cursor.fetchone()
+        
+        if not result or result['teacher_id'] != session['user_id']:
+            conn.close()
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        try:
+            # Eliminar opciones primero (por foreign key)
+            cursor.execute('DELETE FROM options WHERE question_id = %s', (question_id,))
+            # Eliminar pregunta
+            cursor.execute('DELETE FROM questions WHERE id = %s', (question_id,))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'success': True})
+        
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return jsonify({'error': str(e)}), 500
+
+@app.route('/api/session_info')
 def info_sesion():
-    """Obtener información de la sesión actual"""
+    """Obtener información de la sesión actual (si existe)"""
+    # No requiere sesión - retorna datos vacíos si no está logueado
     return jsonify({
         'user_id': session.get('user_id'),
         'username': session.get('username'),

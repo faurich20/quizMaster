@@ -177,8 +177,31 @@
         let currentQuizId = null;
         let confirmCallback = null;
         async function loadQuizzes(filter = 'all') {
-            try { const response = await fetch('/api/quizzes'); const quizzes = await response.json(); const container = document.getElementById('quizzesContainer'); if (quizzes.length === 0) { container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="btn" onclick="openCreateModal()">Crear Quiz</button></div>`; return; }
-                let filteredQuizzes = quizzes; if (filter === 'my') { filteredQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId()); } else if (filter === 'public') { filteredQuizzes = quizzes.filter(q => q.is_public); }
+            try { 
+                const response = await fetch('/api/quizzes'); 
+                const quizzes = await response.json(); 
+                const container = document.getElementById('quizzesContainer'); 
+                
+                if (quizzes.length === 0) { 
+                    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="btn" onclick="openCreateModal()">Crear Quiz</button></div>`; 
+                    return; 
+                }
+                
+                // Aplicar filtros
+                let filteredQuizzes = quizzes; 
+                if (filter === 'my') { 
+                    filteredQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId()); 
+                } else if (filter === 'public') { 
+                    filteredQuizzes = quizzes.filter(q => q.is_public); 
+                }
+                
+                // Verificar si hay resultados después del filtro
+                if (filteredQuizzes.length === 0) {
+                    const filterName = filter === 'my' ? 'tuyos' : filter === 'public' ? 'públicos' : '';
+                    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>No hay quizzes ${filterName}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class="btn" onclick="loadQuizzes('all')">Ver Todos</button></div>`;
+                    return;
+                }
+                
                 container.innerHTML = '<div class="quizzes-grid">' + filteredQuizzes.map(quiz => `
                         <div class="quiz-card">
                             <h3>${quiz.title}</h3>
@@ -215,16 +238,20 @@
         function confirmAction() { if (confirmCallback) { confirmCallback(); confirmCallback = null; } }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
         document.getElementById('quizForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!confirm('¿Deseas guardar este quiz?')) { return; } const quizId = document.getElementById('quizId').value; const quizData = { title: document.getElementById('title').value, description: document.getElementById('description').value, mode: document.getElementById('mode').value, countdown_time: parseInt(document.getElementById('countdownTime').value), is_public: document.getElementById('isPublic').checked }; try { const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes'; const method = quizId ? 'PUT' : 'POST'; const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) }); const data = await response.json(); if (response.ok) { alert('✅ Quiz guardado exitosamente'); closeModal('quizModal'); loadQuizzes(); if (!quizId && data.quiz_id) { if (confirm('¿Deseas agregar preguntas ahora?')) { manageQuestions(data.quiz_id); } } } else { alert('❌ Error guardando el quiz'); } } catch (error) { alert('Error de conexión'); } });
-        function getCurrentUserId() { return null; }
-        // Cargar nombre de usuario desde la sesión
+        let currentUserId = null;
+        function getCurrentUserId() { return currentUserId; }
+        
+        // Cargar información de sesión
         fetch('/api/session_info')
             .then(res => res.json())
             .then(data => {
                 if (data.username) {
                     document.getElementById('username').textContent = data.username;
+                    currentUserId = data.user_id; // Guardar el ID del usuario
                 }
             })
             .catch(err => console.error('Error cargando sesión:', err));
+        
         loadQuizzes();
     </script>
 </body>

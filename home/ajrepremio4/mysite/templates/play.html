@@ -77,15 +77,12 @@
                     <label for="pinCode">Código PIN:</label>
                     <input type="text" id="pinCode" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="usernameGroup">
                     <label for="username">Tu nombre:</label>
-                    <input type="text" id="username" placeholder="Ingresa tu nombre" required>
+                    <input type="text" id="username" placeholder="Ingresa tu nombre">
                 </div>
                 <button type="submit" class="btn">Unirse al Juego</button>
             </form>
-            <div class="link-container">
-                <a href="../templates/index.html">Volver al inicio</a>
-            </div>
         </div>
         <div id="gameScreen" class="game-screen">
             <div class="question-container">
@@ -105,7 +102,61 @@
     </div>
     <script>
         let currentQuestion = 0; let questions = []; let participantId = null; let sessionId = null; let score = 0; let timerInterval = null;
-        document.getElementById('joinForm').addEventListener('submit', async function(e){ e.preventDefault(); const pinCode=document.getElementById('pinCode').value.toUpperCase(); const username=document.getElementById('username').value; try { const response=await fetch('/api/join_game',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pin_code: pinCode, username })}); const data=await response.json(); if(response.ok){ participantId=data.participant_id; sessionId=data.session_id; await loadQuestions(data.quiz.id); document.getElementById('joinScreen').classList.remove('active'); document.getElementById('gameScreen').classList.add('active'); showQuestion(0); } else { showAlert(data.error||'Error al unirse al juego'); } } catch(err){ showAlert('Error de conexión'); } });
+        let loggedInUsername = null;
+        
+        // Verificar si hay un usuario logueado
+        fetch('/api/session_info')
+            .then(res => res.json())
+            .then(data => {
+                if (data.username && !data.is_teacher) {
+                    // Usuario alumno logueado
+                    loggedInUsername = data.username;
+                    document.getElementById('usernameGroup').style.display = 'none';
+                    document.getElementById('username').value = data.username;
+                } else if (data.username && data.is_teacher) {
+                    // Usuario docente logueado - redirigir al dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    // Usuario no logueado - mostrar campo de nombre
+                    document.getElementById('username').required = true;
+                }
+            })
+            .catch(err => {
+                // No hay sesión - mostrar campo de nombre
+                document.getElementById('username').required = true;
+            });
+        
+        document.getElementById('joinForm').addEventListener('submit', async function(e){ 
+            e.preventDefault(); 
+            const pinCode = document.getElementById('pinCode').value.toUpperCase(); 
+            const username = document.getElementById('username').value || loggedInUsername;
+            
+            if (!username) {
+                showAlert('Por favor ingresa tu nombre');
+                return;
+            }
+            
+            try { 
+                const response = await fetch('/api/join_game', {
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ pin_code: pinCode, username })
+                }); 
+                const data = await response.json(); 
+                if(response.ok){ 
+                    participantId = data.participant_id; 
+                    sessionId = data.session_id; 
+                    await loadQuestions(data.quiz.id); 
+                    document.getElementById('joinScreen').classList.remove('active'); 
+                    document.getElementById('gameScreen').classList.add('active'); 
+                    showQuestion(0); 
+                } else { 
+                    showAlert(data.error || 'Error al unirse al juego'); 
+                } 
+            } catch(err){ 
+                showAlert('Error de conexión'); 
+            } 
+        });
         async function loadQuestions(quizId){ try { const response=await fetch(`/api/quizzes/${quizId}`); const quiz=await response.json(); questions=quiz.questions||[]; } catch(e){ console.error('Error cargando preguntas:', e);} }
         function showQuestion(index){ if(index>=questions.length){ showResults(); return; } currentQuestion=index; const q=questions[index]; document.getElementById('questionNumber').textContent=`Pregunta ${index+1} de ${questions.length}`; document.getElementById('questionText').textContent=q.question_text; const media=document.getElementById('questionMedia'); media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
             const answersGrid=document.getElementById('answersGrid'); answersGrid.innerHTML = q.options.map((opt,i)=>`<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})"><div class="answer-letter">${String.fromCharCode(65+i)}</div><div class="answer-text">${opt.option_text}</div></button>`).join(''); startTimer(q.time_limit); }
