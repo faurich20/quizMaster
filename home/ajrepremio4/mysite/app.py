@@ -117,6 +117,10 @@ def inicio():
 def jugar():
     return render_template('play.html')
 
+@app.route('/lobby')
+def lobby():
+    return render_template('lobby.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
@@ -480,6 +484,158 @@ def resultados_juego(session_id):
     
     return jsonify(ranking)
 
+@app.route('/api/session/<int:session_id>/info')
+def info_sesion(session_id):
+    """Obtener información de la sesión y participantes"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # Obtener información de la sesión
+        cursor.execute('''
+            SELECT gs.*, q.* 
+            FROM game_sessions gs
+            JOIN quizzes q ON gs.quiz_id = q.id
+            WHERE gs.id = %s
+        ''', (session_id,))
+        
+        session_data = cursor.fetchone()
+        
+        if not session_data:
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+        
+        # Obtener participantes
+        cursor.execute('''
+            SELECT id, username, total_score
+            FROM participants
+            WHERE session_id = %s
+            ORDER BY id
+        ''', (session_id,))
+        
+        participants = cursor.fetchall()
+        
+        return jsonify({
+            'session_id': session_data['id'],
+            'pin_code': session_data['pin_code'],
+            'status': session_data['status'],
+            'quiz': {
+                'id': session_data['quiz_id'],
+                'title': session_data['title'],
+                'description': session_data['description'],
+                'mode': session_data['mode'],
+                'countdown_time': session_data['countdown_time']
+            },
+            'participants': participants
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/session/<int:session_id>/status')
+def estado_sesion(session_id):
+    """Verificar el estado de la sesión (para polling)"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        cursor.execute('''
+            SELECT status FROM game_sessions WHERE id = %s
+        ''', (session_id,))
+        
+        session_data = cursor.fetchone()
+        
+        if not session_data:
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+        
+        # Obtener participantes actualizados
+        cursor.execute('''
+            SELECT id, username, total_score
+            FROM participants
+            WHERE session_id = %s
+            ORDER BY id
+        ''', (session_id,))
+        
+        participants = cursor.fetchall()
+        
+        return jsonify({
+            'status': session_data['status'],
+            'participants': participants
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/session/<int:session_id>/start', methods=['POST'])
+@requiere_sesion
+@requiere_docente
+def iniciar_quiz_grupal(session_id):
+    """Iniciar una sesión de juego grupal (solo profesor)"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # Verificar que la sesión existe y pertenece a un quiz del profesor
+        cursor.execute('''
+            SELECT gs.*, q.teacher_id 
+            FROM game_sessions gs
+            JOIN quizzes q ON gs.quiz_id = q.id
+            WHERE gs.id = %s
+        ''', (session_id,))
+        
+        session_data = cursor.fetchone()
+        
+        if not session_data:
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+        
+        if session_data['teacher_id'] != session['user_id']:
+            return jsonify({'error': 'No autorizado'}), 403
+        
+        # Actualizar estado a 'started'
+        cursor.execute('''
+            UPDATE game_sessions 
+            SET status = 'started'
+            WHERE id = %s
+        ''', (session_id,))
+        
+        conn.commit()
+        
+        return jsonify({'success': True, 'status': 'started'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/active_sessions')
+@requiere_sesion
+@requiere_docente
+def sesiones_activas():
+    """Obtener sesiones activas de quizzes del profesor"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        cursor.execute('''
+            SELECT gs.id as session_id, gs.pin_code, gs.status, gs.started_at,
+                   q.id as quiz_id, q.title, q.mode,
+                   COUNT(p.id) as participant_count
+            FROM game_sessions gs
+            JOIN quizzes q ON gs.quiz_id = q.id
+            LEFT JOIN participants p ON gs.id = p.session_id
+            WHERE q.teacher_id = %s AND gs.is_active = 1 AND q.mode = 'group'
+            GROUP BY gs.id, gs.pin_code, gs.status, gs.started_at, q.id, q.title, q.mode
+            ORDER BY gs.started_at DESC
+        ''', (session['user_id'],))
+        
+        sessions = cursor.fetchall()
+        return jsonify(sessions)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/dashboard')
 @requiere_sesion
 @requiere_docente
@@ -766,7 +922,7 @@ def gestionar_pregunta(question_id):
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/session_info')
-def info_sesion():
+def info_sesion_usuario():
     """Obtener información de la sesión actual (si existe)"""
     # No requiere sesión - retorna datos vacíos si no está logueado
     return jsonify({

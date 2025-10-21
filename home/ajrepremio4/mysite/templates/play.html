@@ -127,6 +127,32 @@
         let currentQuestion = 0; let questions = []; let participantId = null; let sessionId = null; let score = 0; let timerInterval = null;
         let loggedInUsername = null;
         
+        // Verificar si viene del lobby (auto-start)
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoStart = urlParams.get('auto_start');
+        const urlSessionId = urlParams.get('session_id');
+        const urlParticipantId = urlParams.get('participant_id');
+        
+        if (autoStart === 'true' && urlSessionId && urlParticipantId) {
+            // Iniciar automáticamente desde el lobby
+            sessionId = urlSessionId;
+            participantId = urlParticipantId;
+            
+            fetch(`/api/session/${sessionId}/info`)
+                .then(res => res.json())
+                .then(data => {
+                    loadQuestions(data.quiz.id).then(() => {
+                        document.getElementById('joinScreen').classList.remove('active');
+                        document.getElementById('gameScreen').classList.add('active');
+                        showQuestion(0);
+                    });
+                })
+                .catch(err => {
+                    alert('Error cargando el quiz');
+                    window.location.href = '/';
+                });
+        }
+        
         // Verificar si hay un usuario logueado
         fetch('/api/session_info')
             .then(res => res.json())
@@ -173,6 +199,15 @@
                 if(response.ok){ 
                     participantId = data.participant_id; 
                     sessionId = data.session_id; 
+                    
+                    // Verificar si es modo grupal
+                    if (data.quiz.mode === 'group') {
+                        // Redirigir a sala de espera
+                        window.location.href = `/lobby?session_id=${sessionId}&participant_id=${participantId}`;
+                        return;
+                    }
+                    
+                    // Modo individual: continuar normalmente
                     await loadQuestions(data.quiz.id); 
                     document.getElementById('joinScreen').classList.remove('active'); 
                     document.getElementById('gameScreen').classList.add('active'); 

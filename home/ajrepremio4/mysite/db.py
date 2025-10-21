@@ -3,7 +3,7 @@ import pymysql
 HOST = 'ajrepremio4.mysql.pythonanywhere-services.com'
 USER = 'ajrepremio4'
 PASSWORD = 'unpassword1'
-DB = 'ajrepremio4$quiz_bd'
+DB = 'ajrepremio4$quizdb'
 
 def obtener_conexion(con_dict=False):
     if con_dict:
