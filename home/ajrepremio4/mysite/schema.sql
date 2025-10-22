@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
   description TEXT,
   pin_code VARCHAR(8) UNIQUE NOT NULL,
   mode VARCHAR(20) DEFAULT 'individual',
+  num_groups INT DEFAULT 0,
   countdown_time INT DEFAULT 30,
   is_public BOOLEAN DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -69,6 +70,7 @@ CREATE TABLE IF NOT EXISTS participants (
   id INT AUTO_INCREMENT PRIMARY KEY,
   session_id INT NOT NULL,
   username VARCHAR(50) NOT NULL,
+  group_name VARCHAR(50),
   total_score INT DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE
 );

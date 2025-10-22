@@ -121,6 +121,10 @@ def jugar():
 def lobby():
     return render_template('lobby.html')
 
+@app.route('/group_selection')
+def group_selection():
+    return render_template('group_selection.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
@@ -484,6 +488,57 @@ def resultados_juego(session_id):
     
     return jsonify(ranking)
 
+@app.route('/api/participant/<int:participant_id>/assign_group', methods=['POST'])
+def asignar_grupo(participant_id):
+    """Asignar un grupo a un participante"""
+    data = request.json
+    group_name = data.get('group_name')
+    
+    if not group_name:
+        return jsonify({'error': 'Nombre de grupo requerido'}), 400
+    
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # Actualizar el grupo del participante
+        cursor.execute('''
+            UPDATE participants 
+            SET group_name = %s
+            WHERE id = %s
+        ''', (group_name, participant_id))
+        
+        conn.commit()
+        
+        return jsonify({'success': True, 'group_name': group_name})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/participant/<int:participant_id>/leave', methods=['POST'])
+def abandonar_sesion(participant_id):
+    """Eliminar un participante de la sesión"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # Eliminar el participante
+        cursor.execute('''
+            DELETE FROM participants 
+            WHERE id = %s
+        ''', (participant_id,))
+        
+        conn.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/session/<int:session_id>/info')
 def info_sesion(session_id):
     """Obtener información de la sesión y participantes"""
@@ -506,7 +561,7 @@ def info_sesion(session_id):
         
         # Obtener participantes
         cursor.execute('''
-            SELECT id, username, total_score
+            SELECT id, username, group_name, total_score
             FROM participants
             WHERE session_id = %s
             ORDER BY id
@@ -523,6 +578,7 @@ def info_sesion(session_id):
                 'title': session_data['title'],
                 'description': session_data['description'],
                 'mode': session_data['mode'],
+                'num_groups': session_data.get('num_groups', 0),
                 'countdown_time': session_data['countdown_time']
             },
             'participants': participants
@@ -550,7 +606,7 @@ def estado_sesion(session_id):
         
         # Obtener participantes actualizados
         cursor.execute('''
-            SELECT id, username, total_score
+            SELECT id, username, group_name, total_score
             FROM participants
             WHERE session_id = %s
             ORDER BY id
@@ -666,12 +722,12 @@ def gestionar_quizzes():
         pin_code = generar_pin()
         
         cursor.execute('''
-            INSERT INTO quizzes (teacher_id, title, description, mode, 
+            INSERT INTO quizzes (teacher_id, title, description, mode, num_groups,
                                countdown_time, is_public, pin_code)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ''', (session['user_id'], data.get('title'), data.get('description'),
-              data.get('mode', 'individual'), data.get('countdown_time', 30),
-              data.get('is_public', True), pin_code))
+              data.get('mode', 'individual'), data.get('num_groups', 0),
+              data.get('countdown_time', 30), data.get('is_public', True), pin_code))
         
         quiz_id = cursor.lastrowid
         conn.commit()
@@ -730,11 +786,12 @@ def gestionar_quiz(quiz_id):
         data = request.json
         cursor.execute('''
             UPDATE quizzes 
-            SET title = %s, description = %s, mode = %s, 
+            SET title = %s, description = %s, mode = %s, num_groups = %s,
                 countdown_time = %s, is_public = %s
             WHERE id = %s
         ''', (data.get('title'), data.get('description'), data.get('mode'),
-              data.get('countdown_time'), data.get('is_public'), quiz_id))
+              data.get('num_groups', 0), data.get('countdown_time'), 
+              data.get('is_public'), quiz_id))
         
         conn.commit()
         conn.close()

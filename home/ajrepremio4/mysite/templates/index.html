@@ -192,6 +192,37 @@
             font-size: 0.9em;
         }
         
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            background: #fff;
+            color: #667eea;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
         @media (max-width: 768px) {
             .header-content { flex-direction: column; align-items: flex-start; }
             .header-right { align-self: stretch; justify-content: space-between; }
@@ -217,19 +248,45 @@
                     <h1>🎯 QuizPlatform</h1>
                     <p>Transforma el aprendizaje en una experiencia divertida e interactiva</p>
                 </div>
-                <div class="header-right">
-                    <p class="login-cta">¿Ya tienes cuenta?</p>
-                    <a href="/login" class="btn btn-login">Iniciar Sesión</a>
+                <div class="header-right" id="headerRight">
+                    <!-- Contenido para usuarios NO logueados -->
+                    <div id="notLoggedContent">
+                        <p class="login-cta">¿Ya tienes cuenta?</p>
+                        <a href="/login" class="btn btn-login">Iniciar Sesión</a>
+                    </div>
+                    
+                    <!-- Contenido para usuarios logueados -->
+                    <div id="loggedContent" class="user-info hidden">
+                        <span class="user-name">Bienvenido, <strong id="username"></strong></span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="content">
-            <div class="card">
+            <!-- Tarjeta para usuarios NO logueados -->
+            <div class="card" id="registerCard">
                 <div class="card-icon">🚀</div>
                 <h2>¿Aún no tienes cuenta?</h2>
                 <p>Únete a nuestra plataforma y comienza a crear o participar en cuestionarios interactivos. ¡Regístrate ahora y descubre una nueva forma de aprender!</p>
                 <a href="/register" class="btn">Registrarse Ahora</a>
+            </div>
+            
+            <!-- Tarjeta para ESTUDIANTES logueados -->
+            <div class="card hidden" id="studentCard">
+                <div class="card-icon">📚</div>
+                <h2>Mis Quizzes</h2>
+                <p>Revisa tu historial de participación, puntuaciones y estadísticas. ¡Sigue mejorando tu aprendizaje!</p>
+                <a href="/student_dashboard" class="btn">Ver Mi Progreso</a>
+            </div>
+            
+            <!-- Tarjeta para PROFESORES logueados -->
+            <div class="card hidden" id="teacherCard">
+                <div class="card-icon">👨‍🏫</div>
+                <h2>Panel de Profesor</h2>
+                <p>Crea, gestiona y analiza tus quizzes. Revisa el rendimiento de tus estudiantes y mejora tus clases.</p>
+                <a href="/dashboard" class="btn">Ir al Dashboard</a>
             </div>
             
             <div class="card">
@@ -311,5 +368,67 @@
         
         
     </div>
+    
+    <script>
+        // Verificar si hay un usuario logueado
+        async function checkSession() {
+            try {
+                const response = await fetch('/api/session_info');
+                const data = await response.json();
+                
+                if (data.username) {
+                    // Usuario logueado
+                    document.getElementById('notLoggedContent').classList.add('hidden');
+                    document.getElementById('loggedContent').classList.remove('hidden');
+                    document.getElementById('username').textContent = data.username;
+                    
+                    // Ocultar tarjeta de registro
+                    document.getElementById('registerCard').classList.add('hidden');
+                    
+                    // Mostrar tarjeta según tipo de usuario
+                    if (data.is_teacher) {
+                        document.getElementById('teacherCard').classList.remove('hidden');
+                    } else {
+                        document.getElementById('studentCard').classList.remove('hidden');
+                    }
+                } else {
+                    // Usuario NO logueado - mostrar contenido por defecto
+                    document.getElementById('notLoggedContent').classList.remove('hidden');
+                    document.getElementById('loggedContent').classList.add('hidden');
+                    document.getElementById('registerCard').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error verificando sesión:', error);
+                // En caso de error, mostrar contenido por defecto (no logueado)
+                document.getElementById('notLoggedContent').classList.remove('hidden');
+                document.getElementById('loggedContent').classList.add('hidden');
+            }
+        }
+        
+        // Función para cerrar sesión
+        async function logout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    // Si el endpoint es GET, redirigir directamente
+                    window.location.href = '/logout';
+                }
+            } catch (error) {
+                // Fallback: redirigir a logout
+                window.location.href = '/logout';
+            }
+        }
+        
+        // Ejecutar al cargar la página
+        checkSession();
+    </script>
 </body>
 </html>

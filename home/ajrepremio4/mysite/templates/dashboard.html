@@ -160,10 +160,14 @@
                 </div>
                 <div class="form-group">
                     <label for="mode">Modo de Juego:</label>
-                    <select id="mode">
+                    <select id="mode" onchange="toggleGroupsInput()">
                         <option value="individual">Individual</option>
                         <option value="group">Grupal</option>
                     </select>
+                </div>
+                <div class="form-group" id="numGroupsContainer" style="display: none;">
+                    <label for="numGroups">Número de Grupos:</label>
+                    <input type="number" id="numGroups" min="2" max="20" value="4">
                 </div>
                 <div class="form-group">
                     <label for="countdownTime">Tiempo por pregunta (segundos):</label>
@@ -246,11 +250,17 @@
             } catch (error) { console.error('Error cargando quizzes:', error); }
         }
         function updateStats(quizzes) { document.getElementById('totalQuizzes').textContent = quizzes.length; document.getElementById('totalPublic').textContent = quizzes.filter(q => q.is_public).length; }
+        function toggleGroupsInput() {
+            const mode = document.getElementById('mode').value;
+            const container = document.getElementById('numGroupsContainer');
+            container.style.display = mode === 'group' ? 'block' : 'none';
+        }
         function openCreateModal() { 
             document.getElementById('modalTitle').textContent = 'Crear Nuevo Quiz'; 
             document.getElementById('quizForm').reset(); document.getElementById('quizId').value = ''; 
+            toggleGroupsInput(); // Resetear visibilidad
             document.getElementById('quizModal').classList.add('active'); }
-        async function editQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); document.getElementById('modalTitle').textContent = 'Editar Quiz'; document.getElementById('quizId').value = quiz.id; document.getElementById('title').value = quiz.title; document.getElementById('description').value = quiz.description || ''; document.getElementById('mode').value = quiz.mode; document.getElementById('countdownTime').value = quiz.countdown_time; document.getElementById('isPublic').checked = quiz.is_public; document.getElementById('quizModal').classList.add('active'); } catch (error) { alert('Error cargando el quiz'); } }
+        async function editQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); document.getElementById('modalTitle').textContent = 'Editar Quiz'; document.getElementById('quizId').value = quiz.id; document.getElementById('title').value = quiz.title; document.getElementById('description').value = quiz.description || ''; document.getElementById('mode').value = quiz.mode; document.getElementById('numGroups').value = quiz.num_groups || 4; document.getElementById('countdownTime').value = quiz.countdown_time; document.getElementById('isPublic').checked = quiz.is_public; toggleGroupsInput(); document.getElementById('quizModal').classList.add('active'); } catch (error) { alert('Error cargando el quiz'); } }
         function manageQuestions(quizId) { window.location.href = `/quiz_editor/${quizId}`; }
         function shareQuiz(pinCode) { const url = `${window.location.origin}/quiz/${pinCode}`; navigator.clipboard.writeText(url).then(() => { alert(`✅ Enlace copiado al portapapeles:\n${url}\n\nPIN: ${pinCode}`); }); }
         async function duplicateQuiz(quizId) { if (confirm('¿Deseas duplicar este quiz?')) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); const newQuiz = { title: quiz.title + ' (Copia)', description: quiz.description, mode: quiz.mode, countdown_time: quiz.countdown_time, is_public: false }; const createResponse = await fetch('/api/quizzes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newQuiz) }); if (createResponse.ok) { alert('✅ Quiz duplicado exitosamente'); loadQuizzes(); } } catch (error) { alert('Error duplicando el quiz'); } } }
@@ -258,7 +268,40 @@
         async function deleteQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`, { method: 'DELETE' }); if (response.ok) { alert('✅ Quiz eliminado'); closeModal('confirmModal'); loadQuizzes(); } else { alert('❌ Error eliminando el quiz'); } } catch (error) { alert('Error de conexión'); } }
         function confirmAction() { if (confirmCallback) { confirmCallback(); confirmCallback = null; } }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
-        document.getElementById('quizForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!confirm('¿Deseas guardar este quiz?')) { return; } const quizId = document.getElementById('quizId').value; const quizData = { title: document.getElementById('title').value, description: document.getElementById('description').value, mode: document.getElementById('mode').value, countdown_time: parseInt(document.getElementById('countdownTime').value), is_public: document.getElementById('isPublic').checked }; try { const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes'; const method = quizId ? 'PUT' : 'POST'; const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) }); const data = await response.json(); if (response.ok) { alert('✅ Quiz guardado exitosamente'); closeModal('quizModal'); loadQuizzes(); if (!quizId && data.quiz_id) { if (confirm('¿Deseas agregar preguntas ahora?')) { manageQuestions(data.quiz_id); } } } else { alert('❌ Error guardando el quiz'); } } catch (error) { alert('Error de conexión'); } });
+        document.getElementById('quizForm').addEventListener('submit', async function(e) { 
+            e.preventDefault(); 
+            if (!confirm('¿Deseas guardar este quiz?')) { return; } 
+            const quizId = document.getElementById('quizId').value; 
+            const mode = document.getElementById('mode').value;
+            const quizData = { 
+                title: document.getElementById('title').value, 
+                description: document.getElementById('description').value, 
+                mode: mode, 
+                num_groups: mode === 'group' ? parseInt(document.getElementById('numGroups').value) : 0,
+                countdown_time: parseInt(document.getElementById('countdownTime').value), 
+                is_public: document.getElementById('isPublic').checked 
+            }; 
+            try { 
+                const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes'; 
+                const method = quizId ? 'PUT' : 'POST'; 
+                const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) }); 
+                const data = await response.json(); 
+                if (response.ok) { 
+                    alert('✅ Quiz guardado exitosamente'); 
+                    closeModal('quizModal'); 
+                    loadQuizzes(); 
+                    if (!quizId && data.quiz_id) { 
+                        if (confirm('¿Deseas agregar preguntas ahora?')) { 
+                            manageQuestions(data.quiz_id); 
+                        } 
+                    } 
+                } else { 
+                    alert('❌ Error guardando el quiz'); 
+                } 
+            } catch (error) { 
+                alert('Error de conexión'); 
+            } 
+        });
         let currentUserId = null;
         function getCurrentUserId() { return currentUserId; }
         

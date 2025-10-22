@@ -202,8 +202,8 @@
                     
                     // Verificar si es modo grupal
                     if (data.quiz.mode === 'group') {
-                        // Redirigir a sala de espera
-                        window.location.href = `/lobby?session_id=${sessionId}&participant_id=${participantId}`;
+                        // Redirigir a selección de grupos
+                        window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
                         return;
                     }
                     

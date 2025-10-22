@@ -59,6 +59,7 @@
                 <h2 id="quizTitle">Cargando...</h2>
                 <p id="quizDescription"></p>
                 <p id="quizMode"></p>
+                <p id="groupInfo" style="font-size: 1.3em; margin-top: 10px;"></p>
                 <div class="pin-display">
                     PIN: <strong id="pinCode"></strong>
                 </div>
@@ -70,11 +71,12 @@
             </div>
             
             <div class="participants-section">
-                <h3>👥 Participantes Conectados: <span id="participantCount">0</span></h3>
+                <h3 id="participantsTitle">👥 Participantes Conectados: <span id="participantCount">0</span></h3>
                 <div class="participants-grid" id="participantsList"></div>
             </div>
             
-            <a href="/" class="btn-secondary" id="backToHomeBtn">← Salir de la Sala</a>
+            <button class="btn-secondary" onclick="changeGroup()" style="margin-right: 10px;">🔄 Cambiar Grupo</button>
+            <button class="btn-secondary" onclick="leaveLobby()">← Salir de la Sala</button>
         </div>
     </div>
     
@@ -84,6 +86,7 @@
         const participantId = urlParams.get('participant_id');
         let pollingInterval = null;
         let loggedInUsername = null;
+        let currentParticipantData = null;
         
         // Verificar si hay un usuario logueado
         fetch('/api/session_info')
@@ -130,11 +133,66 @@
         function updateParticipants(participants) {
             const list = document.getElementById('participantsList');
             const count = document.getElementById('participantCount');
+            const title = document.getElementById('participantsTitle');
             
-            count.textContent = participants.length;
-            list.innerHTML = participants.map(p => 
-                `<div class="participant-card"><strong>${p.username}</strong></div>`
-            ).join('');
+            // Encontrar datos del participante actual
+            currentParticipantData = participants.find(p => p.id == participantId);
+            
+            // Mostrar grupo asignado
+            if (currentParticipantData && currentParticipantData.group_name) {
+                document.getElementById('groupInfo').innerHTML = `📚 Tu grupo: <strong>${currentParticipantData.group_name}</strong>`;
+                
+                // Filtrar solo participantes del mismo grupo
+                const myGroup = currentParticipantData.group_name;
+                const sameGroupParticipants = participants.filter(p => p.group_name === myGroup);
+                
+                // Actualizar título
+                title.innerHTML = `👥 Participantes de tu Grupo: <span id="participantCount">${sameGroupParticipants.length}</span>`;
+                
+                list.innerHTML = sameGroupParticipants.map(p => {
+                    const isMe = p.id == participantId;
+                    return `<div class="participant-card"><strong>${p.username}${isMe ? ' (Tú)' : ''}</strong></div>`;
+                }).join('');
+            } else {
+                // Si no tiene grupo asignado, mostrar todos
+                title.innerHTML = `👥 Participantes Conectados: <span id="participantCount">${participants.length}</span>`;
+                
+                list.innerHTML = participants.map(p => {
+                    const isMe = p.id == participantId;
+                    const groupTag = p.group_name ? ` <span style="color: #667eea;">(${p.group_name})</span>` : '';
+                    return `<div class="participant-card"><strong>${p.username}${isMe ? ' (Tú)' : ''}</strong>${groupTag}</div>`;
+                }).join('');
+            }
+        }
+        
+        // Cambiar de grupo
+        function changeGroup() {
+            window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
+        }
+        
+        // Salir de la sala
+        async function leaveLobby() {
+            if (!confirm('¿Estás seguro de que deseas salir de la sala?')) {
+                return;
+            }
+            
+            try {
+                // Detener polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                }
+                
+                // Eliminar participante
+                await fetch(`/api/participant/${participantId}/leave`, {
+                    method: 'POST'
+                });
+                
+                // Redirigir a home
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Error al salir:', error);
+                window.location.href = '/';
+            }
         }
         
         // Verificar estado de la sesión (polling)

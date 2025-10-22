@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Grupo - QuizPlatform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        .container { 
+            background: white; 
+            border-radius: 30px; 
+            padding: 50px; 
+            max-width: 900px; 
+            width: 100%; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            text-align: center;
+        }
+        h1 { 
+            color: #333; 
+            font-size: 2.5em; 
+            margin-bottom: 15px; 
+        }
+        .quiz-info { 
+            background: #f5f7fa; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 30px; 
+        }
+        .quiz-info h2 { 
+            color: #667eea; 
+            margin-bottom: 10px; 
+        }
+        .quiz-info p { 
+            color: #666; 
+            margin: 5px 0; 
+        }
+        .instruction { 
+            font-size: 1.2em; 
+            color: #666; 
+            margin-bottom: 30px; 
+        }
+        .groups-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px; 
+        }
+        .group-card { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: 3px solid transparent;
+        }
+        .group-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); 
+        }
+        .group-card.selected { 
+            border-color: #ffd700; 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); 
+        }
+        .group-card h3 { 
+            font-size: 1.8em; 
+            margin-bottom: 10px; 
+        }
+        .group-card .count { 
+            font-size: 1.1em; 
+            opacity: 0.9; 
+        }
+        .btn { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            border-radius: 15px; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            margin: 10px;
+        }
+        .btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); 
+        }
+        .btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        .btn-secondary { 
+            background: #e0e0e0; 
+            color: #333; 
+        }
+        .btn-secondary:hover { 
+            background: #d0d0d0; 
+        }
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+        }
+        .loading-spinner { 
+            border: 5px solid #f3f3f3; 
+            border-top: 5px solid #667eea; 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto 20px; 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Selecciona tu Grupo</h1>
+        
+        <div class="quiz-info" id="quizInfo">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Cargando información del quiz...</p>
+            </div>
+        </div>
+        
+        <p class="instruction">Elige el grupo al que deseas unirte:</p>
+        
+        <div class="groups-grid" id="groupsGrid"></div>
+        
+        <div>
+            <button class="btn" id="joinBtn" onclick="joinGroup()" disabled>
+                Unirse al Grupo
+            </button>
+            <button class="btn btn-secondary" onclick="goBack()">
+                ← Volver
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        const participantId = urlParams.get('participant_id');
+        let selectedGroup = null;
+        let quizData = null;
+        
+        // Cargar información del quiz y grupos
+        async function loadQuizInfo() {
+            try {
+                const response = await fetch(`/api/session/${sessionId}/info`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    alert('Error: ' + (data.error || 'No se pudo cargar el quiz'));
+                    window.location.href = '/play';
+                    return;
+                }
+                
+                quizData = data;
+                
+                // Mostrar información del quiz
+                document.getElementById('quizInfo').innerHTML = `
+                    <h2>${data.quiz.title}</h2>
+                    <p>${data.quiz.description || ''}</p>
+                    <p><strong>PIN:</strong> ${data.pin_code}</p>
+                `;
+                
+                // Generar tarjetas de grupos
+                const numGroups = data.quiz.num_groups || 4;
+                const groupsGrid = document.getElementById('groupsGrid');
+                
+                // Contar participantes por grupo
+                const groupCounts = {};
+                data.participants.forEach(p => {
+                    if (p.group_name) {
+                        groupCounts[p.group_name] = (groupCounts[p.group_name] || 0) + 1;
+                    }
+                });
+                
+                groupsGrid.innerHTML = '';
+                for (let i = 1; i <= numGroups; i++) {
+                    const groupName = `GRUPO ${i}`;
+                    const count = groupCounts[groupName] || 0;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'group-card';
+                    card.innerHTML = `
+                        <h3>📚 ${groupName}</h3>
+                        <p class="count">👥 ${count} participante${count !== 1 ? 's' : ''}</p>
+                    `;
+                    card.onclick = () => selectGroup(groupName, card);
+                    groupsGrid.appendChild(card);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+                window.location.href = '/play';
+            }
+        }
+        
+        function selectGroup(groupName, cardElement) {
+            // Remover selección anterior
+            document.querySelectorAll('.group-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo grupo
+            cardElement.classList.add('selected');
+            selectedGroup = groupName;
+            document.getElementById('joinBtn').disabled = false;
+        }
+        
+        async function joinGroup() {
+            if (!selectedGroup) {
+                alert('Por favor selecciona un grupo');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/participant/${participantId}/assign_group`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ group_name: selectedGroup })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Redirigir al lobby
+                    window.location.href = `/lobby?session_id=${sessionId}&participant_id=${participantId}`;
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo unir al grupo'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        }
+        
+        function goBack() {
+            window.location.href = '/play';
+        }
+        
+        // Validar parámetros
+        if (!sessionId || !participantId) {
+            alert('Parámetros inválidos');
+            window.location.href = '/play';
+        } else {
+            loadQuizInfo();
+        }
+    </script>
+</body>
+</html>
