@@ -36,8 +36,8 @@
         .link-container a:hover { text-decoration: underline; }
         .btn-secondary { width: 100%; background: white; color: #667eea; border: 2px solid #667eea; padding: 15px; font-size: 1.2em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; margin-top: 15px; text-decoration: none; display: inline-block; text-align: center; }
         .btn-secondary:hover { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        #backToHomeBtn { display: none; }
-        #backToHomeBtn.show { display: inline-block; }
+        #backToHomeBtn, #backToHomeBtnGame, #backToHomeBtnResults { display: none; }
+        #backToHomeBtn.show, #backToHomeBtnGame.show, #backToHomeBtnResults.show { display: inline-block; }
         .game-screen { display: none; }
         .game-screen.active { display: block; }
         .question-container { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; }
@@ -114,12 +114,14 @@
                 <div class="question-media" id="questionMedia"></div>
             </div>
             <div class="answers-grid" id="answersGrid"></div>
+            <a href="/" class="btn-secondary" id="backToHomeBtnGame">← Volver a Inicio</a>
         </div>
         <div id="resultsScreen" class="results-screen">
             <div class="results-header"><h2>🎉 ¡Juego Terminado!</h2></div>
             <div class="score-display"><h3 id="finalScore">0</h3><p>Puntos Totales</p></div>
             <div class="ranking-list"><h3 style="margin-bottom: 15px; color: #333;">🏆 Ranking Final</h3><div id="rankingList"></div></div>
             <button class="btn" onclick="location.reload()">Jugar Otra Vez</button>
+            <a href="/" class="btn-secondary" id="backToHomeBtnResults" style="margin-top: 15px;">← Volver a Inicio</a>
         </div>
     </div>
     </div>
@@ -137,12 +139,18 @@
             // Iniciar automáticamente desde el lobby
             sessionId = urlSessionId;
             participantId = urlParticipantId;
-            
+
+            // Ocultar completamente la pantalla de unión en flujo auto-start
+            const joinEl = document.getElementById('joinScreen');
+            if (joinEl) {
+                joinEl.style.display = 'none';
+                joinEl.classList.remove('active');
+            }
+
             fetch(`/api/session/${sessionId}/info`)
                 .then(res => res.json())
                 .then(data => {
                     loadQuestions(data.quiz.id).then(() => {
-                        document.getElementById('joinScreen').classList.remove('active');
                         document.getElementById('gameScreen').classList.add('active');
                         showQuestion(0);
                     });
@@ -153,32 +161,51 @@
                 });
         }
         
-        // Verificar si hay un usuario logueado
-        fetch('/api/session_info')
-            .then(res => res.json())
-            .then(data => {
-                if (data.username && !data.is_teacher) {
-                    // Usuario alumno logueado - mostrar navbar
-                    loggedInUsername = data.username;
-                    document.getElementById('navUsername').textContent = data.username;
-                    document.getElementById('navbar').classList.add('show');
-                    document.getElementById('usernameGroup').style.display = 'none';
-                    document.getElementById('username').value = data.username;
-                } else if (data.username && data.is_teacher) {
-                    // Usuario docente logueado - redirigir al dashboard
-                    window.location.href = '/dashboard';
-                } else {
-                    // Usuario no logueado - mostrar campo de nombre y botón volver
-                    document.getElementById('username').required = true;
-                    document.getElementById('backToHomeBtn').classList.add('show');
-                }
-            })
-            .catch(err => {
-                // No hay sesión - mostrar campo de nombre y botón volver
-                document.getElementById('username').required = true;
-                document.getElementById('backToHomeBtn').classList.add('show');
-            });
+        // Inicializar UI según sesión: navbar para logueados, botón volver para invitados.
+        function initUserUI() {
+            fetch('/api/session_info')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.username && !data.is_teacher) {
+                        // Alumno logueado: mostrar navbar, ocultar botones de regreso
+                        loggedInUsername = data.username;
+                        document.getElementById('navUsername').textContent = data.username;
+                        document.getElementById('navbar').classList.add('show');
+                        const backBtns = ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'];
+                        backBtns.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('show'); });
+                        // si estamos en pantalla de unión, ocultar el campo nombre
+                        const group = document.getElementById('usernameGroup');
+                        if (group) group.style.display = 'none';
+                        const userInput = document.getElementById('username');
+                        if (userInput) userInput.value = data.username;
+                    } else if (data.username && data.is_teacher) {
+                        // Docente: redirigir a dashboard
+                        window.location.href = '/dashboard';
+                    } else {
+                        // Invitado: mostrar botones de volver en todas las pantallas
+                        ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.add('show');
+                        });
+                        const userInput = document.getElementById('username');
+                        if (userInput) userInput.required = true;
+                    }
+                })
+                .catch(err => {
+                    // En error, tratamos como invitado: mostrar botones volver
+                    ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('show');
+                    });
+                    const userInput = document.getElementById('username');
+                    if (userInput) userInput.required = true;
+                });
+        }
+        // Ejecutar siempre para controlar navbar/botones, pero sin interferir con auto-start
+        initUserUI();
         
+        // Solo adjuntar el manejador del formulario si no estamos en auto-start
+        if (!(autoStart === 'true' && urlSessionId && urlParticipantId)) {
         document.getElementById('joinForm').addEventListener('submit', async function(e){ 
             e.preventDefault(); 
             const pinCode = document.getElementById('pinCode').value.toUpperCase(); 
@@ -219,6 +246,7 @@
                 showAlert('Error de conexión'); 
             } 
         });
+        }
         async function loadQuestions(quizId){ try { const response=await fetch(`/api/quizzes/${quizId}`); const quiz=await response.json(); questions=quiz.questions||[]; } catch(e){ console.error('Error cargando preguntas:', e);} }
         function showQuestion(index){ if(index>=questions.length){ showResults(); return; } currentQuestion=index; const q=questions[index]; document.getElementById('questionNumber').textContent=`Pregunta ${index+1} de ${questions.length}`; document.getElementById('questionText').textContent=q.question_text; const media=document.getElementById('questionMedia'); media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
             const answersGrid=document.getElementById('answersGrid'); answersGrid.innerHTML = q.options.map((opt,i)=>`<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})"><div class="answer-letter">${String.fromCharCode(65+i)}</div><div class="answer-text">${opt.option_text}</div></button>`).join(''); startTimer(q.time_limit); }

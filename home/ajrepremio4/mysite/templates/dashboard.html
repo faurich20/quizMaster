@@ -130,11 +130,10 @@
         </div>
         
         <div class="section-header">
-            <h2>Mis Quizzes</h2>
+            <h2 id="quizzesTitle">Todos los Quizzes</h2>
             <div>
                 <button class="btn" onclick="loadQuizzes('all')">Todos</button>
                 <button class="btn" onclick="loadQuizzes('my')">Míos</button>
-                <button class="btn" onclick="loadQuizzes('public')">Públicos</button>
             </div>
         </div>
         
@@ -206,6 +205,9 @@
                 const response = await fetch('/api/quizzes'); 
                 const quizzes = await response.json(); 
                 const container = document.getElementById('quizzesContainer'); 
+                const titleEl = document.getElementById('quizzesTitle');
+                // Título dinámico según filtro
+                titleEl.textContent = (filter === 'my') ? 'Mis Quizzes' : 'Todos los Quizzes'; 
                 
                 if (quizzes.length === 0) { 
                     container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="btn" onclick="openCreateModal()">Crear Quiz</button></div>`; 
@@ -216,14 +218,12 @@
                 let filteredQuizzes = quizzes; 
                 if (filter === 'my') { 
                     filteredQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId()); 
-                } else if (filter === 'public') { 
-                    filteredQuizzes = quizzes.filter(q => q.is_public); 
                 }
                 
                 // Verificar si hay resultados después del filtro
                 if (filteredQuizzes.length === 0) {
-                    const filterName = filter === 'my' ? 'tuyos' : filter === 'public' ? 'públicos' : '';
-                    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>No hay quizzes ${filterName}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class="btn" onclick="loadQuizzes('all')">Ver Todos</button></div>`;
+                    const filterName = filter === 'my' ? 'tuyos' : '';
+                    container.innerHTML = `<div class=\"empty-state\"><div class=\"empty-state-icon\">🔍</div><h3>No hay quizzes ${filterName}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class=\"btn\" onclick=\"loadQuizzes('all')\">Ver Todos</button></div>`;
                     return;
                 }
                 
@@ -249,7 +249,13 @@
                 updateStats(quizzes);
             } catch (error) { console.error('Error cargando quizzes:', error); }
         }
-        function updateStats(quizzes) { document.getElementById('totalQuizzes').textContent = quizzes.length; document.getElementById('totalPublic').textContent = quizzes.filter(q => q.is_public).length; }
+        function updateStats(quizzes) {
+            // Quizzes Creados: solo los del profesor actual
+            const myQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId());
+            document.getElementById('totalQuizzes').textContent = myQuizzes.length;
+            // Quizzes Públicos: todos los públicos del sistema (de la respuesta actual)
+            document.getElementById('totalPublic').textContent = quizzes.filter(q => q.is_public).length;
+        }
         function toggleGroupsInput() {
             const mode = document.getElementById('mode').value;
             const container = document.getElementById('numGroupsContainer');
@@ -316,8 +322,14 @@
                 
                 if (sessions.length === 0) {
                     section.style.display = 'none';
+                    // Participantes: 0 si no hay sesiones activas
+                    document.getElementById('totalParticipants').textContent = 0;
                     return;
                 }
+                
+                // Participantes en tiempo real: suma de participant_count de todas las sesiones activas del profesor
+                const totalParticipants = sessions.reduce((acc, s) => acc + (s.participant_count || 0), 0);
+                document.getElementById('totalParticipants').textContent = totalParticipants;
                 
                 section.style.display = 'block';
                 container.innerHTML = sessions.map(session => `
