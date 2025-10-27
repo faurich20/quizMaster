@@ -85,20 +85,23 @@
       try{ const res = await fetch(`/api/quizzes/${quizId}`); const quiz = await res.json();
         document.getElementById('quizTitle').textContent = quiz.title;
         document.getElementById('quizDescription').textContent = quiz.description || 'Sin descripción';
-        questions = quiz.questions || []; renderQuestions();
+        questions = quiz.questions || []; 
+        window.quizOwnerId = quiz.teacher_id;
+        renderQuestions();
       }catch(e){ alert('Error cargando el quiz'); }
     }
 
     function renderQuestions(){
       const c = document.getElementById('questionsContainer');
-      if(!questions.length){ c.innerHTML = `<div class="empty"><div style="font-size:46px">❓</div><h3>No hay preguntas aún</h3><p>Agrega tu primera pregunta</p></div>`; return; }
+      if(!questions.length){ c.innerHTML = `<div class=\"empty\"><div style=\"font-size:46px\">❓</div><h3>No hay preguntas aún</h3><p>Agrega tu primera pregunta</p></div>`; return; }
+      const canEdit = (window.quizOwnerId && window.currentUserId && window.quizOwnerId == window.currentUserId);
       c.innerHTML = questions.map((q,i)=>`
         <div class="question-card">
           <div class="question-header">
             <div class="qnum">Pregunta ${i+1}</div>
             <div>
-              <button class="btn" onclick="openEdit(${q.id})">✏️ Editar</button>
-              <button class="btn" style="background:#f44336;color:#fff" onclick="delQuestion(${q.id})">🗑️ Eliminar</button>
+              ${canEdit ? `<button class="btn" onclick="openEdit(${q.id})">✏️ Editar</button>
+              <button class="btn" style="background:#f44336;color:#fff" onclick="delQuestion(${q.id})">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
           <div style="margin-bottom:8px;color:#333;font-weight:600">${q.question_text}</div>
@@ -109,6 +112,9 @@
             ${q.options.map((op,idx)=>`<div class="opt ${op.is_correct?'correct':''}"><div class="letter">${String.fromCharCode(65+idx)}</div><div>${op.option_text}</div></div>`).join('')}
           </div>
         </div>`).join('');
+      // Mostrar/Ocultar botón de agregar pregunta
+      const fab = document.querySelector('.fab');
+      if (fab) fab.style.display = canEdit ? 'inline-block' : 'none';
     }
 
     function pickCorrect(i){ document.querySelectorAll('input[name="correct"]').forEach((el,idx)=>{ if(idx!==i) el.checked=false; }); correctIndex = i; }
@@ -137,7 +143,8 @@
       }catch(e){ alert('Error de conexión'); }
     });
 
-    loadQuiz();
+    // Cargar sesión para conocer currentUserId
+    fetch('/api/session_info').then(r=>r.json()).then(data=>{ window.currentUserId = data.user_id; loadQuiz(); }).catch(()=> loadQuiz());
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') toggleModal(false); });
   </script>
 </body>

@@ -664,6 +664,41 @@ def iniciar_quiz_grupal(session_id):
     finally:
         conn.close()
 
+@app.route('/api/session/<int:session_id>/finish', methods=['POST'])
+@requiere_sesion
+@requiere_docente
+def finalizar_quiz(session_id):
+    """Finalizar una sesión de juego (solo profesor due��o)"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Verificar que la sesión existe y pertenece a un quiz del profesor
+        cursor.execute('''
+            SELECT gs.*, q.teacher_id 
+            FROM game_sessions gs
+            JOIN quizzes q ON gs.quiz_id = q.id
+            WHERE gs.id = %s
+        ''', (session_id,))
+        session_data = cursor.fetchone()
+        if not session_data:
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+        if session_data['teacher_id'] != session['user_id']:
+            return jsonify({'error': 'No autorizado'}), 403
+
+        # Marcar como finalizada e inactiva
+        cursor.execute('''
+            UPDATE game_sessions
+            SET status = 'finished', is_active = 0
+            WHERE id = %s
+        ''', (session_id,))
+        conn.commit()
+        return jsonify({'success': True, 'status': 'finished'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/active_sessions')
 @requiere_sesion
 @requiere_docente

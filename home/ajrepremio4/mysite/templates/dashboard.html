@@ -238,11 +238,17 @@
                             </div>
                             <div class="pin-code">PIN: ${quiz.pin_code}</div>
                             <div class="quiz-actions" style="margin-top: 15px;">
+                                ${quiz.teacher_id == getCurrentUserId() ? `
                                 <button class="btn-small btn-edit" onclick="editQuiz(${quiz.id})">✏️ Editar</button>
                                 <button class="btn-small btn-edit" onclick="manageQuestions(${quiz.id})">📝 Preguntas</button>
+                                ` : `
+                                <button class="btn-small btn-edit" onclick="manageQuestions(${quiz.id})">📝 Preguntas</button>
+                                `}
                                 <button class="btn-small btn-share" onclick="shareQuiz('${quiz.pin_code}')">🔗 Compartir</button>
                                 <button class="btn-small btn-duplicate" onclick="duplicateQuiz(${quiz.id})">📋 Duplicar</button>
+                                ${quiz.teacher_id == getCurrentUserId() ? `
                                 <button class="btn-small btn-delete" onclick="confirmDeleteQuiz(${quiz.id})">🗑️ Eliminar</button>
+                                ` : ''}
                             </div>
                         </div>
                     `).join('') + '</div>';
@@ -269,7 +275,58 @@
         async function editQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); document.getElementById('modalTitle').textContent = 'Editar Quiz'; document.getElementById('quizId').value = quiz.id; document.getElementById('title').value = quiz.title; document.getElementById('description').value = quiz.description || ''; document.getElementById('mode').value = quiz.mode; document.getElementById('numGroups').value = quiz.num_groups || 4; document.getElementById('countdownTime').value = quiz.countdown_time; document.getElementById('isPublic').checked = quiz.is_public; toggleGroupsInput(); document.getElementById('quizModal').classList.add('active'); } catch (error) { alert('Error cargando el quiz'); } }
         function manageQuestions(quizId) { window.location.href = `/quiz_editor/${quizId}`; }
         function shareQuiz(pinCode) { const url = `${window.location.origin}/quiz/${pinCode}`; navigator.clipboard.writeText(url).then(() => { alert(`✅ Enlace copiado al portapapeles:\n${url}\n\nPIN: ${pinCode}`); }); }
-        async function duplicateQuiz(quizId) { if (confirm('¿Deseas duplicar este quiz?')) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); const newQuiz = { title: quiz.title + ' (Copia)', description: quiz.description, mode: quiz.mode, countdown_time: quiz.countdown_time, is_public: false }; const createResponse = await fetch('/api/quizzes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newQuiz) }); if (createResponse.ok) { alert('✅ Quiz duplicado exitosamente'); loadQuizzes(); } } catch (error) { alert('Error duplicando el quiz'); } } }
+        async function duplicateQuiz(quizId) {
+            if (!confirm('¿Deseas duplicar este quiz y sus preguntas?')) return;
+            try {
+                // 1) Obtener quiz original con preguntas y opciones
+                const response = await fetch(`/api/quizzes/${quizId}`);
+                const quiz = await response.json();
+                if (!quiz || !quiz.id) { alert('No se pudo cargar el quiz original'); return; }
+                
+                // 2) Crear nuevo quiz perteneciente al usuario actual (is_public=false por defecto)
+                const newQuiz = {
+                    title: quiz.title + ' (Copia)',
+                    description: quiz.description,
+                    mode: quiz.mode,
+                    num_groups: quiz.num_groups || 0,
+                    countdown_time: quiz.countdown_time,
+                    is_public: false
+                };
+                const createResponse = await fetch('/api/quizzes', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newQuiz)
+                });
+                const created = await createResponse.json();
+                if (!createResponse.ok || !created.quiz_id) { alert('No se pudo crear la copia'); return; }
+                const newQuizId = created.quiz_id;
+                
+                // 3) Copiar preguntas y opciones al nuevo quiz (una por una)
+                const questions = quiz.questions || [];
+                for (const q of questions) {
+                    const payload = {
+                        question_text: q.question_text,
+                        image_url: q.image_url,
+                        video_url: q.video_url,
+                        time_limit: q.time_limit,
+                        position: q.position || 0,
+                        options: (q.options || []).map(o => ({ text: o.option_text, is_correct: !!o.is_correct }))
+                    };
+                    await fetch(`/api/quizzes/${newQuizId}/questions`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+                }
+                
+                alert('✅ Quiz duplicado exitosamente con sus preguntas');
+                // Opcional: ir directo al editor de preguntas del nuevo quiz
+                if (confirm('¿Deseas abrir el editor de preguntas de la copia?')) {
+                    manageQuestions(newQuizId);
+                } else {
+                    loadQuizzes();
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error duplicando el quiz');
+            }
+        }
         function confirmDeleteQuiz(quizId) { document.getElementById('confirmTitle').textContent = '¿Eliminar Quiz?'; document.getElementById('confirmMessage').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.'; confirmCallback = () => deleteQuiz(quizId); document.getElementById('confirmModal').classList.add('active'); }
         async function deleteQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`, { method: 'DELETE' }); if (response.ok) { alert('✅ Quiz eliminado'); closeModal('confirmModal'); loadQuizzes(); } else { alert('❌ Error eliminando el quiz'); } } catch (error) { alert('Error de conexión'); } }
         function confirmAction() { if (confirmCallback) { confirmCallback(); confirmCallback = null; } }
@@ -333,7 +390,7 @@
                 
                 section.style.display = 'block';
                 container.innerHTML = sessions.map(session => `
-                    <div class="session-card ${session.status}">
+                    <div class="session-card ${session.status}" id="session-${session.session_id}">
                         <div class="session-header">
                             <div class="session-title">${session.title}</div>
                             <div class="session-status ${session.status}">
@@ -344,38 +401,88 @@
                             <span>📌 PIN: <strong>${session.pin_code}</strong></span>
                             <span>👥 Participantes: <strong>${session.participant_count}</strong></span>
                             <span>🕒 ${new Date(session.started_at).toLocaleString()}</span>
+                            ${session.status === 'started' ? `<span id="timer-${session.session_id}" style="font-weight:bold;color:#ff9800;">⏳ Queda: --:--</span>` : ''}
                         </div>
                         ${session.status === 'waiting' ? `
                             <button class="btn-start-quiz" onclick="startQuizSession(${session.session_id})">
                                 🚀 INICIAR QUIZ
                             </button>
                         ` : `
-                            <p style="color: #4caf50; font-weight: bold;">✅ Quiz en progreso</p>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <p style=\"color: #4caf50; font-weight: bold; margin:0;\">✅ Quiz en progreso</p>
+                                <button class="btn-start-quiz" style="background:#f44336" onclick="finishQuizSession(${session.session_id})">⛔ Finalizar ahora</button>
+                            </div>
                         `}
                     </div>
                 `).join('');
+
+                // Re-activar timers en DOM si existen en memoria después de render
+                sessions.forEach(s => { if (s.status === 'started' && window.sessionTimers && window.sessionTimers[s.session_id]) { updateTimerDisplay(s.session_id); } });
             } catch (error) {
                 console.error('Error cargando sesiones activas:', error);
             }
         }
         
-        // Iniciar sesión de quiz grupal
+        // Gestión de temporizadores locales
+        window.sessionTimers = window.sessionTimers || {}; // { sessionId: msEpochEnds }
+        function startLocalTimer(sessionId, minutes) {
+            const mins = parseInt(minutes, 10);
+            if (isNaN(mins) || mins <= 0) return;
+            window.sessionTimers[sessionId] = Date.now() + (mins * 60 * 1000);
+            updateTimerDisplay(sessionId);
+        }
+        function updateTimerDisplay(sessionId) {
+            const el = document.getElementById(`timer-${sessionId}`);
+            if (!el) return;
+            const ends = window.sessionTimers[sessionId];
+            if (!ends) { el.textContent = '⏳ Queda: --:--'; return; }
+            const rem = Math.max(0, ends - Date.now());
+            const mm = String(Math.floor(rem / 60000)).padStart(2, '0');
+            const ss = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
+            el.textContent = `⏳ Queda: ${mm}:${ss}`;
+            if (rem === 0) {
+                finishQuizSession(sessionId);
+            }
+        }
+        setInterval(() => {
+            if (!window.sessionTimers) return;
+            Object.keys(window.sessionTimers).forEach(id => updateTimerDisplay(id));
+        }, 1000);
+
+        async function finishQuizSession(sessionId) {
+            try {
+                const resp = await fetch(`/api/session/${sessionId}/finish`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                if (resp.ok) {
+                    delete window.sessionTimers[sessionId];
+                    loadActiveSessions();
+                } else {
+                    const data = await resp.json();
+                    alert('❌ Error al finalizar: ' + (data.error || ''));
+                }
+            } catch (e) {
+                alert('Error de conexión al finalizar');
+            }
+        }
+
+        // Iniciar sesión de quiz grupal con duración opcional
         async function startQuizSession(sessionId) {
             if (!confirm('¿Deseas iniciar este quiz? Todos los participantes comenzarán a jugar.')) {
                 return;
             }
-            
+            const minutesStr = prompt('Duración del quiz en minutos (dejar vacío para sin temporizador):', '');
             try {
                 const response = await fetch(`/api/session/${sessionId}/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
-                
                 const data = await response.json();
-                
                 if (response.ok) {
-                    alert('✅ Quiz iniciado! Los participantes ya pueden jugar.');
-                    loadActiveSessions(); // Recargar sesiones
+                    alert('✅ Quiz iniciado!');
+                    const minutes = parseInt(minutesStr, 10);
+                    if (!isNaN(minutes) && minutes > 0) {
+                        startLocalTimer(sessionId, minutes);
+                    }
+                    loadActiveSessions();
                 } else {
                     alert('❌ Error: ' + (data.error || 'No se pudo iniciar el quiz'));
                 }
