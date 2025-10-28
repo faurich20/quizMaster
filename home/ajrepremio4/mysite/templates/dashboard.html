@@ -765,7 +765,7 @@
                         <div class="session-header">
                             <div class="session-title">${session.title}</div>
                             <div class="session-status ${session.status}">
-                                ${session.status === 'waiting' ? '⏳ Esperando' : session.status === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}
+                                ${session.status === 'waiting' ? '⏳ Esperando' : session.status === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}                           
                             </div>
                         </div>
                         <div class="session-info">
@@ -778,17 +778,30 @@
                                 <span id="timer-${session.session_id}">⏳ Queda: --:--</span>
                             </div>
                         ` : ''}
+
                         ${session.status === 'waiting' ? `
-                            <button class="btn-start-quiz" onclick="startQuizSession(${session.session_id})">
-                                🚀 INICIAR QUIZ
-                            </button>
-                        ` : session.status === 'started' ? `
-                            <div style="display: flex; gap: 10px;">
-                                <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>
-                                <button class="btn-start-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finishQuizSession(${session.session_id})">
-                                    ⛔ Finalizar Ahora
+                            <div style="margin:8px 0; display:flex; gap:8px; align-items:center; justify-content:center;">
+                                <label for="attempts-${session.session_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
+                                <input id="attempts-${session.session_id}" type="number" min="0" value="${session.attempts_remaining ? session.attempts_remaining : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                                <button class="btn-start-quiz" onclick="startQuizSession(${session.session_id})" style="margin-left:6px;">
+                                    🚀 INICIAR QUIZ
                                 </button>
                             </div>
+
+                        ` : session.status === 'started' ? `
+                            <div style="display: flex; gap: 10px;">
+                                <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>                     
+                            </div>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px;">
+                                <button class="btn-start-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
+                                    onclick="window.open('/ver_play_lobby/${session.session_id}', '_blank')">
+                                    👁️ Ver como anfitrión
+                                </button>
+                                <button class="btn-start-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finishQuizSession(${session.session_id})">
+                                    ⛔ Finalizar Ahora
+                                </button>   
+                            </div>
+
                         ` : `
                             <p style="color: #999; font-weight: bold;">🏁 Quiz finalizado</p>
                         `}
@@ -877,11 +890,18 @@
         // Iniciar sesión de quiz grupal con duración opcional
         async function startQuizSession(sessionId) {
             const minutesStr = prompt('Duración del quiz en minutos (dejar vacío para sin temporizador):', '');
-
             // Validar entrada
             if (minutesStr !== null && minutesStr !== '' && (isNaN(minutesStr) || parseInt(minutesStr) <= 0)) {
                 alert('Por favor ingresa un número válido de minutos');
                 return;
+            }
+
+            // Leer attempts del input (si existe)
+            const attemptsInput = document.getElementById(`attempts-${sessionId}`);
+            let attempts = 0;
+            if (attemptsInput) {
+                attempts = parseInt(attemptsInput.value) || 0;
+                if (attempts < 0) attempts = 0;
             }
 
             if (!confirm('¿Deseas iniciar este quiz? Todos los participantes comenzarán a jugar.')) {
@@ -889,9 +909,11 @@
             }
 
             try {
+                const payload = { attempts: attempts };
                 const response = await fetch(`/api/session/${sessionId}/start`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
                 const data = await response.json();
 
@@ -902,9 +924,8 @@
                         startLocalTimer(sessionId, minutes);
                         alert(`✅ Quiz iniciado! Duración: ${minutes} minuto(s)`);
                     } else {
-                        alert('✅ Quiz iniciado sin límite de tiempo!');
+                        alert('✅ Quiz iniciado!');
                     }
-
                     loadActiveSessions();
                 } else {
                     alert('❌ Error: ' + (data.error || 'No se pudo iniciar el quiz'));
@@ -913,6 +934,7 @@
                 alert('Error de conexión');
             }
         }
+
 
         // Finalizar sesión de quiz grupal
         async function finishQuizSession(sessionId) {

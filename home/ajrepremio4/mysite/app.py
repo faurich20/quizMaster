@@ -573,6 +573,8 @@ def info_sesion(session_id):
             'session_id': session_data['id'],
             'pin_code': session_data['pin_code'],
             'status': session_data['status'],
+            'attempts_allowed': session_data.get('attempts_allowed', 0),
+            'attempts_remaining': session_data.get('attempts_remaining', 0),
             'quiz': {
                 'id': session_data['quiz_id'],
                 'title': session_data['title'],
@@ -583,6 +585,7 @@ def info_sesion(session_id):
             },
             'participants': participants
         })
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
@@ -631,7 +634,6 @@ def iniciar_quiz_grupal(session_id):
     """Iniciar una sesión de juego grupal (solo profesor)"""
     conn = obtener_bd()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    
     try:
         # Verificar que la sesión existe y pertenece a un quiz del profesor
         cursor.execute('''
@@ -640,30 +642,39 @@ def iniciar_quiz_grupal(session_id):
             JOIN quizzes q ON gs.quiz_id = q.id
             WHERE gs.id = %s
         ''', (session_id,))
-        
         session_data = cursor.fetchone()
-        
         if not session_data:
             return jsonify({'error': 'Sesión no encontrada'}), 404
-        
         if session_data['teacher_id'] != session['user_id']:
             return jsonify({'error': 'No autorizado'}), 403
-        
-        # Actualizar estado a 'started'
+
+        # Leer payload (minutes opcional, attempts opcional)
+        data = {}
+        try:
+            data = request.get_json() or {}
+        except:
+            data = {}
+
+        attempts = int(data.get('attempts', 0)) if data.get('attempts') is not None else 0
+
+        # Actualizar estado a 'started' y registrar attempts
         cursor.execute('''
             UPDATE game_sessions 
-            SET status = 'started'
+            SET status = 'started',
+                attempts_allowed = %s,
+                attempts_remaining = %s,
+                started_at = NOW()
             WHERE id = %s
-        ''', (session_id,))
-        
+        ''', (attempts, attempts, session_id))
+
         conn.commit()
-        
-        return jsonify({'success': True, 'status': 'started'})
+        return jsonify({'success': True, 'status': 'started', 'attempts_allowed': attempts, 'attempts_remaining': attempts})
     except Exception as e:
         conn.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
 
 @app.route('/api/session/<int:session_id>/finish', methods=['POST'])
 @requiere_sesion
@@ -707,6 +718,39 @@ def finalizar_quiz_grupal(session_id):
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/api/session/<int:session_id>/consume_attempt', methods=['POST'])
+def consumir_intento(session_id):
+    """
+    Endpoint público que decrementa attempts_remaining en 1 si hay intentos.
+    Retorna el número de intentos restantes después de consumir.
+    """
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Obtener attempts_remaining actual
+        cursor.execute('SELECT attempts_remaining FROM game_sessions WHERE id = %s FOR UPDATE', (session_id,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+
+        remaining = row.get('attempts_remaining', 0) or 0
+        if remaining <= 0:
+            conn.close()
+            return jsonify({'error': 'No quedan intentos disponibles'}, 400)
+
+        # Decrementar en 1
+        new_remaining = remaining - 1
+        cursor.execute('UPDATE game_sessions SET attempts_remaining = %s WHERE id = %s', (new_remaining, session_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'attempts_remaining': new_remaining})
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/session/<int:session_id>/check_status', methods=['GET'])
 def verificar_estado_sesion(session_id):
@@ -784,16 +828,16 @@ def sesiones_activas():
     try:
         cursor.execute('''
             SELECT gs.id as session_id, gs.pin_code, gs.status, gs.started_at,
-                   q.id as quiz_id, q.title, q.mode,
-                   COUNT(p.id) as participant_count
+                q.id as quiz_id, q.title, q.mode,
+                COUNT(p.id) as participant_count,
+                COALESCE(gs.attempts_remaining, 0) as attempts_remaining
             FROM game_sessions gs
             JOIN quizzes q ON gs.quiz_id = q.id
             LEFT JOIN participants p ON gs.id = p.session_id
             WHERE q.teacher_id = %s AND gs.is_active = 1 AND q.mode = 'group'
-            GROUP BY gs.id, gs.pin_code, gs.status, gs.started_at, q.id, q.title, q.mode
+            GROUP BY gs.id, gs.pin_code, gs.status, gs.started_at, q.id, q.title, q.mode, gs.attempts_remaining
             ORDER BY gs.started_at DESC
-        ''', (session['user_id'],))
-        
+            ''', (session['user_id'],))
         sessions = cursor.fetchall()
         return jsonify(sessions)
     except Exception as e:
@@ -1096,6 +1140,15 @@ def info_sesion_usuario():
         'username': session.get('username'),
         'is_teacher': session.get('is_teacher', False)
     })
+
+@app.route('/ver_play_lobby/<int:session_id>')
+@requiere_sesion
+@requiere_docente
+def ver_play_lobby(session_id):
+    """Vista del anfitrión (profesor) para observar una sesión en progreso"""
+    return render_template('ver_play_lobby.html', session_id=session_id)
+
+
 
 @app.route('/logout')
 def cerrar_sesion():
