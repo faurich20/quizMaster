@@ -616,6 +616,7 @@ def estado_sesion(session_id):
         
         return jsonify({
             'status': session_data['status'],
+            'active': session_data.get('is_active', 1) == 1,  # Agregar campo active
             'participants': participants
         })
     except Exception as e:
@@ -703,6 +704,71 @@ def finalizar_quiz_grupal(session_id):
         return jsonify({'success': True, 'status': 'finished'})
     except Exception as e:
         conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/session/<int:session_id>/check_status', methods=['GET'])
+def verificar_estado_sesion(session_id):
+    """Verificar si la sesión sigue activa (para polling de estudiantes)"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        cursor.execute('''
+            SELECT status, is_active 
+            FROM game_sessions 
+            WHERE id = %s
+        ''', (session_id,))
+        
+        session_data = cursor.fetchone()
+        
+        if not session_data:
+            return jsonify({'active': False, 'status': 'not_found'}), 404
+        
+        return jsonify({
+            'active': session_data['is_active'] == 1,
+            'status': session_data['status']
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/participant/<int:participant_id>/progress', methods=['GET'])
+def obtener_progreso(participant_id):
+    """Recuperar el progreso del participante"""
+    conn = obtener_bd()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # Obtener última respuesta del participante
+        cursor.execute('''
+            SELECT question_id, MAX(answered_at) as last_answer
+            FROM answers
+            WHERE participant_id = %s
+            GROUP BY question_id
+            ORDER BY answered_at DESC
+            LIMIT 1
+        ''', (participant_id,))
+        
+        last_answer = cursor.fetchone()
+        
+        # Obtener puntuación total
+        cursor.execute('''
+            SELECT total_score
+            FROM participants
+            WHERE id = %s
+        ''', (participant_id,))
+        
+        participant = cursor.fetchone()
+        
+        return jsonify({
+            'last_question_id': last_answer['question_id'] if last_answer else None,
+            'total_score': participant['total_score'] if participant else 0
+        })
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()

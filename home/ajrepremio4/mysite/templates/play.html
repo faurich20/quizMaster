@@ -1,80 +1,452 @@
 <!-- templates/play.html -->
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jugar - QuizPlatform</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .navbar.show { display: flex; }
-        .navbar h1 { font-size: 1.8em; }
-        .navbar-right { display: flex; align-items: center; gap: 20px; }
-        .btn-nav { background: white; color: #667eea; border: 2px solid white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; transition: all 0.3s ease; }
-        .btn-nav:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px); }
-        .page-content { display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
-        .navbar.show + .page-content { min-height: calc(100vh - 60px); }
-        .play-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; text-align: center; }
-        .play-header { margin-bottom: 30px; }
-        .play-header h1 { color: #333; font-size: 3em; margin-bottom: 10px; }
-        .play-header p { color: #666; font-size: 1.1em; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
-        .form-group input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1.2em; text-align: center; font-weight: bold; letter-spacing: 2px; transition: border-color 0.3s ease; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
-        .form-group input::placeholder { letter-spacing: normal; font-weight: normal; }
-        .btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.2em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .alert { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
-        .alert.show { display: block; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .link-container { margin-top: 20px; }
-        .link-container a { color: #667eea; text-decoration: none; font-weight: bold; }
-        .link-container a:hover { text-decoration: underline; }
-        .btn-secondary { width: 100%; background: white; color: #667eea; border: 2px solid #667eea; padding: 15px; font-size: 1.2em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; margin-top: 15px; text-decoration: none; display: inline-block; text-align: center; }
-        .btn-secondary:hover { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        #backToHomeBtn, #backToHomeBtnGame, #backToHomeBtnResults { display: none; }
-        #backToHomeBtn.show, #backToHomeBtnGame.show, #backToHomeBtnResults.show { display: inline-block; }
-        .game-screen { display: none; }
-        .game-screen.active { display: block; }
-        .question-container { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; }
-        .timer-bar { height: 8px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-        .timer-fill { height: 100%; background: linear-gradient(90deg, #4caf50, #ffc107, #f44336); transition: width 0.1s linear; }
-        .question-number { color: #667eea; font-weight: bold; margin-bottom: 15px; }
-        .question-text { font-size: 1.5em; color: #333; margin-bottom: 20px; font-weight: 500; }
-        .question-media img { max-width: 100%; border-radius: 10px; margin-bottom: 20px; }
-        .answers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .answer-btn { padding: 20px; border: 3px solid #e0e0e0; border-radius: 15px; background: white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 15px; font-size: 1em; font-weight: 500; }
-        .answer-btn:hover { transform: scale(1.05); border-color: #667eea; background: #f0f4ff; }
-        .answer-btn.selected { border-color: #667eea; background: #667eea; color: white; }
-        .answer-btn.correct { border-color: #4caf50; background: #4caf50; color: white; }
-        .answer-btn.incorrect { border-color: #f44336; background: #f44336; color: white; }
-        .answer-btn:disabled { cursor: not-allowed; }
-        .answer-letter { width: 40px; height: 40px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; flex-shrink: 0; }
-        .answer-btn.selected .answer-letter, .answer-btn.correct .answer-letter { background: rgba(255,255,255,0.3); }
-        .answer-text { flex: 1; text-align: left; }
-        .results-screen { display: none; text-align: center; }
-        .results-screen.active { display: block; }
-        .results-header { margin-bottom: 30px; }
-        .results-header h2 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
-        .score-display { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
-        .score-display h3 { font-size: 3em; margin-bottom: 10px; }
-        .score-display p { font-size: 1.2em; opacity: 0.9; }
-        .ranking-list { background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 10px; margin-bottom: 10px; }
-        .ranking-item:last-child { margin-bottom: 0; }
-        .ranking-position { width: 40px; height: 40px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .ranking-position.first { background: #ffd700; color: #333; }
-        .ranking-position.second { background: #c0c0c0; color: #333; }
-        .ranking-position.third { background: #cd7f32; color: white; }
-        .ranking-name { flex: 1; text-align: left; margin-left: 15px; font-weight: 500; }
-        .ranking-score { font-weight: bold; color: #667eea; }
-        @media (max-width: 768px) { .answers-grid { grid-template-columns: 1fr; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar.show {
+            display: flex;
+        }
+
+        .navbar h1 {
+            font-size: 1.8em;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-nav {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .page-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .navbar.show+.page-content {
+            min-height: calc(100vh - 60px);
+        }
+
+        .play-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .play-header {
+            margin-bottom: 30px;
+        }
+
+        .play-header h1 {
+            color: #333;
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .play-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input::placeholder {
+            letter-spacing: normal;
+            font-weight: normal;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .link-container {
+            margin-top: 20px;
+        }
+
+        .link-container a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .link-container a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #backToHomeBtn,
+        #backToHomeBtnGame,
+        #backToHomeBtnResults {
+            display: none;
+        }
+
+        #backToHomeBtn.show,
+        #backToHomeBtnGame.show,
+        #backToHomeBtnResults.show {
+            display: inline-block;
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .question-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .timer-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #ffc107, #f44336);
+            transition: width 0.1s linear;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .question-media img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .answer-btn {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .answer-btn:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .answer-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .answer-btn.correct {
+            border-color: #4caf50;
+            background: #4caf50;
+            color: white;
+        }
+
+        .answer-btn.incorrect {
+            border-color: #f44336;
+            background: #f44336;
+            color: white;
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .answer-letter {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .answer-btn.selected .answer-letter,
+        .answer-btn.correct .answer-letter {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .answer-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .results-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .results-screen.active {
+            display: block;
+        }
+
+        .results-header {
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-display h3 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .score-display p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .ranking-list {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ranking-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .ranking-position {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .ranking-position.first {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .ranking-position.second {
+            background: #c0c0c0;
+            color: #333;
+        }
+
+        .ranking-position.third {
+            background: #cd7f32;
+            color: white;
+        }
+
+        .ranking-name {
+            flex: 1;
+            text-align: left;
+            margin-left: 15px;
+            font-weight: 500;
+        }
+
+        .ranking-score {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar" id="navbar">
         <h1>🎯 QuizPlatform</h1>
@@ -83,76 +455,89 @@
             <a href="/logout" class="btn-nav">Cerrar Sesión</a>
         </div>
     </div>
-    
+
     <div class="page-content">
         <div class="play-container">
-        <div id="joinScreen" class="join-screen active">
-            <div class="play-header">
-                <h1>🎮</h1>
-                <h1>QuizPlatform</h1>
-                <p>Únete a la partida</p>
-            </div>
-            <div class="alert alert-error" id="alertError"></div>
-            <form id="joinForm">
-                <div class="form-group">
-                    <label for="pinCode">Código PIN:</label>
-                    <input type="text" id="pinCode" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
+            <div id="joinScreen" class="join-screen active">
+                <div class="play-header">
+                    <h1>🎮</h1>
+                    <h1>QuizPlatform</h1>
+                    <p>Únete a la partida</p>
                 </div>
-                <div class="form-group" id="usernameGroup">
-                    <label for="username">Tu nombre:</label>
-                    <input type="text" id="username" placeholder="Ingresa tu nombre">
-                </div>
-                <button type="submit" class="btn">Unirse al Juego</button>
-            </form>
-            <a href="/" class="btn-secondary" id="backToHomeBtn">← Volver a Inicio</a>
-        </div>
-        <div id="gameScreen" class="game-screen">
-            <div class="question-container">
-                <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
-                <div class="question-number" id="questionNumber">Pregunta 1 de 10</div>
-                <div class="question-text" id="questionText"></div>
-                <div class="question-media" id="questionMedia"></div>
+                <div class="alert alert-error" id="alertError"></div>
+                <form id="joinForm">
+                    <div class="form-group">
+                        <label for="pinCode">Código PIN:</label>
+                        <input type="text" id="pinCode" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
+                    </div>
+                    <div class="form-group" id="usernameGroup">
+                        <label for="username">Tu nombre:</label>
+                        <input type="text" id="username" placeholder="Ingresa tu nombre">
+                    </div>
+                    <button type="submit" class="btn">Unirse al Juego</button>
+                </form>
+                <a href="/" class="btn-secondary" id="backToHomeBtn">← Volver a Inicio</a>
             </div>
-            <div class="answers-grid" id="answersGrid"></div>
-            <a href="/" class="btn-secondary" id="backToHomeBtnGame">← Volver a Inicio</a>
-        </div>
-        <div id="resultsScreen" class="results-screen">
-            <div class="results-header"><h2>🎉 ¡Juego Terminado!</h2></div>
-            <div class="score-display"><h3 id="finalScore">0</h3><p>Puntos Totales</p></div>
-            <div class="ranking-list"><h3 style="margin-bottom: 15px; color: #333;">🏆 Ranking Final</h3><div id="rankingList"></div></div>
-            <button class="btn" onclick="location.reload()">Jugar Otra Vez</button>
-            <a href="/" class="btn-secondary" id="backToHomeBtnResults" style="margin-top: 15px;">← Volver a Inicio</a>
+            <div id="gameScreen" class="game-screen">
+                <div class="question-container">
+                    <div class="timer-bar">
+                        <div class="timer-fill" id="timerFill"></div>
+                    </div>
+                    <div class="question-number" id="questionNumber">Pregunta 1 de 10</div>
+                    <div class="question-text" id="questionText"></div>
+                    <div class="question-media" id="questionMedia"></div>
+                </div>
+                <div class="answers-grid" id="answersGrid"></div>
+                <a href="/" class="btn-secondary" id="backToHomeBtnGame">← Volver a Inicio</a>
+            </div>
+            <div id="resultsScreen" class="results-screen">
+                <div class="results-header">
+                    <h2>🎉 ¡Juego Terminado!</h2>
+                </div>
+                <div class="score-display">
+                    <h3 id="finalScore">0</h3>
+                    <p>Puntos Totales</p>
+                </div>
+                <div class="ranking-list">
+                    <h3 style="margin-bottom: 15px; color: #333;">🏆 Ranking Final</h3>
+                    <div id="rankingList"></div>
+                </div>
+                <button class="btn" onclick="location.reload()">Jugar Otra Vez</button>
+                <a href="/" class="btn-secondary" id="backToHomeBtnResults" style="margin-top: 15px;">← Volver a
+                    Inicio</a>
+            </div>
         </div>
     </div>
-    </div>
+
     <script>
-        let currentQuestion = 0; let questions = []; let participantId = null; let sessionId = null; let score = 0; let timerInterval = null;
+        let currentQuestion = 0;
+        let questions = [];
+        let participantId = null;
+        let sessionId = null;
+        let score = 0;
+        let timerInterval = null;
         let loggedInUsername = null;
-        
-        // Verificar si viene del lobby (auto-start)
+        let sessionCheckInterval = null;
+        let questionStartTime = null;
+
         const urlParams = new URLSearchParams(window.location.search);
         const autoStart = urlParams.get('auto_start');
         const urlSessionId = urlParams.get('session_id');
         const urlParticipantId = urlParams.get('participant_id');
-        
+
         if (autoStart === 'true' && urlSessionId && urlParticipantId) {
-            // Iniciar automáticamente desde el lobby
             sessionId = urlSessionId;
             participantId = urlParticipantId;
-
-            // Ocultar completamente la pantalla de unión en flujo auto-start
             const joinEl = document.getElementById('joinScreen');
             if (joinEl) {
                 joinEl.style.display = 'none';
                 joinEl.classList.remove('active');
             }
-
             fetch(`/api/session/${sessionId}/info`)
                 .then(res => res.json())
                 .then(data => {
                     loadQuestions(data.quiz.id).then(() => {
-                        document.getElementById('gameScreen').classList.add('active');
-                        showQuestion(0);
+                        checkProgress();
                     });
                 })
                 .catch(err => {
@@ -160,30 +545,87 @@
                     window.location.href = '/';
                 });
         }
-        
-        // Inicializar UI según sesión: navbar para logueados, botón volver para invitados.
+
+        async function checkProgress() {
+            if (!participantId) return;
+
+            try {
+                const response = await fetch(`/api/participant/${participantId}/progress`);
+                const progress = await response.json();
+
+                if (progress.last_question_id && questions.length > 0) {
+                    const lastIndex = questions.findIndex(q => q.id === progress.last_question_id);
+
+                    if (lastIndex >= 0 && lastIndex < questions.length - 1) {
+                        currentQuestion = lastIndex + 1;
+                        score = progress.total_score || 0;
+                        document.getElementById('gameScreen').classList.add('active');
+                        showQuestion(currentQuestion);
+                        startSessionCheck();
+                    } else if (lastIndex === questions.length - 1) {
+                        score = progress.total_score || 0;
+                        showResults();
+                    } else {
+                        document.getElementById('gameScreen').classList.add('active');
+                        showQuestion(0);
+                        startSessionCheck();
+                    }
+                } else {
+                    document.getElementById('gameScreen').classList.add('active');
+                    showQuestion(0);
+                    startSessionCheck();
+                }
+            } catch (err) {
+                console.error('Error verificando progreso:', err);
+                document.getElementById('gameScreen').classList.add('active');
+                showQuestion(0);
+                startSessionCheck();
+            }
+        }
+
+        function startSessionCheck() {
+            if (!sessionId) return;
+
+            sessionCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/session/${sessionId}/check_status`);
+                    const data = await response.json();
+
+                    if (!data.active || data.status === 'finished') {
+                        clearInterval(sessionCheckInterval);
+                        clearInterval(timerInterval);
+                        alert('⏰ El profesor ha finalizado el quiz. Serás redirigido para ingresar un nuevo PIN.');
+                        window.location.href = '/play';
+                    }
+                } catch (err) {
+                    console.error('Error verificando sesión:', err);
+                }
+            }, 2000);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            if (timerInterval) clearInterval(timerInterval);
+        });
+
         function initUserUI() {
             fetch('/api/session_info')
                 .then(res => res.json())
                 .then(data => {
                     if (data.username && !data.is_teacher) {
-                        // Alumno logueado: mostrar navbar, ocultar botones de regreso
                         loggedInUsername = data.username;
                         document.getElementById('navUsername').textContent = data.username;
                         document.getElementById('navbar').classList.add('show');
-                        const backBtns = ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'];
+                        const backBtns = ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'];
                         backBtns.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('show'); });
-                        // si estamos en pantalla de unión, ocultar el campo nombre
                         const group = document.getElementById('usernameGroup');
                         if (group) group.style.display = 'none';
                         const userInput = document.getElementById('username');
                         if (userInput) userInput.value = data.username;
                     } else if (data.username && data.is_teacher) {
-                        // Docente: redirigir a dashboard
                         window.location.href = '/dashboard';
                     } else {
-                        // Invitado: mostrar botones de volver en todas las pantallas
-                        ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'].forEach(id => {
+                        ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'].forEach(id => {
                             const el = document.getElementById(id);
                             if (el) el.classList.add('show');
                         });
@@ -192,8 +634,7 @@
                     }
                 })
                 .catch(err => {
-                    // En error, tratamos como invitado: mostrar botones volver
-                    ['backToHomeBtn','backToHomeBtnGame','backToHomeBtnResults'].forEach(id => {
+                    ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.classList.add('show');
                     });
@@ -201,59 +642,186 @@
                     if (userInput) userInput.required = true;
                 });
         }
-        // Ejecutar siempre para controlar navbar/botones, pero sin interferir con auto-start
+
         initUserUI();
-        
-        // Solo adjuntar el manejador del formulario si no estamos en auto-start
+
         if (!(autoStart === 'true' && urlSessionId && urlParticipantId)) {
-        document.getElementById('joinForm').addEventListener('submit', async function(e){ 
-            e.preventDefault(); 
-            const pinCode = document.getElementById('pinCode').value.toUpperCase(); 
-            const username = document.getElementById('username').value || loggedInUsername;
-            
-            if (!username) {
-                showAlert('Por favor ingresa tu nombre');
+            document.getElementById('joinForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const pinCode = document.getElementById('pinCode').value.toUpperCase();
+                const username = document.getElementById('username').value || loggedInUsername;
+
+                if (!username) {
+                    showAlert('Por favor ingresa tu nombre');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/join_game', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pin_code: pinCode, username })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        participantId = data.participant_id;
+                        sessionId = data.session_id;
+
+                        if (data.quiz.mode === 'group') {
+                            window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
+                            return;
+                        }
+
+                        await loadQuestions(data.quiz.id);
+                        document.getElementById('joinScreen').classList.remove('active');
+                        document.getElementById('gameScreen').classList.add('active');
+                        showQuestion(0);
+                        startSessionCheck();
+                    } else {
+                        showAlert(data.error || 'Error al unirse al juego');
+                    }
+                } catch (err) {
+                    showAlert('Error de conexión');
+                }
+            });
+        }
+
+        async function loadQuestions(quizId) {
+            try {
+                const response = await fetch(`/api/quizzes/${quizId}`);
+                const quiz = await response.json();
+                questions = quiz.questions || [];
+            } catch (e) {
+                console.error('Error cargando preguntas:', e);
+            }
+        }
+
+        function showQuestion(index) {
+            if (index >= questions.length) {
+                showResults();
                 return;
             }
-            
-            try { 
-                const response = await fetch('/api/join_game', {
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({ pin_code: pinCode, username })
-                }); 
-                const data = await response.json(); 
-                if(response.ok){ 
-                    participantId = data.participant_id; 
-                    sessionId = data.session_id; 
-                    
-                    // Verificar si es modo grupal
-                    if (data.quiz.mode === 'group') {
-                        // Redirigir a selección de grupos
-                        window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
-                        return;
-                    }
-                    
-                    // Modo individual: continuar normalmente
-                    await loadQuestions(data.quiz.id); 
-                    document.getElementById('joinScreen').classList.remove('active'); 
-                    document.getElementById('gameScreen').classList.add('active'); 
-                    showQuestion(0); 
-                } else { 
-                    showAlert(data.error || 'Error al unirse al juego'); 
-                } 
-            } catch(err){ 
-                showAlert('Error de conexión'); 
-            } 
-        });
+
+            currentQuestion = index;
+            const q = questions[index];
+
+            document.getElementById('questionNumber').textContent = `Pregunta ${index + 1} de ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question_text;
+
+            const media = document.getElementById('questionMedia');
+            media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
+
+            const answersGrid = document.getElementById('answersGrid');
+            answersGrid.innerHTML = q.options.map((opt, i) =>
+                `<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})">
+                <div class="answer-letter">${String.fromCharCode(65 + i)}</div>
+                <div class="answer-text">${opt.option_text}</div>
+            </button>`
+            ).join('');
+
+            startTimer(q.time_limit);
         }
-        async function loadQuestions(quizId){ try { const response=await fetch(`/api/quizzes/${quizId}`); const quiz=await response.json(); questions=quiz.questions||[]; } catch(e){ console.error('Error cargando preguntas:', e);} }
-        function showQuestion(index){ if(index>=questions.length){ showResults(); return; } currentQuestion=index; const q=questions[index]; document.getElementById('questionNumber').textContent=`Pregunta ${index+1} de ${questions.length}`; document.getElementById('questionText').textContent=q.question_text; const media=document.getElementById('questionMedia'); media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
-            const answersGrid=document.getElementById('answersGrid'); answersGrid.innerHTML = q.options.map((opt,i)=>`<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})"><div class="answer-letter">${String.fromCharCode(65+i)}</div><div class="answer-text">${opt.option_text}</div></button>`).join(''); startTimer(q.time_limit); }
-        function startTimer(seconds){ let timeLeft=seconds; const fill=document.getElementById('timerFill'); fill.style.width='100%'; if(timerInterval) clearInterval(timerInterval); timerInterval=setInterval(()=>{ timeLeft--; const pct=(timeLeft/seconds)*100; fill.style.width=pct+'%'; if(timeLeft<=0){ clearInterval(timerInterval); setTimeout(()=>{ showQuestion(currentQuestion+1); }, 1000); } }, 1000); }
-        async function selectAnswer(optionIndex, questionId, optionId){ if(timerInterval) clearInterval(timerInterval); const q=questions[currentQuestion]; const selected=q.options[optionIndex]; const isCorrect=selected.is_correct; const timeTaken = q.time_limit - (parseInt(document.getElementById('timerFill').style.width)/100 * q.time_limit); const points = isCorrect ? Math.max(100, 1000 - (timeTaken * 10)) : 0; if(isCorrect) score+=points; const buttons=document.querySelectorAll('.answer-btn'); buttons.forEach((btn,i)=>{ btn.disabled=true; if(q.options[i].is_correct){ btn.classList.add('correct'); } else if(i===optionIndex && !isCorrect){ btn.classList.add('incorrect'); } }); try { await fetch('/api/save_answer',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ participant_id: participantId, question_id: questionId, option_id: optionId, response_time: timeTaken, points_earned: points }) }); } catch(err){ console.error('Error guardando respuesta:', err);} setTimeout(()=>{ showQuestion(currentQuestion+1); }, 2000); }
-        async function showResults(){ document.getElementById('gameScreen').classList.remove('active'); document.getElementById('resultsScreen').classList.add('active'); document.getElementById('finalScore').textContent=Math.round(score); try { const response=await fetch(`/api/game_results/${sessionId}`); const ranking=await response.json(); const list=document.getElementById('rankingList'); list.innerHTML = ranking.map((p,idx)=>{ const cls = idx===0?'first':idx===1?'second':idx===2?'third':''; const medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':''; return `<div class="ranking-item"><div class="ranking-position ${cls}">${medal || (idx+1)}</div><div class="ranking-name">${p.username}</div><div class="ranking-score">${p.total_score} pts</div></div>`; }).join(''); } catch(err){ console.error('Error cargando ranking:', err);} }
-        function showAlert(message){ const el=document.getElementById('alertError'); el.textContent=message; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),5000); }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            questionStartTime = Date.now();
+            const fill = document.getElementById('timerFill');
+            fill.style.width = '100%';
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const pct = (timeLeft / seconds) * 100;
+                fill.style.width = pct + '%';
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    setTimeout(() => {
+                        showQuestion(currentQuestion + 1);
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        async function selectAnswer(optionIndex, questionId, optionId) {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const q = questions[currentQuestion];
+            const selected = q.options[optionIndex];
+            const isCorrect = selected.is_correct;
+
+            const timeElapsed = (Date.now() - questionStartTime) / 1000;
+            const timeTaken = Math.min(timeElapsed, q.time_limit);
+
+            const points = isCorrect ? Math.max(100, 1000 - (timeTaken * 10)) : 0;
+            if (isCorrect) score += points;
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, i) => {
+                btn.disabled = true;
+                if (q.options[i].is_correct) {
+                    btn.classList.add('correct');
+                } else if (i === optionIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            try {
+                await fetch('/api/save_answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        participant_id: participantId,
+                        question_id: questionId,
+                        option_id: optionId,
+                        response_time: timeTaken,
+                        points_earned: points
+                    })
+                });
+            } catch (err) {
+                console.error('Error guardando respuesta:', err);
+            }
+
+            setTimeout(() => {
+                showQuestion(currentQuestion + 1);
+            }, 2000);
+        }
+
+        async function showResults() {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+            document.getElementById('finalScore').textContent = Math.round(score);
+
+            try {
+                const response = await fetch(`/api/game_results/${sessionId}`);
+                const ranking = await response.json();
+                const list = document.getElementById('rankingList');
+
+                list.innerHTML = ranking.map((p, idx) => {
+                    const cls = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : '';
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
+                    return `<div class="ranking-item">
+                    <div class="ranking-position ${cls}">${medal || (idx + 1)}</div>
+                    <div class="ranking-name">${p.username}</div>
+                    <div class="ranking-score">${p.total_score} pts</div>
+                </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Error cargando ranking:', err);
+            }
+        }
+
+        function showAlert(message) {
+            const el = document.getElementById('alertError');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
     </script>
+
 </body>
+
 </html>

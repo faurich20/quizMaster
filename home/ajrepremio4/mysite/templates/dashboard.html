@@ -773,6 +773,11 @@
                             <span>👥 Participantes: <strong>${session.participant_count}</strong></span>
                             <span>🕒 ${new Date(session.started_at).toLocaleString()}</span>
                         </div>
+                        ${session.status === 'started' ? `
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; color: #856404; text-align: center;">
+                                <span id="timer-${session.session_id}">⏳ Queda: --:--</span>
+                            </div>
+                        ` : ''}
                         ${session.status === 'waiting' ? `
                             <button class="btn-start-quiz" onclick="startQuizSession(${session.session_id})">
                                 🚀 INICIAR QUIZ
@@ -789,6 +794,13 @@
                         `}
                     </div>
                 `).join('');
+
+                // IMPORTANTE: Después de renderizar, re-activar los timers existentes
+                sessions.forEach(s => {
+                    if (s.status === 'started' && window.sessionTimers && window.sessionTimers[s.session_id]) {
+                        updateTimerDisplay(s.session_id);
+                    }
+                });
 
                 // Re-activar timers en DOM si existen en memoria después de render
                 sessions.forEach(s => { if (s.status === 'started' && window.sessionTimers && window.sessionTimers[s.session_id]) { updateTimerDisplay(s.session_id); } });
@@ -815,7 +827,8 @@
             const ss = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
             el.textContent = `⏳ Queda: ${mm}:${ss}`;
             if (rem === 0) {
-                finishQuizSession(sessionId);
+                // Auto-finalizar (sin confirmación)
+                finishQuizSession(sessionId, true);
             }
         }
         setInterval(() => {
@@ -823,51 +836,12 @@
             Object.keys(window.sessionTimers).forEach(id => updateTimerDisplay(id));
         }, 1000);
 
-        async function finishQuizSession(sessionId) {
-            try {
-                const resp = await fetch(`/api/session/${sessionId}/finish`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-                if (resp.ok) {
-                    delete window.sessionTimers[sessionId];
-                    loadActiveSessions();
-                } else {
-                    const data = await resp.json();
-                    alert('❌ Error al finalizar: ' + (data.error || ''));
-                }
-            } catch (e) {
-                alert('Error de conexión al finalizar');
-            }
-        }
-
-        // Iniciar sesión de quiz grupal con duración opcional
-        async function startQuizSession(sessionId) {
-            if (!confirm('¿Deseas iniciar este quiz? Todos los participantes comenzarán a jugar.')) {
-                return;
-            }
-            const minutesStr = prompt('Duración del quiz en minutos (dejar vacío para sin temporizador):', '');
-            try {
-                const response = await fetch(`/api/session/${sessionId}/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    alert('✅ Quiz iniciado!');
-                    const minutes = parseInt(minutesStr, 10);
-                    if (!isNaN(minutes) && minutes > 0) {
-                        startLocalTimer(sessionId, minutes);
-                    }
-                    loadActiveSessions();
-                } else {
-                    alert('❌ Error: ' + (data.error || 'No se pudo iniciar el quiz'));
-                }
-            } catch (error) {
-                alert('Error de conexión');
-            }
-        }
-
         // Finalizar sesión de quiz grupal
         async function finishQuizSession(sessionId) {
-            if (!confirm('¿Deseas finalizar este quiz? Los participantes dejarán de poder jugar y se cerrará la sesión.')) {
+            // Si es llamada automática (por timer), no pedir confirmación
+            const isAutomatic = arguments[1] === true;
+
+            if (!isAutomatic && !confirm('¿Deseas finalizar este quiz? Los participantes dejarán de poder jugar y se cerrará la sesión.')) {
                 return;
             }
 
@@ -880,13 +854,105 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('✅ Quiz finalizado exitosamente.');
-                    loadActiveSessions(); // Recargar sesiones
+                    if (!isAutomatic) {
+                        alert('✅ Quiz finalizado exitosamente.');
+                    }
+                    // Limpiar temporizador
+                    if (window.sessionTimers) {
+                        delete window.sessionTimers[sessionId];
+                    }
+                    loadActiveSessions();
                 } else {
-                    alert('❌ Error: ' + (data.error || 'No se pudo finalizar el quiz'));
+                    if (!isAutomatic) {
+                        alert('❌ Error: ' + (data.error || 'No se pudo finalizar el quiz'));
+                    }
+                }
+            } catch (error) {
+                if (!isAutomatic) {
+                    alert('Error de conexión');
+                }
+            }
+        }
+
+        // Iniciar sesión de quiz grupal con duración opcional
+        async function startQuizSession(sessionId) {
+            const minutesStr = prompt('Duración del quiz en minutos (dejar vacío para sin temporizador):', '');
+
+            // Validar entrada
+            if (minutesStr !== null && minutesStr !== '' && (isNaN(minutesStr) || parseInt(minutesStr) <= 0)) {
+                alert('Por favor ingresa un número válido de minutos');
+                return;
+            }
+
+            if (!confirm('¿Deseas iniciar este quiz? Todos los participantes comenzarán a jugar.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/session/${sessionId}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Configurar temporizador si se especificó tiempo
+                    const minutes = parseInt(minutesStr, 10);
+                    if (!isNaN(minutes) && minutes > 0) {
+                        startLocalTimer(sessionId, minutes);
+                        alert(`✅ Quiz iniciado! Duración: ${minutes} minuto(s)`);
+                    } else {
+                        alert('✅ Quiz iniciado sin límite de tiempo!');
+                    }
+
+                    loadActiveSessions();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'No se pudo iniciar el quiz'));
                 }
             } catch (error) {
                 alert('Error de conexión');
+            }
+        }
+
+        // Finalizar sesión de quiz grupal
+        async function finishQuizSession(sessionId) {
+            // Si es llamada automática (por timer), no pedir confirmación
+            const isAutomatic = arguments[1] === true;
+
+            if (!isAutomatic && !confirm('¿Deseas finalizar este quiz? Los participantes dejarán de poder jugar y se cerrará la sesión.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/session/${sessionId}/finish`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (!isAutomatic) {
+                        alert('✅ Quiz finalizado exitosamente.');
+                    } else {
+                        alert('⏰ El tiempo del quiz ha expirado. Quiz finalizado automáticamente.');
+                    }
+
+                    // Limpiar temporizador
+                    if (window.sessionTimers) {
+                        delete window.sessionTimers[sessionId];
+                    }
+
+                    loadActiveSessions();
+                } else {
+                    if (!isAutomatic) {
+                        alert('❌ Error: ' + (data.error || 'No se pudo finalizar el quiz'));
+                    }
+                }
+            } catch (error) {
+                if (!isAutomatic) {
+                    alert('Error de conexión');
+                }
             }
         }
 
