@@ -591,11 +591,11 @@
                     const response = await fetch(`/api/session/${sessionId}/check_status`);
                     const data = await response.json();
 
-                    if (!data.active || data.status === 'finished') {
+                    if (!data.active || data.status === 'finished') {                   
                         clearInterval(sessionCheckInterval);
-                        clearInterval(timerInterval);
-                        alert('⏰ El profesor ha finalizado el quiz. Serás redirigido para ingresar un nuevo PIN.');
-                        window.location.href = '/play';
+                        clearInterval(timerInterval);                  
+                        showResults();
+                        alert('Tiempo agotado o cancelado. Juego finalizado..');
                     }
                 } catch (err) {
                     console.error('Error verificando sesión:', err);

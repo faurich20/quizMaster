@@ -373,11 +373,10 @@
                 const response = await fetch(`/api/session/${sessionId}/status`);
                 const data = await response.json();
 
-                // Verificar si la sesión fue finalizada
-                if (data.status === 'finished') {
+                // ✅ Si la sesión fue finalizada, mostrar mensaje y redirigir
+                if (data.status === 'finished' || !data.active) {
                     clearInterval(pollingInterval);
-                    alert('⏰ Se acabó el tiempo, ha finalizado el quiz.');
-                    window.location.href = '/play';
+                    window.location.href = '/';
                     return;
                 }
 
@@ -396,12 +395,41 @@
             }
         }
 
-        // Iniciar
+        // ✅ NUEVA FUNCIÓN: Detectar si el usuario está reingresando
+        async function checkUserReentry() {
+            try {
+                // Verificar si ya existe un participante con este username en la sesión
+                const response = await fetch(`/api/session/${sessionId}/info`);
+                const data = await response.json();
+
+                if (data.participants) {
+                    // Buscar si ya existe un participante con el mismo ID
+                    const existingParticipant = data.participants.find(p => p.id == participantId);
+
+                    if (existingParticipant) {
+                        console.log('✅ Reingreso detectado:', existingParticipant.username);
+
+                        // Si ya tiene grupo asignado, mostrar mensaje
+                        if (existingParticipant.group_name) {
+                            const groupInfo = document.getElementById('groupInfo');
+                            if (groupInfo) {
+                                groupInfo.innerHTML = `📚 Tu grupo: <strong>${existingParticipant.group_name}</strong> (reingresaste)`;
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error verificando reingreso:', error);
+            }
+        }
+
+        // Llamar al cargar la sesión
         if (!sessionId || !participantId) {
             alert('Sesión inválida');
             window.location.href = '/';
         } else {
             loadSessionInfo();
+            checkUserReentry(); // ✅ Verificar reingreso
 
             // Polling cada 2 segundos
             pollingInterval = setInterval(checkSessionStatus, 2000);
