@@ -110,20 +110,20 @@ def requiere_docente(f):
 
 @app.route('/')
 def inicio():
-    return render_template('index.html')
+    return render_template('inicio.html')
 
 @app.route('/play')
 @app.route('/play/')
 def jugar():
-    return render_template('play.html')
+    return render_template('jugar.html')
 
 @app.route('/lobby')
 def lobby():
-    return render_template('lobby.html')
+    return render_template('sala_espera.html')
 
 @app.route('/group_selection')
 def group_selection():
-    return render_template('group_selection.html')
+    return render_template('seleccion_grupo.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def registrar():
@@ -173,7 +173,7 @@ def registrar():
         finally:
             conn.close()
     
-    return render_template('register.html')
+    return render_template('registrar.html')
 
 @app.route('/api/auth/register', methods=['POST'])
 def api_register():
@@ -296,7 +296,7 @@ def iniciar_sesion():
         else:
             return jsonify({'error': 'Credenciales inválidas'}), 401
     
-    return render_template('login.html')
+    return render_template('iniciar_sesion.html')
 
 @app.route('/api/auth/login', methods=['POST'])
 def api_login():
@@ -351,7 +351,7 @@ def olvido_contrasena():
         conn.close()
         return jsonify({'error': 'Correo no encontrado'}), 404
     
-    return render_template('forgot_password.html')
+    return render_template('olvido_contrasena.html')
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def restablecer_contrasena(token):
@@ -381,7 +381,7 @@ def restablecer_contrasena(token):
         conn.close()
         return jsonify({'error': 'Token inválido o expirado'}), 400
     
-    return render_template('reset_password.html', token=token)
+    return render_template('restablecer_contrasena.html', token=token)
 
 @app.route('/api/join_game', methods=['POST'])
 def unirse_juego():
@@ -850,7 +850,7 @@ def sesiones_activas():
 @requiere_docente
 def dashboard():
     """Dashboard para docentes"""
-    return render_template('dashboard.html')
+    return render_template('panel_docente.html')
 
 @app.route('/api/quizzes', methods=['GET', 'POST'])
 @requiere_sesion
@@ -969,7 +969,7 @@ def gestionar_quiz(quiz_id):
 @requiere_docente
 def editor_quiz(quiz_id):
     """Editor de preguntas del quiz"""
-    return render_template('quiz_editor.html', quiz_id=quiz_id)
+    return render_template('editor_quiz.html', quiz_id=quiz_id)
 
 @app.route('/api/quizzes/<int:quiz_id>/questions', methods=['POST'])
 @requiere_sesion
@@ -1135,11 +1135,16 @@ def gestionar_pregunta(question_id):
 def info_sesion_usuario():
     """Obtener información de la sesión actual (si existe)"""
     # No requiere sesión - retorna datos vacíos si no está logueado
-    return jsonify({
+    resp = {
         'user_id': session.get('user_id'),
         'username': session.get('username'),
-        'is_teacher': session.get('is_teacher', False)
-    })
+        'is_teacher': session.get('is_teacher', False),
+        # Alias/llaves en español para compatibilidad
+        'usuario_id': session.get('user_id'),
+        'nombre_usuario': session.get('username'),
+        'es_docente': session.get('is_teacher', False)
+    }
+    return jsonify(resp)
 
 @app.route('/ver_play_lobby/<int:session_id>')
 @requiere_sesion
@@ -1159,7 +1164,105 @@ def cerrar_sesion():
 @app.route('/__routes')
 def _list_routes():
     rules = sorted([str(r) for r in app.url_map.iter_rules()])
-    return jsonify({ 'routes': rules })
+    # Devuelve listado de rutas (clave en español)
+    return jsonify({ 'rutas': rules })
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# --- SHIMS / RUTAS EN ESPAÑOL (delegan en handlers existentes) ---
+@app.route('/jugar')
+@app.route('/jugar/')
+def jugar_es():
+    return jugar()
+
+@app.route('/sala_espera')
+def sala_espera_es():
+    return lobby()
+
+@app.route('/seleccion_grupo')
+def seleccion_grupo_es():
+    return group_selection()
+
+@app.route('/registrar', methods=['GET', 'POST'])
+def registrar_es():
+    return registrar()
+
+@app.route('/iniciar_sesion', methods=['GET', 'POST'])
+def iniciar_sesion_es():
+    return iniciar_sesion()
+
+@app.route('/olvido_contrasena', methods=['GET', 'POST'])
+def olvido_contrasena_es():
+    return olvido_contrasena()
+
+@app.route('/restablecer_contrasena/<token>', methods=['GET', 'POST'])
+def restablecer_contrasena_es(token):
+    return restablecer_contrasena(token)
+
+@app.route('/cerrar_sesion')
+def cerrar_sesion_es():
+    return cerrar_sesion()
+
+@app.route('/verificar', methods=['POST'])
+def verificar_cuenta_es_route():
+    return verificar_cuenta()
+
+@app.route('/reenviar_codigo', methods=['POST'])
+def reenviar_codigo_es_route():
+    return reenviar_codigo()
+
+# API shims en español
+@app.route('/api/unirse', methods=['POST'])
+def api_unirse_es():
+    return unirse_juego()
+
+@app.route('/api/guardar_respuesta', methods=['POST'])
+def api_guardar_respuesta_es():
+    return guardar_respuesta()
+
+@app.route('/api/resultados/<int:session_id>')
+def api_resultados_es(session_id):
+    return resultados_juego(session_id)
+
+@app.route('/api/sesion/<int:session_id>/info')
+def api_sesion_info_es(session_id):
+    return info_sesion(session_id)
+
+@app.route('/api/sesion/<int:session_id>/estado')
+def api_sesion_estado_es(session_id):
+    return estado_sesion(session_id)
+
+@app.route('/api/participante/<int:participant_id>/asignar_grupo', methods=['POST'])
+def api_participante_asignar_es(participant_id):
+    return asignar_grupo(participant_id)
+
+@app.route('/api/participante/<int:participant_id>/salir', methods=['POST'])
+def api_participante_salir_es(participant_id):
+    return abandonar_sesion(participant_id)
+
+@app.route('/api/sesiones_activas')
+def api_sesiones_activas_es():
+    return sesiones_activas()
+
+# RUTAS/API adicionales EN ESPAÑOL (shims delegan a handlers existentes)
+@app.route('/api/informacion_sesion')
+def api_informacion_sesion_es():
+    return info_sesion_usuario()
+
+@app.route('/api/sesion/<int:session_id>/iniciar', methods=['POST'])
+@requiere_sesion
+@requiere_docente
+def api_sesion_iniciar_es(session_id):
+    return iniciar_quiz_grupal(session_id)
+
+@app.route('/api/sesion/<int:session_id>/finalizar', methods=['POST'])
+@requiere_sesion
+@requiere_docente
+def api_sesion_finalizar_es(session_id):
+    return finalizar_quiz_grupal(session_id)
+
+@app.route('/api/sesion/<int:session_id>/consumir_intento', methods=['POST'])
+def api_sesion_consumir_intento_es(session_id):
+    return consumir_intento(session_id)
+
+@app.route('/api/participante/<int:participant_id>/progreso', methods=['GET'])
+def api_participante_progreso_es(participant_id):
+    return obtener_progreso(participant_id)

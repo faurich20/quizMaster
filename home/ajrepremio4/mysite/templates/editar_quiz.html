@@ -28,7 +28,7 @@
     .form-group{margin-bottom:12px}
     .form-group label{display:block;font-weight:700;margin-bottom:6px;color:#333}
     .form-group input,.form-group textarea{width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-family:inherit}
-    .opcion-editar{display:flex;gap:10px;align-items:center;background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:8px}
+    .opt-edit{display:flex;gap:10px;align-items:center;background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:8px}
   </style>
 </head>
 <body>
@@ -39,7 +39,7 @@
   <div class="contenedor-editor">
     <div class="quiz-info">
       <h2 id="quizTitle">Cargando...</h2>
-      <p id="descripcion_quiz"></p>
+      <p id="quizDescription"></p>
     </div>
     <div id="questionsContainer"></div>
     <button class="fab" onclick="openQuestionModal()">+ Agregar Pregunta</button>
@@ -84,7 +84,7 @@
     async function loadQuiz(){
       try{ const res = await fetch(`/api/quizzes/${quizId}`); const quiz = await res.json();
         document.getElementById('quizTitle').textContent = quiz.title;
-        document.getElementById('descripcion_quiz').textContent = quiz.description || 'Sin descripción';
+        document.getElementById('quizDescription').textContent = quiz.description || 'Sin descripción';
         questions = quiz.questions || []; 
         window.quizOwnerId = quiz.teacher_id;
         renderQuestions();
@@ -149,3 +149,4 @@
   </script>
 </body>
 </html>
+

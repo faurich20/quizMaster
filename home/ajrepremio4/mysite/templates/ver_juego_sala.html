@@ -11,10 +11,10 @@
     body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
            background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
            min-height:100vh; }
-    .barra-nav { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    .navbar { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
              color:white; padding:15px 30px; display:flex; justify-content:space-between;
              align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
-    .barra-nav h1 { font-size:1.8em; }
+    .navbar h1 { font-size:1.8em; }
     .navbar-right { display:flex; align-items:center; gap:20px; }
     .btn { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
            color:white; border:2px solid white; padding:10px 20px; border-radius:10px;
@@ -23,7 +23,7 @@
 
     .page-content { display:flex; align-items:center; justify-content:center;
                     padding:20px; min-height:100vh; }
-    .contenedor-juego { background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    .play-container { background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
                      max-width:500px; width:100%; padding:40px; text-align:center; }
 
     .question-container { background:white; border-radius:20px; padding:30px; margin-bottom:20px; }
@@ -37,6 +37,11 @@
     .answer-btn { padding:20px; border:3px solid #e0e0e0; border-radius:15px; background:white;
                   display:flex; align-items:center; gap:15px; font-size:1em; font-weight:500;
                   transition:all .3s ease; cursor:default; user-select:none; }
+    .answer-letter { width:40px; height:40px; border-radius:50%; background:#667eea; color:white;
+                     display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2em; flex-shrink:0; }
+    .answer-text { flex:1; text-align:left; }
+
+    /* marcas visuales para correct/incorrect si queremos mostrar (no interactivo) */
     .answer-btn.correct { border-color:#4caf50; background:#4caf50; color:white; }
     .answer-btn.incorrect { border-color:#f44336; background:#f44336; color:white; }
 
@@ -60,7 +65,7 @@
   </style>
 </head>
 <body data-session-id="{{ session_id }}">
-  <div class="barra-nav">
+  <div class="navbar">
     <h1>🎯 QuizPlatform</h1>
     <div class="navbar-right">
       <span>Bienvenido, <strong id="nombre_anfitrion"></strong></span>
@@ -70,7 +75,7 @@
   </div>
 
   <div class="page-content">
-    <div class="contenedor-juego">
+    <div class="play-container">
       <!-- Vista igual a play.html: pantalla de juego (solo visual) -->
       <div id="gameScreen" class="game-screen active">
         <div class="question-container">
@@ -107,7 +112,7 @@
     let pollIntervalHandle = null;
     let startedAtServer = null; // ISO string del servidor cuando la sesión comenzó (si existe)
 
-    // Mostrar nombre del profesor en navbar si corresponde
+    // Mostrar nombre del profesor en navbar si corresponde (consistente con play.html)
     fetch('/api/informacion_sesion').then(r => r.json()).then(d => {
       if (d.nombre_usuario) document.getElementById('nombre_anfitrion').textContent = d.nombre_usuario;
     }).catch(()=>{});
@@ -152,7 +157,7 @@
         }
       } catch (err) {
         console.error('Error cargando sesión/preguntas:', err);
-        document.getElementById('texto_pregunta').textContent = '⚠️ Error cargando sesión o preguntas.';
+        document.getElementById('questionText').textContent = '⚠️ Error cargando sesión o preguntas.';
       }
     }
 
@@ -214,7 +219,7 @@
     function showQuestion(index, autoStart = true, elapsedIntoQuestion = 0) {
       if (!questions || questions.length === 0) {
         document.getElementById('questionNumber').textContent = 'Sin preguntas';
-        document.getElementById('texto_pregunta').textContent = 'Este quiz no tiene preguntas.';
+        document.getElementById('questionText').textContent = 'Este quiz no tiene preguntas.';
         document.getElementById('answersGrid').innerHTML = '';
         return;
       }
@@ -385,130 +390,36 @@
         const listEl = document.getElementById('rankingList');
         listEl.innerHTML = ranking.map((p, idx) => {
           const cls = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : '';
-          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
           return `<div class="ranking-item">
-                <div class="ranking-position ${cls}">${medal || (idx + 1)}</div>
-                <div class="ranking-name">${p.username}</div>
-                <div class="ranking-score">${p.total_score} pts</div>
-            </div>`;
+                    <div class="ranking-position ${cls}">${medal}</div>
+                    <div class="ranking-name">${p.username}</div>
+                    <div class="ranking-score">${p.total_score} pts</div>
+                  </div>`;
         }).join('');
 
-                // === 🔹 NUEVO BLOQUE: verificación de intentos y botones ===
-                const resultsHeader = document.querySelector('.results-header');
-                // Limpiar botones previos si los hay
-                const oldBtn = document.getElementById('replayBtn');
-                const oldExit = document.getElementById('exitBtn');
-                if (oldBtn) oldBtn.remove();
-                if (oldExit) oldExit.remove();
+      } catch (err) {
+        console.error('Error loading results:', err);
+        document.getElementById('rankingList').innerHTML = '<p>Error al cargar resultados.</p>';
+      }
+    }
 
-                // Obtener datos de la sesión actual
-                const resSession = await fetch(`/api/sesion/${sessionId}/info`);
-                const sessionInfo = await resSession.json();
-                const attemptsRemaining = sessionInfo.attempts_remaining || 0;
-                const quizId = sessionInfo.quiz?.id;
+    // seguridad al cerrar pestaña: limpiar intervals
+    window.addEventListener('beforeunload', () => {
+      if (timerInterval) clearInterval(timerInterval);
+      if (pollIntervalHandle) clearTimeout(pollIntervalHandle);
+    });
 
-                if (attemptsRemaining > 0) {
-                    // 🔸 Botón "Jugar Otra Vez" (reanudar automáticamente)
-                    const btnReplay = document.createElement('button');
-                    btnReplay.className = 'btn';
-                    btnReplay.id = 'replayBtn';
-                    btnReplay.textContent = 'Jugar Otra Vez';
-                    btnReplay.style.marginTop = '12px';
-                    btnReplay.addEventListener('click', async function () {
-                        try {
-                            const consumeRes = await fetch(`/api/session/${sessionId}/consume_attempt`, { method: 'POST' });
-                            const consumeData = await consumeRes.json();
-                            if (consumeRes.ok) {
-                                alert(`Intento consumido. Intentos restantes: ${consumeData.attempts_remaining}`);
-                                // 🔁 Reiniciar quiz automáticamente:
-                                startQuizFromBeginning(quizId);
-                            } else {
-                                alert('❌ ' + (consumeData.error || 'No se pudo consumir el intento'));
-                            }
-                        } catch (err) {
-                            alert('Error de conexión al consumir intento');
-                        }
-                    });
-                    resultsHeader.appendChild(btnReplay);
-                } else {
-                    // 🔸 Botón "Salir" (redirige a /play)
-                    const btnExit = document.createElement('button');
-                    btnExit.className = 'btn';
-                    btnExit.id = 'exitBtn';
-                    btnExit.textContent = 'Salir';
-                    btnExit.style.marginTop = '12px';
-                    btnExit.addEventListener('click', function () {
-                        window.location.href = '/play';
-                    });
-                    resultsHeader.appendChild(btnExit);
-                }
-            } catch (err) {
-                console.error('Error al mostrar resultados:', err);
-                document.getElementById('rankingList').innerHTML = '<p>Error al cargar resultados.</p>';
-            }
-        }
-
-        async function startQuizFromBeginning(quizId) {
-            try {
-                // Si ya tenemos preguntas cargadas y pertenecen al mismo quiz, reutilizarlas
-                if (!questions || questions.length === 0) {
-                    // Cargar preguntas si no están disponibles
-                    await loadQuestions(quizId);
-                    // loadQuestions deja `questions` poblado
-                }
-
-                if (!questions || questions.length === 0) {
-                    alert('No se pudo cargar el quiz para reiniciar.');
-                    window.location.href = '/play';
-                    return;
-                }
-
-                // Reiniciar estado del jugador localmente
-                currentQuestion = 0;
-                score = 0;
-                // limpiar timers previos
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                }
-
-                // Mostrar pantalla de juego y primera pregunta (showQuestion espera un índice)
-                const joinEl = document.getElementById('joinScreen');
-                if (joinEl) { joinEl.style.display = 'none'; joinEl.classList.remove('active'); }
-                document.getElementById('resultsScreen').classList.remove('active');
-                document.getElementById('gameScreen').classList.add('active');
-
-                // Mostrar la primera pregunta (showQuestion se encargará de llamar startTimer(q.time_limit))
-                showQuestion(0);
-
-                // Volver a iniciar el chequeo de sesión si corresponde
-                startSessionCheck();
-            } catch (err) {
-                console.error('Error reiniciando quiz:', err);
-                alert('Error reiniciando el quiz.');
-                window.location.href = '/play';
-            }
-        }
-
-
-
-        function showAlert(message) {
-            const el = document.getElementById('alertError');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
-        }
-    </script>
-
-    <script>
+    // Iniciar todo
+    loadSessionAndQuestions();
+    // iniciar polling de estado (para detectar inicio/fin)
+    pollStatus();
+  </script>
+  <script>
 window.apiES = window.apiES || {};
 window.apiES.sessionInfo = () => fetch('/api/informacion_sesion').then(r=>r.json());
-window.apiES.iniciarSesion = (usuario, clave) => fetch('/iniciar_sesion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: usuario, password: clave }) }).then(r=>r.json());
-window.apiES.registrar = (payload) => fetch('/registrar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.unirseJuego = (pin, usuario) => fetch('/api/unirse', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pin_code: pin, username: usuario }) }).then(r=>r.json());
-window.apiES.guardarRespuesta = (payload) => fetch('/api/guardar_respuesta', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.obtenerResultados = (sessionId) => fetch(`/api/resultados/${sessionId}`).then(r=>r.json());
-window.apiES.checkSessionStatus = (sessionId) => fetch(`/api/sesion/${sessionId}/estado`).then(r=>r.json());
+window.apiES.obtenerInfoSesion = (id) => fetch(`/api/sesion/${id}/info`).then(r=>r.json());
+window.apiES.obtenerResultados = (id) => fetch(`/api/resultados/${id}`).then(r=>r.json());
 </script>
 </body>
 </html>

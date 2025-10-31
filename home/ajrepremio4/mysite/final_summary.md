@@ -2,7 +2,7 @@
 
 ## 📦 Archivos del Proyecto
 
-### Backend (Python/Flask)
+### Backend (Servidor - Python/Flask)
 1. **app.py** - Aplicación Flask completa con todas las rutas y funcionalidad
 
 ### Templates HTML (carpeta templates/)

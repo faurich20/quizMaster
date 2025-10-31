@@ -1,4 +1,4 @@
-<!-- templates/view_quiz.html -->
+<!-- plantilla: view_quiz.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,45 +8,45 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { background: white; border-radius: 20px; padding: 40px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
-        .header h1 { color: #333; font-size: 2.5em; margin-bottom: 15px; }
-        .header p { color: #666; font-size: 1.1em; margin-bottom: 20px; }
+        .contenedor-quiz { max-width: 900px; margin: 0 auto; }
+        .encabezado-quiz { background: white; border-radius: 20px; padding: 40px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .encabezado-quiz h1 { color: #333; font-size: 2.5em; margin-bottom: 15px; }
+        .encabezado-quiz p { color: #666; font-size: 1.1em; margin-bottom: 20px; }
         .pin-display { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; display: inline-block; margin-top: 10px; }
         .pin-display h2 { font-size: 3em; letter-spacing: 5px; }
         .pin-display p { color: white; opacity: 0.9; margin-top: 5px; }
         .quiz-meta { display: flex; justify-content: center; gap: 30px; margin-top: 20px; flex-wrap: wrap; }
         .meta-item { display: flex; align-items: center; gap: 10px; font-size: 1.1em; color: #666; }
         .meta-icon { font-size: 1.5em; }
-        .question-list { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .question-list h2 { color: #333; margin-bottom: 30px; font-size: 2em; }
-        .question-item { background: #f8f9fa; border-radius: 15px; padding: 25px; margin-bottom: 20px; border-left: 5px solid #667eea; }
-        .question-item:last-child { margin-bottom: 0; }
-        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .question-number { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
-        .question-timer { color: #666; font-weight: 500; }
-        .question-text { font-size: 1.3em; color: #333; margin-bottom: 15px; font-weight: 500; }
-        .question-media { margin: 15px 0; }
-        .question-media img { max-width: 400px; width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .options-list { margin-top: 15px; }
-        .option-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 10px; }
-        .option-item:last-child { margin-bottom: 0; }
-        .option-item.correct { border-color: #4caf50; background: #f1f8f4; }
-        .option-letter { width: 35px; height: 35px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
-        .option-item.correct .option-letter { background: #4caf50; }
-        .option-text { flex: 1; color: #333; }
-        .correct-badge { background: #4caf50; color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-weight: bold; }
+        .lista_preguntas { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .lista_preguntas h2 { color: #333; margin-bottom: 30px; font-size: 2em; }
+        .tarjeta_pregunta { background: #f8f9fa; border-radius: 15px; padding: 25px; margin-bottom: 20px; border-left: 5px solid #667eea; }
+        .tarjeta_pregunta:last-child { margin-bottom: 0; }
+        .encabezado_pregunta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .num_pregunta { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+        .tiempo_pregunta { color: #666; font-weight: 500; }
+        .texto_pregunta { font-size: 1.3em; color: #333; margin-bottom: 15px; font-weight: 500; }
+        .media_pregunta { margin: 15px 0; }
+        .media_pregunta img { max-width: 400px; width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .lista_opciones { margin-top: 15px; }
+        .item_opcion { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 10px; }
+        .item_opcion:last-child { margin-bottom: 0; }
+        .item_opcion.correcta { border-color: #4caf50; background: #f1f8f4; }
+        .letra_opcion { width: 35px; height: 35px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        .item_opcion.correcta .letra_opcion { background: #4caf50; }
+        .texto_opcion { flex: 1; color: #333; }
+        .insignia_correcta { background: #4caf50; color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-weight: bold; }
         .actions { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
         .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; font-size: 1.1em; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; transition: all 0.3s ease; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
         .btn-secondary { background: white; color: #667eea; border: 2px solid #667eea; }
         .btn-secondary:hover { background: #f0f4ff; }
-        @media (max-width: 768px) { .header h1 { font-size: 2em; } .pin-display h2 { font-size: 2em; } .quiz-meta { flex-direction: column; gap: 15px; } .question-media img { max-width: 100%; } }
+        @media (max-width: 768px) { .encabezado-quiz h1 { font-size: 2em; } .pin-display h2 { font-size: 2em; } .quiz-meta { flex-direction: column; gap: 15px; } .question-media img { max-width: 100%; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="contenedor-quiz">
+        <div class="encabezado-quiz">
             <h1>{{ quiz.title }}</h1>
             <p>{{ quiz.description or 'Sin descripción' }}</p>
             <div class="pin-display">
@@ -60,32 +60,32 @@
                 <div class="meta-item"><span class="meta-icon">{{ '🌐' if quiz.is_public else '🔒' }}</span><span>{{ 'Público' if quiz.is_public else 'Privado' }}</span></div>
             </div>
             <div class="actions">
-                <a href="/play" class="btn">🎮 Jugar Ahora</a>
+                <a href="/jugar" class="btn">🎮 Jugar Ahora</a>
                 <button class="btn btn-secondary" onclick="copyLink()">🔗 Copiar Enlace</button>
                 <a href="/" class="btn btn-secondary">🏠 Inicio</a>
             </div>
         </div>
-        <div class="question-list">
+        <div class="lista_preguntas">
             <h2>📚 Contenido del Quiz</h2>
             {% for question in questions %}
-            <div class="question-item">
-                <div class="question-header">
-                    <div class="question-number">Pregunta {{ loop.index }}</div>
-                    <div class="question-timer">⏱️ {{ question.time_limit }} segundos</div>
+            <div class="tarjeta_pregunta">
+                <div class="encabezado_pregunta">
+                    <div class="num_pregunta">Pregunta {{ loop.index }}</div>
+                    <div class="tiempo_pregunta">⏱️ {{ question.time_limit }} segundos</div>
                 </div>
-                <div class="question-text">{{ question.question_text }}</div>
+                <div class="texto_pregunta">{{ question.question_text }}</div>
                 {% if question.image_url %}
-                <div class="question-media"><img src="{{ question.image_url }}" alt="Imagen de la pregunta"></div>
+                <div class="media_pregunta"><img src="{{ question.image_url }}" alt="Imagen de la pregunta"></div>
                 {% endif %}
                 {% if question.video_url %}
-                <div class="question-media"><p>📹 Video: <a href="{{ question.video_url }}" target="_blank" style="color: #667eea;">Ver video</a></p></div>
+                <div class="media_pregunta"><p>📹 Video: <a href="{{ question.video_url }}" target="_blank" style="color: #667eea;">Ver video</a></p></div>
                 {% endif %}
-                <div class="options-list">
+                <div class="lista_opciones">
                     {% for option in question.options %}
-                    <div class="option-item {% if option.is_correct %}correct{% endif %}">
-                        <div class="option-letter">{{ 'ABCD'[loop.index0] }}</div>
-                        <div class="option-text">{{ option.option_text }}</div>
-                        {% if option.is_correct %}<div class="correct-badge">✓ Correcta</div>{% endif %}
+                    <div class="item_opcion {% if option.is_correct %}correcta{% endif %}">
+                        <div class="letra_opcion">{{ 'ABCD'[loop.index0] }}</div>
+                        <div class="texto_opcion">{{ option.option_text }}</div>
+                        {% if option.is_correct %}<div class="insignia_correcta">✓ Correcta</div>{% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -109,6 +109,11 @@
                 const textarea = document.createElement('textarea'); textarea.value = text; document.body.appendChild(textarea); textarea.select(); document.execCommand('copy'); document.body.removeChild(textarea); alert('✅ Enlace y PIN copiados al portapapeles');
             });
         }
+        window.apiES = window.apiES || {};
+        window.apiES.obtenerQuiz = (pinOrId) => {
+            // este wrapper no cambia rutas: aquí el template ya tiene datos, pero queda disponible
+            return fetch(window.location.href).then(r=>r.text());
+        };
     </script>
 </body>
 </html>

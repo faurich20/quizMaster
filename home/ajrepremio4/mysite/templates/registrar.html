@@ -1,4 +1,4 @@
-<!-- templates/register.html -->
+<!-- plantilla: register.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,7 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .register-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
+        .contenedor-registrar { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
         .register-header { text-align: center; margin-bottom: 30px; }
         .register-header h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
         .register-header p { color: #666; }
@@ -52,7 +52,7 @@
     </style>
 </head>
 <body>
-    <div class="register-container">
+    <div class="contenedor-registrar">
         <div class="register-header">
             <h1>👤 Crear Cuenta</h1>
             <p>Únete a la plataforma de aprendizaje gamificado</p>
@@ -80,19 +80,19 @@
             
             <div class="form-group">
                 <label for="username">Nombre de usuario:</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="nombre_usuario" name="username" required>
                 <div class="error-message" id="usernameError"></div>
             </div>
             
             <div class="form-group">
                 <label for="email">Correo electrónico:</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="correo" name="email" required>
                 <div class="error-message" id="emailError"></div>
             </div>
             
             <div class="form-group">
                 <label for="password">Contraseña:</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="contrasena" name="password" required>
                 <div class="error-message" id="passwordError"></div>
                 
                 <div class="password-requirements">
@@ -107,7 +107,7 @@
             
             <div class="form-group">
                 <label for="confirmPassword">Confirmar contraseña:</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <input type="password" id="confirmar_contrasena" name="confirmPassword" required>
                 <div class="error-message" id="confirmPasswordError"></div>
             </div>
             
@@ -115,7 +115,7 @@
         </form>
         
         <div class="link-container">
-            <p>¿Ya tienes cuenta? <a href="/login">Iniciar Sesión</a></p>
+            <p>¿Ya tienes cuenta? <a href="/iniciar_sesion">Iniciar Sesión</a></p>
             <p><a href="/">Volver al inicio</a></p>
         </div>
     </div>
@@ -146,12 +146,16 @@
         let selectedRole = null;
         let userEmail = '';
         function selectRole(role) { selectedRole = role; document.querySelectorAll('.role-option').forEach(opt => { opt.classList.remove('selected'); }); event.currentTarget.classList.add('selected'); document.getElementById('role' + (role === 'teacher' ? 'Teacher' : 'Student')).checked = true; }
-        document.getElementById('password').addEventListener('input', function(e) { const password = e.target.value; document.getElementById('req-length').classList.toggle('valid', password.length >= 8); document.getElementById('req-uppercase').classList.toggle('valid', /[A-Z]/.test(password)); document.getElementById('req-lowercase').classList.toggle('valid', /[a-z]/.test(password)); document.getElementById('req-number').classList.toggle('valid', /[0-9]/.test(password)); document.getElementById('req-special').classList.toggle('valid', /[!@#$%^&*(),.?":{}|<>]/.test(password)); });
+        document.getElementById('contrasena').addEventListener('input', function(e) { const password = e.target.value; document.getElementById('req-length').classList.toggle('valid', password.length >= 8); document.getElementById('req-uppercase').classList.toggle('valid', /[A-Z]/.test(password)); document.getElementById('req-lowercase').classList.toggle('valid', /[a-z]/.test(password)); document.getElementById('req-number').classList.toggle('valid', /[0-9]/.test(password)); document.getElementById('req-special').classList.toggle('valid', /[!@#$%^&*(),.?":{}|<>]/.test(password)); });
         const codeInputs = document.querySelectorAll('.code-digit'); codeInputs.forEach((input, index) => { input.addEventListener('input', function(e) { if (e.target.value.length === 1 && index < 5) { codeInputs[index + 1].focus(); } }); input.addEventListener('keydown', function(e) { if (e.key === 'Backspace' && !e.target.value && index > 0) { codeInputs[index - 1].focus(); } }); });
-        document.getElementById('registerForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!selectedRole) { showAlert('error', 'Por favor selecciona un rol'); return; } const username = document.getElementById('username').value; const email = document.getElementById('email').value; const password = document.getElementById('password').value; const confirmPassword = document.getElementById('confirmPassword').value; if (password !== confirmPassword) { showAlert('error', 'Las contraseñas no coinciden'); return; } try { const response = await fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password, is_teacher: selectedRole === 'teacher' }) }); const data = await response.json(); if (response.ok) { userEmail = email; document.getElementById('verificationEmail').textContent = email; document.getElementById('verificationModal').classList.add('active'); } else { showAlert('error', data.error || 'Error en el registro'); } } catch (error) { showAlert('error', 'Error de conexión'); } });
-        async function verifyCode() { const code = Array.from(document.querySelectorAll('.code-digit')).map(input => input.value).join(''); if (code.length !== 6) { alert('Por favor ingresa el código completo'); return; } try { const response = await fetch('/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail, code }) }); const data = await response.json(); if (response.ok) { alert('✅ Cuenta verificada exitosamente'); window.location.href = '/login'; } else { alert('❌ ' + (data.error || 'Código inválido')); } } catch (error) { alert('Error de conexión'); } }
-        async function resendCode() { try { const response = await fetch('/resend_code', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail }) }); const data = await response.json(); if (response.ok) { alert('✅ Código reenviado'); } else { alert('❌ ' + (data.error || 'Error al reenviar')); } } catch (error) { alert('Error de conexión'); } }
+        document.getElementById('registerForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!selectedRole) { showAlert('error', 'Por favor selecciona un rol'); return; } const username = document.getElementById('nombre_usuario').value; const email = document.getElementById('correo').value; const password = document.getElementById('contrasena').value; const confirmPassword = document.getElementById('confirmar_contrasena').value; if (password !== confirmPassword) { showAlert('error', 'Las contraseñas no coinciden'); return; } try { const response = await fetch('/registrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password, is_teacher: selectedRole === 'teacher' }) }); const data = await response.json(); if (response.ok) { userEmail = email; document.getElementById('verificationEmail').textContent = email; document.getElementById('verificationModal').classList.add('active'); } else { showAlert('error', data.error || 'Error en el registro'); } } catch (error) { showAlert('error', 'Error de conexión'); } });
+        async function verifyCode() { const code = Array.from(document.querySelectorAll('.code-digit')).map(input => input.value).join(''); if (code.length !== 6) { alert('Por favor ingresa el código completo'); return; } try { const response = await fetch('/verificar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail, code }) }); const data = await response.json(); if (response.ok) { alert('✅ Cuenta verificada exitosamente'); window.location.href = '/iniciar_sesion'; } else { alert('❌ ' + (data.error || 'Código inválido')); } } catch (error) { alert('Error de conexión'); } }
+        async function resendCode() { try { const response = await fetch('/reenviar_codigo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail }) }); const data = await response.json(); if (response.ok) { alert('✅ Código reenviado'); } else { alert('❌ ' + (data.error || 'Error al reenviar')); } } catch (error) { alert('Error de conexión'); } }
         function showAlert(type, message) { const alertEl = type === 'error' ? document.getElementById('alertError') : document.getElementById('alertSuccess'); alertEl.textContent = message; alertEl.classList.add('show'); setTimeout(() => { alertEl.classList.remove('show'); }, 5000); }
+        window.apiES = window.apiES || {};
+window.apiES.registrar = (payload) => fetch('/registrar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
+window.apiES.verificar = (email, codigo) => fetch('/verificar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, code: codigo }) }).then(r=>r.json());
+window.apiES.reenviarCodigo = (email) => fetch('/reenviar_codigo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) }).then(r=>r.json());
     </script>
 </body>
 </html>

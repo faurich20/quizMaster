@@ -59,9 +59,12 @@ CREATE TABLE IF NOT EXISTS game_sessions (
   quiz_id INT NOT NULL,
   pin_code VARCHAR(8) NOT NULL,
   status VARCHAR(20) DEFAULT 'waiting',
-  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  ended_at TIMESTAMP NULL,
+  started_at TIMESTAMP NULL DEFAULT NULL,
+  ended_at TIMESTAMP NULL DEFAULT NULL,
   is_active BOOLEAN DEFAULT 1,
+  attempts_allowed INT DEFAULT 0,
+  attempts_remaining INT DEFAULT 0,
+  timer_expires_at DATETIME NULL,
   FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 

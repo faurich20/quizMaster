@@ -1,4 +1,4 @@
-<!-- templates/login.html -->
+<!-- plantilla: login.html (inicio de sesión) -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,7 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 450px; width: 100%; padding: 40px; }
+        .contenedor-login { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 450px; width: 100%; padding: 40px; }
         .login-header { text-align: center; margin-bottom: 30px; }
         .login-header h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
         .login-header p { color: #666; }
@@ -27,7 +27,7 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="contenedor-login">
         <div class="login-header">
             <h1>🎯 Bienvenido</h1>
             <p>Inicia sesión en QuizPlatform</p>
@@ -38,7 +38,7 @@
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Usuario:</label>
-                <input type="text" id="username" name="username" required autofocus>
+                <input type="text" id="nombre_usuario" name="username" required autofocus>
             </div>
             
             <div class="form-group">
@@ -50,8 +50,8 @@
         </form>
         
         <div class="link-container">
-            <a href="/forgot_password">¿Olvidaste tu contraseña?</a>
-            <a href="/register">¿No tienes cuenta? Regístrate</a>
+            <a href="/olvido_contrasena">¿Olvidaste tu contraseña?</a>
+            <a href="/registrar">¿No tienes cuenta? Regístrate</a>
             <a href="/">Volver al inicio</a>
         </div>
     </div>
@@ -59,15 +59,17 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('nombre_usuario').value;
             const password = document.getElementById('password').value;
             try {
-                const response = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+                const response = await fetch('/iniciar_sesion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
                 const data = await response.json();
                 if (response.ok) { if (data.is_teacher) { window.location.href = '/dashboard'; } else { window.location.href = '/play'; } } else { showAlert(data.error || 'Error al iniciar sesión'); }
             } catch (error) { showAlert('Error de conexión'); }
         });
         function showAlert(message) { const alertEl = document.getElementById('alertError'); alertEl.textContent = message; alertEl.classList.add('show'); setTimeout(() => { alertEl.classList.remove('show'); }, 5000); }
+        window.apiES = window.apiES || {};
+        window.apiES.iniciarSesion = (usuario, clave) => fetch('/iniciar_sesion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: usuario, password: clave }) }).then(r=>r.json());
     </script>
 </body>
 </html>

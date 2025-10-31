@@ -1,4 +1,4 @@
-<!-- templates/play.html -->
+<!-- plantilla: play.html (interfaz de juego para estudiantes) -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
 
-        .navbar {
+        .barra-nav {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
@@ -29,11 +29,11 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .navbar.show {
+        .barra-nav.show {
             display: flex;
         }
 
-        .navbar h1 {
+        .barra-nav h1 {
             font-size: 1.8em;
         }
 
@@ -60,7 +60,7 @@
             transform: translateY(-2px);
         }
 
-        .page-content {
+        .contenido-pagina {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -68,11 +68,11 @@
             min-height: 100vh;
         }
 
-        .navbar.show+.page-content {
+        .barra-nav.show+.contenido-pagina {
             min-height: calc(100vh - 60px);
         }
 
-        .play-container {
+        .contenedor-juego {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -448,16 +448,16 @@
 </head>
 
 <body>
-    <div class="navbar" id="navbar">
+    <div class="barra-nav" id="barra-nav">
         <h1>🎯 QuizPlatform</h1>
         <div class="navbar-right">
-            <span>Bienvenido, <strong id="navUsername"></strong></span>
+            <span>Bienvenido, <strong id="nav_nombre"></strong></span>
             <a href="/logout" class="btn-nav">Cerrar Sesión</a>
         </div>
     </div>
 
-    <div class="page-content">
-        <div class="play-container">
+    <div class="contenido-pagina">
+        <div class="contenedor-juego">
             <div id="joinScreen" class="join-screen active">
                 <div class="play-header">
                     <h1>🎮</h1>
@@ -471,12 +471,16 @@
                         <input type="text" id="pinCode" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
                     </div>
                     <div class="form-group" id="usernameGroup">
-                        <label for="username">Tu nombre:</label>
-                        <input type="text" id="username" placeholder="Ingresa tu nombre">
+                        <label for="nombre_participante">Tu nombre:</label>
+                        <input type="text" id="nombre_participante" placeholder="Ingresa tu nombre">
                     </div>
                     <button type="submit" class="btn">Unirse al Juego</button>
                 </form>
-                <a href="/" class="btn-secondary" id="backToHomeBtn">← Volver a Inicio</a>
+                <a href="/jugar" class="btn">🎮 Jugar Ahora</a>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="copyLink()">🔗 Copiar Enlace</button>
+                    <a href="/" class="btn btn-secondary">🏠 Inicio</a>
+                </div>
             </div>
             <div id="gameScreen" class="game-screen">
                 <div class="question-container">
@@ -484,7 +488,7 @@
                         <div class="timer-fill" id="timerFill"></div>
                     </div>
                     <div class="question-number" id="questionNumber">Pregunta 1 de 10</div>
-                    <div class="question-text" id="questionText"></div>
+                    <div class="question-text" id="texto_pregunta"></div>
                     <div class="question-media" id="questionMedia"></div>
                 </div>
                 <div class="answers-grid" id="answersGrid"></div>
@@ -534,7 +538,7 @@
                 joinEl.style.display = 'none';
                 joinEl.classList.remove('active');
             }
-            fetch(`/api/session/${sessionId}/info`)
+            fetch(`/api/sesion/${sessionId}/info`)
                 .then(res => res.json())
                 .then(data => {
                     loadQuestions(data.quiz.id).then(() => {
@@ -551,7 +555,7 @@
             if (!participantId) return;
 
             try {
-                const response = await fetch(`/api/participant/${participantId}/progress`);
+                const response = await fetch(`/api/participante/${participantId}/progreso`);
                 const progress = await response.json();
 
                 if (progress.last_question_id && questions.length > 0) {
@@ -589,7 +593,7 @@
 
             sessionCheckInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/session/${sessionId}/check_status`);
+                    const response = await fetch(`/api/sesion/${sessionId}/estado`);
                     const data = await response.json();
 
                     if (!data.active || data.status === 'finished') {
@@ -610,38 +614,11 @@
         });
 
         function initUserUI() {
-            fetch('/api/session_info')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.username && !data.is_teacher) {
-                        loggedInUsername = data.username;
-                        document.getElementById('navUsername').textContent = data.username;
-                        document.getElementById('navbar').classList.add('show');
-                        const backBtns = ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'];
-                        backBtns.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('show'); });
-                        const group = document.getElementById('usernameGroup');
-                        if (group) group.style.display = 'none';
-                        const userInput = document.getElementById('username');
-                        if (userInput) userInput.value = data.username;
-                    } else if (data.username && data.is_teacher) {
-                        window.location.href = '/dashboard';
-                    } else {
-                        ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'].forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) el.classList.add('show');
-                        });
-                        const userInput = document.getElementById('username');
-                        if (userInput) userInput.required = true;
-                    }
-                })
-                .catch(err => {
-                    ['backToHomeBtn', 'backToHomeBtnGame', 'backToHomeBtnResults'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.classList.add('show');
-                    });
-                    const userInput = document.getElementById('username');
-                    if (userInput) userInput.required = true;
-                });
+            fetch('/api/informacion_sesion')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.username) document.getElementById('navUsername').textContent = d.username;
+                }).catch(() => { });
         }
 
         initUserUI();
@@ -650,7 +627,7 @@
             document.getElementById('joinForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
                 const pinCode = document.getElementById('pinCode').value.toUpperCase();
-                const username = document.getElementById('username').value || loggedInUsername;
+                const username = document.getElementById('nombre_participante').value || loggedInUsername;
 
                 if (!username) {
                     showAlert('Por favor ingresa tu nombre');
@@ -658,7 +635,7 @@
                 }
 
                 try {
-                    const response = await fetch('/api/join_game', {
+                    const response = await fetch('/api/unirse', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ pin_code: pinCode, username })
@@ -669,7 +646,7 @@
                         sessionId = data.session_id;
 
                         if (data.quiz.mode === 'group') {
-                            window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
+                            window.location.href = `/seleccion_grupo?session_id=${sessionId}&participant_id=${participantId}`;
                             return;
                         }
 
@@ -697,26 +674,26 @@
             }
         }
 
-        function showQuestion(index) { 
-            if (index >= questions.length) { 
-                showResults(); 
-                return; 
-            } 
-            currentQuestion = index; 
-            const q = questions[index]; 
+        function showQuestion(index) {
+            if (index >= questions.length) {
+                showResults();
+                return;
+            }
+            currentQuestion = index;
+            const q = questions[index];
             document.getElementById('questionNumber').textContent = `Pregunta ${index + 1} de ${questions.length}`;
-            document.getElementById('questionText').textContent = q.question_text; 
-            const media = document.getElementById('questionMedia'); 
+            document.getElementById('texto_pregunta').textContent = q.question_text;
+            const media = document.getElementById('questionMedia');
             media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
-            const answersGrid = document.getElementById('answersGrid'); 
-            answersGrid.innerHTML = q.options.map((opt, i) => 
+            const answersGrid = document.getElementById('answersGrid');
+            answersGrid.innerHTML = q.options.map((opt, i) =>
                 `<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})">
-            <div class="answer-letter">${String.fromCharCode(65 + i)}</div> 
-            <div class="answer-text">${opt.option_text}</div> 
-        </button>` 
-            ).join(''); 
-            startTimer(q.time_limit); 
-        } 
+            <div class="answer-letter">${String.fromCharCode(65 + i)}</div>
+            <div class="answer-text">${opt.option_text}</div>
+        </button>`
+            ).join('');
+            startTimer(q.time_limit);
+        }
 
 
         function startTimer(seconds) {
@@ -765,7 +742,7 @@
             });
 
             try {
-                await fetch('/api/save_answer', {
+                await fetch('/api/guardar_respuesta', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -793,7 +770,7 @@
             document.getElementById('finalScore').textContent = Math.round(score);
 
             try {
-                const response = await fetch(`/api/game_results/${sessionId}`);
+                const response = await fetch(`/api/resultados/${sessionId}`);
                 const ranking = await response.json();
                 const list = document.getElementById('rankingList');
 
@@ -816,7 +793,7 @@
                 if (oldExit) oldExit.remove();
 
                 // Obtener datos de la sesión actual
-                const resSession = await fetch(`/api/session/${sessionId}/info`);
+                const resSession = await fetch(`/api/sesion/${sessionId}/info`);
                 const sessionInfo = await resSession.json();
                 const attemptsRemaining = sessionInfo.attempts_remaining || 0;
                 const quizId = sessionInfo.quiz?.id;
@@ -913,6 +890,16 @@
         }
     </script>
 
+    <script>
+/* API cliente en español — wrappers no destructivos */
+window.apiES = window.apiES || {};
+window.apiES.sessionInfo = () => fetch('/api/informacion_sesion').then(r=>r.json());
+window.apiES.iniciarSesion = (usuario, clave) => fetch('/iniciar_sesion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: usuario, password: clave }) }).then(r=>r.json());
+window.apiES.registrar = (payload) => fetch('/registrar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
+window.apiES.unirseJuego = (pin, usuario) => fetch('/api/unirse', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pin_code: pin, username: usuario }) }).then(r=>r.json());
+window.apiES.guardarRespuesta = (payload) => fetch('/api/guardar_respuesta', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
+window.apiES.obtenerResultados = (sessionId) => fetch(`/api/resultados/${sessionId}`).then(r=>r.json());
+window.apiES.checkSessionStatus = (sessionId) => fetch(`/api/sesion/${sessionId}/estado`).then(r=>r.json());
+</script>
 </body>
-
 </html>

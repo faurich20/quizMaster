@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
 
-        .navbar {
+        .barra-nav {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
@@ -29,11 +29,11 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .navbar.show {
+        .barra-nav.show {
             display: flex;
         }
 
-        .navbar h1 {
+        .barra-nav h1 {
             font-size: 1.8em;
         }
 
@@ -60,7 +60,7 @@
             transform: translateY(-2px);
         }
 
-        .page-content {
+        .contenido-pagina {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -68,11 +68,11 @@
             min-height: 100vh;
         }
 
-        .navbar.show+.page-content {
+        .barra-nav.show+.contenido-pagina {
             min-height: calc(100vh - 60px);
         }
 
-        .lobby-container {
+        .contenedor-sala {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -211,16 +211,16 @@
 </head>
 
 <body>
-    <div class="navbar" id="navbar">
+    <div class="barra-nav" id="barra-nav">
         <h1>🎯 QuizPlatform</h1>
         <div class="navbar-right">
-            <span>Bienvenido, <strong id="navUsername"></strong></span>
+            <span>Bienvenido, <strong id="nav_nombre"></strong></span>
             <a href="/logout" class="btn-nav">Cerrar Sesión</a>
         </div>
     </div>
 
-    <div class="page-content">
-        <div class="lobby-container">
+    <div class="contenido-pagina">
+        <div class="contenedor-sala">
             <div class="lobby-header">
                 <h1>⏳</h1>
                 <h1>Sala de Espera</h1>
@@ -229,7 +229,7 @@
 
             <div class="quiz-info">
                 <h2 id="quizTitle">Cargando...</h2>
-                <p id="quizDescription"></p>
+                <p id="descripcion_quiz"></p>
                 <p id="quizMode"></p>
                 <p id="groupInfo" style="font-size: 1.3em; margin-top: 10px;"></p>
                 <div class="pin-display">
@@ -260,33 +260,35 @@
         let loggedInUsername = null;
         let currentParticipantData = null;
 
-        // Verificar si hay un usuario logueado
-        fetch('/api/session_info')
+        // Verificar si hay un usuario logueado (usar endpoint en español y claves en español)
+        fetch('/api/informacion_sesion')
             .then(res => res.json())
             .then(data => {
-                if (data.username && !data.is_teacher) {
-                    loggedInUsername = data.username;
-                    document.getElementById('navUsername').textContent = data.username;
-                    document.getElementById('navbar').classList.add('show');
-                } else if (data.username && data.is_teacher) {
+                if (data.nombre_usuario && !data.es_docente) {
+                    loggedInUsername = data.nombre_usuario;
+                    document.getElementById('nav_nombre').textContent = data.nombre_usuario;
+                    document.getElementById('barra-nav').classList.add('show');
+                } else if (data.nombre_usuario && data.es_docente) {
                     window.location.href = '/dashboard';
                 } else {
-                    document.getElementById('backToHomeBtn').style.display = 'inline-block';
+                    const back = document.getElementById('backToHomeBtn');
+                    if (back) back.style.display = 'inline-block';
                 }
             })
             .catch(err => {
-                document.getElementById('backToHomeBtn').style.display = 'inline-block';
+                const back = document.getElementById('backToHomeBtn');
+                if (back) back.style.display = 'inline-block';
             });
 
         // Cargar información de la sesión
         async function loadSessionInfo() {
             try {
-                const response = await fetch(`/api/session/${sessionId}/info`);
+                const response = await fetch(`/api/sesion/${sessionId}/info`);
                 const data = await response.json();
 
                 if (response.ok) {
                     document.getElementById('quizTitle').textContent = data.quiz.title;
-                    document.getElementById('quizDescription').textContent = data.quiz.description || 'Sin descripción';
+                    document.getElementById('descripcion_quiz').textContent = data.quiz.description || 'Sin descripción';
                     document.getElementById('quizMode').textContent = `🎮 Modo: ${data.quiz.mode === 'group' ? 'Grupal' : 'Individual'}`;
                     document.getElementById('pinCode').textContent = data.pin_code;
 
@@ -339,7 +341,7 @@
 
         // Cambiar de grupo
         function changeGroup() {
-            window.location.href = `/group_selection?session_id=${sessionId}&participant_id=${participantId}`;
+            window.location.href = `/seleccion_grupo?session_id=${sessionId}&participant_id=${participantId}`;
         }
 
         // Salir de la sala
@@ -355,7 +357,7 @@
                 }
 
                 // Eliminar participante
-                await fetch(`/api/participant/${participantId}/leave`, {
+                await fetch(`/api/participante/${participantId}/salir`, {
                     method: 'POST'
                 });
 
@@ -370,7 +372,7 @@
         // Verificar estado de la sesión (polling)
         async function checkSessionStatus() {
             try {
-                const response = await fetch(`/api/session/${sessionId}/status`);
+                const response = await fetch(`/api/sesion/${sessionId}/estado`);
                 const data = await response.json();
 
                 // ✅ Si la sesión fue finalizada, mostrar mensaje y redirigir
@@ -399,7 +401,7 @@
         async function checkUserReentry() {
             try {
                 // Verificar si ya existe un participante con este username en la sesión
-                const response = await fetch(`/api/session/${sessionId}/info`);
+                const response = await fetch(`/api/sesion/${sessionId}/info`);
                 const data = await response.json();
 
                 if (data.participants) {

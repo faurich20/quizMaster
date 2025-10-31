@@ -1,4 +1,4 @@
-<!-- templates/reset_password.html -->
+<!-- plantilla: reset_password.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,7 +8,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
+    .contenedor-restablecer { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
     .header { text-align: center; margin-bottom: 30px; }
     .header h1 { color: #333; font-size: 2em; margin-bottom: 10px; }
     .header p { color: #666; }
@@ -32,7 +32,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="contenedor-restablecer">
     <div class="header">
       <h1>🔑 Nueva Contraseña</h1>
       <p>Ingresa tu nueva contraseña</p>
@@ -63,11 +63,8 @@
   </div>
 
   <script>
-    const token = "{{ token }}";
-    document.getElementById('password').addEventListener('input', function(e) { const p = e.target.value; toggle('req-length', p.length >= 8); toggle('req-uppercase', /[A-Z]/.test(p)); toggle('req-lowercase', /[a-z]/.test(p)); toggle('req-number', /[0-9]/.test(p)); toggle('req-special', /[!@#$%^&*(),.?":{}|<>]/.test(p)); });
-    function toggle(id, ok){ document.getElementById(id).classList.toggle('valid', ok); }
-    document.getElementById('resetPasswordForm').addEventListener('submit', async function(e){ e.preventDefault(); const password = document.getElementById('password').value; const confirmPassword = document.getElementById('confirmPassword').value; if(password!==confirmPassword){ show('error','Las contraseñas no coinciden'); return; } const reqs=[ password.length>=8, /[A-Z]/.test(password), /[a-z]/.test(password), /[0-9]/.test(password), /[!@#$%^&*(),.?":{}|<>]/.test(password) ]; if(!reqs.every(Boolean)){ show('error','La contraseña no cumple con todos los requisitos'); return; } try { const res = await fetch(`/reset_password/${token}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password }) }); const data = await res.json(); if(res.ok){ show('success','✅ Contraseña actualizada. Redirigiendo...'); setTimeout(()=> location.href='/login', 1500); } else { show('error', data.error || 'Error al actualizar'); } } catch(err){ show('error','Error de conexión'); } });
-    function show(type,msg){ const el = type==='error'?document.getElementById('alertError'):document.getElementById('alertSuccess'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),5000); }
+    window.apiES = window.apiES || {};
+    window.apiES.restablecerContrasena = (token, password) => fetch(`/restablecer_contrasena/${token}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password }) }).then(r=>r.json());
   </script>
 </body>
 </html>

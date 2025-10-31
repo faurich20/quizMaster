@@ -15,7 +15,7 @@
             justify-content: center; 
             padding: 20px;
         }
-        .container { 
+        .contenedor-seleccion { 
             background: white; 
             border-radius: 30px; 
             padding: 50px; 
@@ -127,7 +127,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="contenedor-seleccion">
         <h1>🎯 Selecciona tu Grupo</h1>
         
         <div class="quiz-info" id="quizInfo">
@@ -161,7 +161,7 @@
         // Cargar información del quiz y grupos
         async function loadQuizInfo() {
             try {
-                const response = await fetch(`/api/session/${sessionId}/info`);
+                const response = await fetch(`/api/sesion/${sessionId}/info`);
                 const data = await response.json();
                 
                 if (!response.ok) {
@@ -232,7 +232,7 @@
             }
             
             try {
-                const response = await fetch(`/api/participant/${participantId}/assign_group`, {
+                const response = await fetch(`/api/participante/${participantId}/asignar_grupo`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ group_name: selectedGroup })
@@ -242,7 +242,7 @@
                 
                 if (response.ok) {
                     // Redirigir al lobby
-                    window.location.href = `/lobby?session_id=${sessionId}&participant_id=${participantId}`;
+                    window.location.href = `/sala_espera?session_id=${sessionId}&participant_id=${participantId}`;
                 } else {
                     alert('Error: ' + (data.error || 'No se pudo unir al grupo'));
                 }
