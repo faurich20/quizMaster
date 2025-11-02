@@ -1,4 +1,4 @@
-<!-- plantilla: play.html (interfaz de juego para estudiantes) -->
+<!-- templates/jugar.html -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
 
-        .barra-nav {
+        .barra-navegacion {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
@@ -29,21 +29,21 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .barra-nav.show {
+        .barra-navegacion.mostrar {
             display: flex;
         }
 
-        .barra-nav h1 {
+        .barra-navegacion h1 {
             font-size: 1.8em;
         }
 
-        .navbar-right {
+        .derecha-navegacion {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .btn-nav {
+        .btn-navegacion {
             background: white;
             color: #667eea;
             border: 2px solid white;
@@ -55,7 +55,7 @@
             transition: all 0.3s ease;
         }
 
-        .btn-nav:hover {
+        .btn-navegacion:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
         }
@@ -68,7 +68,7 @@
             min-height: 100vh;
         }
 
-        .barra-nav.show+.contenido-pagina {
+        .barra-navegacion.mostrar+.contenido-pagina {
             min-height: calc(100vh - 60px);
         }
 
@@ -82,34 +82,34 @@
             text-align: center;
         }
 
-        .play-header {
+        .encabezado-juego {
             margin-bottom: 30px;
         }
 
-        .play-header h1 {
+        .encabezado-juego h1 {
             color: #333;
             font-size: 3em;
             margin-bottom: 10px;
         }
 
-        .play-header p {
+        .encabezado-juego p {
             color: #666;
             font-size: 1.1em;
         }
 
-        .form-group {
+        .grupo-formulario {
             margin-bottom: 20px;
             text-align: left;
         }
 
-        .form-group label {
+        .grupo-formulario label {
             display: block;
             color: #333;
             font-weight: bold;
             margin-bottom: 8px;
         }
 
-        .form-group input {
+        .grupo-formulario input {
             width: 100%;
             padding: 15px;
             border: 2px solid #e0e0e0;
@@ -121,12 +121,12 @@
             transition: border-color 0.3s ease;
         }
 
-        .form-group input:focus {
+        .grupo-formulario input:focus {
             outline: none;
             border-color: #667eea;
         }
 
-        .form-group input::placeholder {
+        .grupo-formulario input::placeholder {
             letter-spacing: normal;
             font-weight: normal;
         }
@@ -155,38 +155,38 @@
             transform: none;
         }
 
-        .alert {
+        .alerta {
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
             display: none;
         }
 
-        .alert.show {
+        .alerta.mostrar {
             display: block;
         }
 
-        .alert-error {
+        .alerta-error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
 
-        .link-container {
+        .contenedor-enlaces {
             margin-top: 20px;
         }
 
-        .link-container a {
+        .contenedor-enlaces a {
             color: #667eea;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .link-container a:hover {
+        .contenedor-enlaces a:hover {
             text-decoration: underline;
         }
 
-        .btn-secondary {
+        .btn-secundario {
             width: 100%;
             background: white;
             color: #667eea;
@@ -203,41 +203,41 @@
             text-align: center;
         }
 
-        .btn-secondary:hover {
+        .btn-secundario:hover {
             background: #667eea;
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
 
-        #backToHomeBtn,
-        #backToHomeBtnGame,
-        #backToHomeBtnResults {
+        #btnVolverInicio,
+        #btnVolverInicioJuego,
+        #btnVolverInicioResultados {
             display: none;
         }
 
-        #backToHomeBtn.show,
-        #backToHomeBtnGame.show,
-        #backToHomeBtnResults.show {
+        #btnVolverInicio.mostrar,
+        #btnVolverInicioJuego.mostrar,
+        #btnVolverInicioResultados.mostrar {
             display: inline-block;
         }
 
-        .game-screen {
+        .pantalla-juego {
             display: none;
         }
 
-        .game-screen.active {
+        .pantalla-juego.activa {
             display: block;
         }
 
-        .question-container {
+        .contenedor-pregunta {
             background: white;
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 20px;
         }
 
-        .timer-bar {
+        .barra-tiempo {
             height: 8px;
             background: #e0e0e0;
             border-radius: 10px;
@@ -245,38 +245,38 @@
             margin-bottom: 20px;
         }
 
-        .timer-fill {
+        .relleno-tiempo {
             height: 100%;
             background: linear-gradient(90deg, #4caf50, #ffc107, #f44336);
             transition: width 0.1s linear;
         }
 
-        .question-number {
+        .numero-pregunta {
             color: #667eea;
             font-weight: bold;
             margin-bottom: 15px;
         }
 
-        .question-text {
+        .texto-pregunta {
             font-size: 1.5em;
             color: #333;
             margin-bottom: 20px;
             font-weight: 500;
         }
 
-        .question-media img {
+        .media-pregunta img {
             max-width: 100%;
             border-radius: 10px;
             margin-bottom: 20px;
         }
 
-        .answers-grid {
+        .cuadricula-respuestas {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
 
-        .answer-btn {
+        .btn-respuesta {
             padding: 20px;
             border: 3px solid #e0e0e0;
             border-radius: 15px;
@@ -290,35 +290,35 @@
             font-weight: 500;
         }
 
-        .answer-btn:hover {
+        .btn-respuesta:hover {
             transform: scale(1.05);
             border-color: #667eea;
             background: #f0f4ff;
         }
 
-        .answer-btn.selected {
+        .btn-respuesta.seleccionada {
             border-color: #667eea;
             background: #667eea;
             color: white;
         }
 
-        .answer-btn.correct {
+        .btn-respuesta.correcta {
             border-color: #4caf50;
             background: #4caf50;
             color: white;
         }
 
-        .answer-btn.incorrect {
+        .btn-respuesta.incorrecta {
             border-color: #f44336;
             background: #f44336;
             color: white;
         }
 
-        .answer-btn:disabled {
+        .btn-respuesta:disabled {
             cursor: not-allowed;
         }
 
-        .answer-letter {
+        .letra-respuesta {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -332,36 +332,36 @@
             flex-shrink: 0;
         }
 
-        .answer-btn.selected .answer-letter,
-        .answer-btn.correct .answer-letter {
+        .btn-respuesta.seleccionada .letra-respuesta,
+        .btn-respuesta.correcta .letra-respuesta {
             background: rgba(255, 255, 255, 0.3);
         }
 
-        .answer-text {
+        .texto-respuesta {
             flex: 1;
             text-align: left;
         }
 
-        .results-screen {
+        .pantalla-resultados {
             display: none;
             text-align: center;
         }
 
-        .results-screen.active {
+        .pantalla-resultados.activa {
             display: block;
         }
 
-        .results-header {
+        .encabezado-resultados {
             margin-bottom: 30px;
         }
 
-        .results-header h2 {
+        .encabezado-resultados h2 {
             color: #333;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
 
-        .score-display {
+        .mostrar-puntuacion {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
@@ -369,24 +369,24 @@
             margin-bottom: 30px;
         }
 
-        .score-display h3 {
+        .mostrar-puntuacion h3 {
             font-size: 3em;
             margin-bottom: 10px;
         }
 
-        .score-display p {
+        .mostrar-puntuacion p {
             font-size: 1.2em;
             opacity: 0.9;
         }
 
-        .ranking-list {
+        .lista-clasificacion {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
         }
 
-        .ranking-item {
+        .item-clasificacion {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -396,11 +396,11 @@
             margin-bottom: 10px;
         }
 
-        .ranking-item:last-child {
+        .item-clasificacion:last-child {
             margin-bottom: 0;
         }
 
-        .ranking-position {
+        .posicion-clasificacion {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -412,35 +412,35 @@
             font-weight: bold;
         }
 
-        .ranking-position.first {
+        .posicion-clasificacion.primero {
             background: #ffd700;
             color: #333;
         }
 
-        .ranking-position.second {
+        .posicion-clasificacion.segundo {
             background: #c0c0c0;
             color: #333;
         }
 
-        .ranking-position.third {
+        .posicion-clasificacion.tercero {
             background: #cd7f32;
             color: white;
         }
 
-        .ranking-name {
+        .nombre-clasificacion {
             flex: 1;
             text-align: left;
             margin-left: 15px;
             font-weight: 500;
         }
 
-        .ranking-score {
+        .puntuacion-clasificacion {
             font-weight: bold;
             color: #667eea;
         }
 
         @media (max-width: 768px) {
-            .answers-grid {
+            .cuadricula-respuestas {
                 grid-template-columns: 1fr;
             }
         }
@@ -448,296 +448,318 @@
 </head>
 
 <body>
-    <div class="barra-nav" id="barra-nav">
+    <div class="barra-navegacion" id="barraNavegacion">
         <h1>🎯 QuizPlatform</h1>
-        <div class="navbar-right">
-            <span>Bienvenido, <strong id="nav_nombre"></strong></span>
-            <a href="/logout" class="btn-nav">Cerrar Sesión</a>
+        <div class="derecha-navegacion">
+            <span>Bienvenido, <strong id="nombreUsuarioNav"></strong></span>
+            <a href="/cerrar_sesion" class="btn-navegacion">Cerrar Sesión</a>
         </div>
     </div>
 
     <div class="contenido-pagina">
         <div class="contenedor-juego">
-            <div id="joinScreen" class="join-screen active">
-                <div class="play-header">
+            <div id="pantallaUnirse" class="pantalla-unirse activa">
+                <div class="encabezado-juego">
                     <h1>🎮</h1>
                     <h1>QuizPlatform</h1>
                     <p>Únete a la partida</p>
                 </div>
-                <div class="alert alert-error" id="alertError"></div>
-                <form id="joinForm">
-                    <div class="form-group">
-                        <label for="pinCode">Código PIN:</label>
-                        <input type="text" id="pinCode" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
+                <div class="alerta alerta-error" id="alertaError"></div>
+                <form id="formularioUnirse">
+                    <div class="grupo-formulario">
+                        <label for="codigoPin">Código PIN:</label>
+                        <input type="text" id="codigoPin" placeholder="Ingresa el PIN" required maxlength="8" autofocus>
                     </div>
-                    <div class="form-group" id="usernameGroup">
-                        <label for="nombre_participante">Tu nombre:</label>
-                        <input type="text" id="nombre_participante" placeholder="Ingresa tu nombre">
+                    <div class="grupo-formulario" id="grupoUsuario">
+                        <label for="nombreUsuario">Tu nombre:</label>
+                        <input type="text" id="nombreUsuario" placeholder="Ingresa tu nombre">
                     </div>
                     <button type="submit" class="btn">Unirse al Juego</button>
                 </form>
-                <a href="/jugar" class="btn">🎮 Jugar Ahora</a>
-                <div class="actions">
-                    <button class="btn btn-secondary" onclick="copyLink()">🔗 Copiar Enlace</button>
-                    <a href="/" class="btn btn-secondary">🏠 Inicio</a>
-                </div>
+                <a href="/" class="btn-secundario" id="btnVolverInicio">← Volver a Inicio</a>
             </div>
-            <div id="gameScreen" class="game-screen">
-                <div class="question-container">
-                    <div class="timer-bar">
-                        <div class="timer-fill" id="timerFill"></div>
+            <div id="pantallaJuego" class="pantalla-juego">
+                <div class="contenedor-pregunta">
+                    <div class="barra-tiempo">
+                        <div class="relleno-tiempo" id="rellenoTiempo"></div>
                     </div>
-                    <div class="question-number" id="questionNumber">Pregunta 1 de 10</div>
-                    <div class="question-text" id="texto_pregunta"></div>
-                    <div class="question-media" id="questionMedia"></div>
+                    <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 10</div>
+                    <div class="texto-pregunta" id="textoPregunta"></div>
+                    <div class="media-pregunta" id="mediaPregunta"></div>
                 </div>
-                <div class="answers-grid" id="answersGrid"></div>
-                <a href="/" class="btn-secondary" id="backToHomeBtnGame">← Volver a Inicio</a>
+                <div class="cuadricula-respuestas" id="cuadriculaRespuestas"></div>
+                <a href="/" class="btn-secundario" id="btnVolverInicioJuego">← Volver a Inicio</a>
             </div>
-            <div id="resultsScreen" class="results-screen">
-                <div class="results-header">
+            <div id="pantallaResultados" class="pantalla-resultados">
+                <div class="encabezado-resultados">
                     <h2>🎉 ¡Juego Terminado!</h2>
                 </div>
-                <div class="score-display">
-                    <h3 id="finalScore">0</h3>
+                <div class="mostrar-puntuacion">
+                    <h3 id="puntuacionFinal">0</h3>
                     <p>Puntos Totales</p>
                 </div>
-                <div class="ranking-list">
+                <div class="lista-clasificacion">
                     <h3 style="margin-bottom: 15px; color: #333;">🏆 Ranking Final</h3>
-                    <div id="rankingList"></div>
+                    <div id="listaClasificacion"></div>
                 </div>
-                <!-- 
-                <button class="btn" onclick="location.reload()">Jugar Otra Vez</button>-->
-                <a href="/" class="btn-secondary" id="backToHomeBtnResults" style="margin-top: 15px;">← Volver a
-                    Inicio</a>
+                <a href="/" class="btn-secundario" id="btnVolverInicioResultados" style="margin-top: 15px;">← Volver a Inicio</a>
             </div>
         </div>
     </div>
 
     <script>
-        let currentQuestion = 0;
-        let questions = [];
-        let participantId = null;
-        let sessionId = null;
-        let score = 0;
-        let timerInterval = null;
-        let loggedInUsername = null;
-        let sessionCheckInterval = null;
-        let questionStartTime = null;
+        let preguntaActual = 0;
+        let preguntas = [];
+        let idParticipante = null;
+        let idSesion = null;
+        let puntuacion = 0;
+        let intervaloReloj = null;
+        let nombreUsuarioLogueado = null;
+        let intervaloVerificacionSesion = null;
+        let tiempoInicioPregunta = null;
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const autoStart = urlParams.get('auto_start');
-        const urlSessionId = urlParams.get('session_id');
-        const urlParticipantId = urlParams.get('participant_id');
+        const parametrosURL = new URLSearchParams(window.location.search);
+        const inicioAutomatico = parametrosURL.get('auto_start');
+        const idSesionURL = parametrosURL.get('sesion_id');
+        const idParticipanteURL = parametrosURL.get('id_participante');
 
-        if (autoStart === 'true' && urlSessionId && urlParticipantId) {
-            sessionId = urlSessionId;
-            participantId = urlParticipantId;
-            const joinEl = document.getElementById('joinScreen');
-            if (joinEl) {
-                joinEl.style.display = 'none';
-                joinEl.classList.remove('active');
+        if (inicioAutomatico === 'true' && idSesionURL && idParticipanteURL) {
+            idSesion = idSesionURL;
+            idParticipante = idParticipanteURL;
+            const elementoUnirse = document.getElementById('pantallaUnirse');
+            if (elementoUnirse) {
+                elementoUnirse.style.display = 'none';
+                elementoUnirse.classList.remove('activa');
             }
-            fetch(`/api/sesion/${sessionId}/info`)
-                .then(res => res.json())
-                .then(data => {
-                    loadQuestions(data.quiz.id).then(() => {
-                        checkProgress();
+            fetch(`/api/sesion/${idSesion}/info`)
+                .then(respuesta => respuesta.json())
+                .then(datos => {
+                    cargarPreguntas(datos.quiz.id).then(() => {
+                        verificarProgreso();
                     });
                 })
-                .catch(err => {
+                .catch(error => {
                     alert('Error cargando el quiz');
                     window.location.href = '/';
                 });
         }
 
-        async function checkProgress() {
-            if (!participantId) return;
+        async function verificarProgreso() {
+            if (!idParticipante) return;
 
             try {
-                const response = await fetch(`/api/participante/${participantId}/progreso`);
-                const progress = await response.json();
+                const respuesta = await fetch(`/api/participante/${idParticipante}/progreso`);
+                const progreso = await respuesta.json();
 
-                if (progress.last_question_id && questions.length > 0) {
-                    const lastIndex = questions.findIndex(q => q.id === progress.last_question_id);
+                if (progreso.last_pregunta_id && preguntas.length > 0) {
+                    const ultimoIndice = preguntas.findIndex(p => p.id === progreso.last_pregunta_id);
 
-                    if (lastIndex >= 0 && lastIndex < questions.length - 1) {
-                        currentQuestion = lastIndex + 1;
-                        score = progress.total_score || 0;
-                        document.getElementById('gameScreen').classList.add('active');
-                        showQuestion(currentQuestion);
-                        startSessionCheck();
-                    } else if (lastIndex === questions.length - 1) {
-                        score = progress.total_score || 0;
-                        showResults();
+                    if (ultimoIndice >= 0 && ultimoIndice < preguntas.length - 1) {
+                        preguntaActual = ultimoIndice + 1;
+                        puntuacion = progreso.puntuacion_total || 0;
+                        document.getElementById('pantallaJuego').classList.add('activa');
+                        mostrarPregunta(preguntaActual);
+                        iniciarVerificacionSesion();
+                    } else if (ultimoIndice === preguntas.length - 1) {
+                        puntuacion = progreso.puntuacion_total || 0;
+                        mostrarResultados();
                     } else {
-                        document.getElementById('gameScreen').classList.add('active');
-                        showQuestion(0);
-                        startSessionCheck();
+                        document.getElementById('pantallaJuego').classList.add('activa');
+                        mostrarPregunta(0);
+                        iniciarVerificacionSesion();
                     }
                 } else {
-                    document.getElementById('gameScreen').classList.add('active');
-                    showQuestion(0);
-                    startSessionCheck();
+                    document.getElementById('pantallaJuego').classList.add('activa');
+                    mostrarPregunta(0);
+                    iniciarVerificacionSesion();
                 }
-            } catch (err) {
-                console.error('Error verificando progreso:', err);
-                document.getElementById('gameScreen').classList.add('active');
-                showQuestion(0);
-                startSessionCheck();
+            } catch (error) {
+                console.error('Error verificando progreso:', error);
+                document.getElementById('pantallaJuego').classList.add('activa');
+                mostrarPregunta(0);
+                iniciarVerificacionSesion();
             }
         }
 
-        function startSessionCheck() {
-            if (!sessionId) return;
+        function iniciarVerificacionSesion() {
+            if (!idSesion) return;
 
-            sessionCheckInterval = setInterval(async () => {
+            intervaloVerificacionSesion = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/sesion/${sessionId}/estado`);
-                    const data = await response.json();
+                    const respuesta = await fetch(`/api/sesion/${idSesion}/verificar_estado`);
+                    const datos = await respuesta.json();
 
-                    if (!data.active || data.status === 'finished') {
-                        clearInterval(sessionCheckInterval);
-                        clearInterval(timerInterval);
-                        showResults();
-                        alert('Tiempo agotado o cancelado. Juego finalizado..');
+                    if (!datos.active || datos.estado === 'finished') {
+                        clearInterval(intervaloVerificacionSesion);
+                        clearInterval(intervaloReloj);
+                        mostrarResultados();
+                        alert('Tiempo agotado o cancelado. Juego finalizado.');
                     }
-                } catch (err) {
-                    console.error('Error verificando sesión:', err);
+                } catch (error) {
+                    console.error('Error verificando sesión:', error);
                 }
             }, 2000);
         }
 
         window.addEventListener('beforeunload', () => {
-            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
-            if (timerInterval) clearInterval(timerInterval);
+            if (intervaloVerificacionSesion) clearInterval(intervaloVerificacionSesion);
+            if (intervaloReloj) clearInterval(intervaloReloj);
         });
 
-        function initUserUI() {
+        function inicializarInterfazUsuario() {
             fetch('/api/informacion_sesion')
-                .then(r => r.json())
-                .then(d => {
-                    if (d.username) document.getElementById('navUsername').textContent = d.username;
-                }).catch(() => { });
+                .then(respuesta => respuesta.json())
+                .then(datos => {
+                    if (datos.nombre_usuario && !datos.es_profesor) {
+                        nombreUsuarioLogueado = datos.nombre_usuario;
+                        document.getElementById('nombreUsuarioNav').textContent = datos.nombre_usuario;
+                        document.getElementById('barraNavegacion').classList.add('mostrar');
+                        const botonesVolver = ['btnVolverInicio', 'btnVolverInicioJuego', 'btnVolverInicioResultados'];
+                        botonesVolver.forEach(id => { 
+                            const elemento = document.getElementById(id); 
+                            if (elemento) elemento.classList.remove('mostrar'); 
+                        });
+                        const grupo = document.getElementById('grupoUsuario');
+                        if (grupo) grupo.style.display = 'none';
+                        const entradaUsuario = document.getElementById('nombreUsuario');
+                        if (entradaUsuario) entradaUsuario.value = datos.nombre_usuario;
+                    } else if (datos.nombre_usuario && datos.es_profesor) {
+                        window.location.href = '/panel_control';
+                    } else {
+                        ['btnVolverInicio', 'btnVolverInicioJuego', 'btnVolverInicioResultados'].forEach(id => {
+                            const elemento = document.getElementById(id);
+                            if (elemento) elemento.classList.add('mostrar');
+                        });
+                        const entradaUsuario = document.getElementById('nombreUsuario');
+                        if (entradaUsuario) entradaUsuario.required = true;
+                    }
+                })
+                .catch(error => {
+                    ['btnVolverInicio', 'btnVolverInicioJuego', 'btnVolverInicioResultados'].forEach(id => {
+                        const elemento = document.getElementById(id);
+                        if (elemento) elemento.classList.add('mostrar');
+                    });
+                    const entradaUsuario = document.getElementById('nombreUsuario');
+                    if (entradaUsuario) entradaUsuario.required = true;
+                });
         }
 
-        initUserUI();
+        inicializarInterfazUsuario();
 
-        if (!(autoStart === 'true' && urlSessionId && urlParticipantId)) {
-            document.getElementById('joinForm').addEventListener('submit', async function (e) {
+        if (!(inicioAutomatico === 'true' && idSesionURL && idParticipanteURL)) {
+            document.getElementById('formularioUnirse').addEventListener('submit', async function (e) {
                 e.preventDefault();
-                const pinCode = document.getElementById('pinCode').value.toUpperCase();
-                const username = document.getElementById('nombre_participante').value || loggedInUsername;
+                const codigoPin = document.getElementById('codigoPin').value.toUpperCase();
+                const nombreUsuario = document.getElementById('nombreUsuario').value || nombreUsuarioLogueado;
 
-                if (!username) {
-                    showAlert('Por favor ingresa tu nombre');
+                if (!nombreUsuario) {
+                    mostrarAlerta('Por favor ingresa tu nombre');
                     return;
                 }
 
                 try {
-                    const response = await fetch('/api/unirse', {
+                    const respuesta = await fetch('/api/unirse_juego', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pin_code: pinCode, username })
+                        body: JSON.stringify({ codigo_pin: codigoPin, nombre_usuario: nombreUsuario })
                     });
-                    const data = await response.json();
-                    if (response.ok) {
-                        participantId = data.participant_id;
-                        sessionId = data.session_id;
+                    const datos = await respuesta.json();
+                    if (respuesta.ok) {
+                        idParticipante = datos.id_participante;
+                        idSesion = datos.sesion_id;
 
-                        if (data.quiz.mode === 'group') {
-                            window.location.href = `/seleccion_grupo?session_id=${sessionId}&participant_id=${participantId}`;
+                        if (datos.quiz.modo === 'group') {
+                            window.location.href = `/seleccion_grupo?sesion_id=${idSesion}&id_participante=${idParticipante}`;
                             return;
                         }
 
-                        await loadQuestions(data.quiz.id);
-                        document.getElementById('joinScreen').classList.remove('active');
-                        document.getElementById('gameScreen').classList.add('active');
-                        showQuestion(0);
-                        startSessionCheck();
+                        await cargarPreguntas(datos.quiz.id);
+                        document.getElementById('pantallaUnirse').classList.remove('activa');
+                        document.getElementById('pantallaJuego').classList.add('activa');
+                        mostrarPregunta(0);
+                        iniciarVerificacionSesion();
                     } else {
-                        showAlert(data.error || 'Error al unirse al juego');
+                        mostrarAlerta(datos.error || 'Error al unirse al juego');
                     }
-                } catch (err) {
-                    showAlert('Error de conexión');
+                } catch (error) {
+                    mostrarAlerta('Error de conexión');
                 }
             });
         }
 
-        async function loadQuestions(quizId) {
+        async function cargarPreguntas(idQuiz) {
             try {
-                const response = await fetch(`/api/quizzes/${quizId}`);
-                const quiz = await response.json();
-                questions = quiz.questions || [];
-            } catch (e) {
-                console.error('Error cargando preguntas:', e);
+                const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
+                const quiz = await respuesta.json();
+                preguntas = quiz.questions || [];
+            } catch (error) {
+                console.error('Error cargando preguntas:', error);
             }
         }
 
-        function showQuestion(index) {
-            if (index >= questions.length) {
-                showResults();
-                return;
-            }
-            currentQuestion = index;
-            const q = questions[index];
-            document.getElementById('questionNumber').textContent = `Pregunta ${index + 1} de ${questions.length}`;
-            document.getElementById('texto_pregunta').textContent = q.question_text;
-            const media = document.getElementById('questionMedia');
-            media.innerHTML = q.image_url ? `<img src="${q.image_url}" alt="Imagen de la pregunta">` : '';
-            const answersGrid = document.getElementById('answersGrid');
-            answersGrid.innerHTML = q.options.map((opt, i) =>
-                `<button class="answer-btn" onclick="selectAnswer(${i}, ${q.id}, ${opt.id})">
-            <div class="answer-letter">${String.fromCharCode(65 + i)}</div>
-            <div class="answer-text">${opt.option_text}</div>
-        </button>`
-            ).join('');
-            startTimer(q.time_limit);
-        }
+        function mostrarPregunta(indice) { 
+            if (indice >= preguntas.length) { 
+                mostrarResultados(); 
+                return; 
+            } 
+            preguntaActual = indice; 
+            const pregunta = preguntas[indice]; 
+            document.getElementById('numeroPregunta').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
+            document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta; 
+            const media = document.getElementById('mediaPregunta'); 
+            media.innerHTML = pregunta.url_imagen ? `<img src="${pregunta.url_imagen}" alt="Imagen de la pregunta">` : '';
+            const cuadriculaRespuestas = document.getElementById('cuadriculaRespuestas'); 
+            cuadriculaRespuestas.innerHTML = pregunta.opciones.map((opcion, i) => 
+                `<button class="btn-respuesta" onclick="seleccionarRespuesta(${i}, ${pregunta.id}, ${opcion.id})">
+            <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div> 
+            <div class="texto-respuesta">${opcion.texto_opcion}</div> 
+        </button>` 
+            ).join(''); 
+            iniciarReloj(pregunta.tiempo_limite); 
+        } 
 
+        function iniciarReloj(segundos) {
+            let tiempoRestante = segundos;
+            tiempoInicioPregunta = Date.now();
+            const relleno = document.getElementById('rellenoTiempo');
+            relleno.style.width = '100%';
 
-        function startTimer(seconds) {
-            let timeLeft = seconds;
-            questionStartTime = Date.now();
-            const fill = document.getElementById('timerFill');
-            fill.style.width = '100%';
+            if (intervaloReloj) clearInterval(intervaloReloj);
 
-            if (timerInterval) clearInterval(timerInterval);
+            intervaloReloj = setInterval(() => {
+                tiempoRestante--;
+                const porcentaje = (tiempoRestante / segundos) * 100;
+                relleno.style.width = porcentaje + '%';
 
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                const pct = (timeLeft / seconds) * 100;
-                fill.style.width = pct + '%';
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
+                if (tiempoRestante <= 0) {
+                    clearInterval(intervaloReloj);
                     setTimeout(() => {
-                        showQuestion(currentQuestion + 1);
+                        mostrarPregunta(preguntaActual + 1);
                     }, 1000);
                 }
             }, 1000);
         }
 
-        async function selectAnswer(optionIndex, questionId, optionId) {
-            if (timerInterval) clearInterval(timerInterval);
+        async function seleccionarRespuesta(indiceOpcion, idPregunta, idOpcion) {
+            if (intervaloReloj) clearInterval(intervaloReloj);
 
-            const q = questions[currentQuestion];
-            const selected = q.options[optionIndex];
-            const isCorrect = selected.is_correct;
+            const pregunta = preguntas[preguntaActual];
+            const opcionSeleccionada = pregunta.opciones[indiceOpcion];
+            const esCorrecta = opcionSeleccionada.es_correcta;
 
-            const timeElapsed = (Date.now() - questionStartTime) / 1000;
-            const timeTaken = Math.min(timeElapsed, q.time_limit);
+            const tiempoTranscurrido = (Date.now() - tiempoInicioPregunta) / 1000;
+            const tiempoUtilizado = Math.min(tiempoTranscurrido, pregunta.tiempo_limite);
 
-            const points = isCorrect ? Math.max(100, 1000 - (timeTaken * 10)) : 0;
-            if (isCorrect) score += points;
+            const puntos = esCorrecta ? Math.max(100, 1000 - (tiempoUtilizado * 10)) : 0;
+            if (esCorrecta) puntuacion += puntos;
 
-            const buttons = document.querySelectorAll('.answer-btn');
-            buttons.forEach((btn, i) => {
-                btn.disabled = true;
-                if (q.options[i].is_correct) {
-                    btn.classList.add('correct');
-                } else if (i === optionIndex && !isCorrect) {
-                    btn.classList.add('incorrect');
+            const botones = document.querySelectorAll('.btn-respuesta');
+            botones.forEach((boton, i) => {
+                boton.disabled = true;
+                if (pregunta.opciones[i].es_correcta) {
+                    boton.classList.add('correcta');
+                } else if (i === indiceOpcion && !esCorrecta) {
+                    boton.classList.add('incorrecta');
                 }
             });
 
@@ -746,160 +768,134 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        participant_id: participantId,
-                        question_id: questionId,
-                        option_id: optionId,
-                        response_time: timeTaken,
-                        points_earned: points
+                        id_participante: idParticipante,
+                        pregunta_id: idPregunta,
+                        id: idOpcion,
+                        tiempo_respuesta: tiempoUtilizado,
+                        puntos_ganados: puntos
                     })
                 });
-            } catch (err) {
-                console.error('Error guardando respuesta:', err);
+            } catch (error) {
+                console.error('Error guardando respuesta:', error);
             }
 
             setTimeout(() => {
-                showQuestion(currentQuestion + 1);
+                mostrarPregunta(preguntaActual + 1);
             }, 2000);
         }
 
-        async function showResults() {
-            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+        async function mostrarResultados() {
+            if (intervaloVerificacionSesion) clearInterval(intervaloVerificacionSesion);
 
-            document.getElementById('gameScreen').classList.remove('active');
-            document.getElementById('resultsScreen').classList.add('active');
-            document.getElementById('finalScore').textContent = Math.round(score);
+            document.getElementById('pantallaJuego').classList.remove('activa');
+            document.getElementById('pantallaResultados').classList.add('activa');
+            document.getElementById('puntuacionFinal').textContent = Math.round(puntuacion);
 
             try {
-                const response = await fetch(`/api/resultados/${sessionId}`);
-                const ranking = await response.json();
-                const list = document.getElementById('rankingList');
+                const respuesta = await fetch(`/api/resultados_juego/${idSesion}`);
+                const clasificacion = await respuesta.json();
+                const lista = document.getElementById('listaClasificacion');
 
-                list.innerHTML = ranking.map((p, idx) => {
-                    const cls = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : '';
-                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
-                    return `<div class="ranking-item">
-                <div class="ranking-position ${cls}">${medal || (idx + 1)}</div>
-                <div class="ranking-name">${p.username}</div>
-                <div class="ranking-score">${p.total_score} pts</div>
+                lista.innerHTML = clasificacion.map((participante, indice) => {
+                    const clase = indice === 0 ? 'primero' : indice === 1 ? 'segundo' : indice === 2 ? 'tercero' : '';
+                    const medalla = indice === 0 ? '🥇' : indice === 1 ? '🥈' : indice === 2 ? '🥉' : '';
+                    return `<div class="item-clasificacion">
+                <div class="posicion-clasificacion ${clase}">${medalla || (indice + 1)}</div>
+                <div class="nombre-clasificacion">${participante.nombre_usuario}</div>
+                <div class="puntuacion-clasificacion">${participante.puntuacion_total} pts</div>
             </div>`;
                 }).join('');
 
-                // === 🔹 NUEVO BLOQUE: verificación de intentos y botones ===
-                const resultsHeader = document.querySelector('.results-header');
-                // Limpiar botones previos si los hay
-                const oldBtn = document.getElementById('replayBtn');
-                const oldExit = document.getElementById('exitBtn');
-                if (oldBtn) oldBtn.remove();
-                if (oldExit) oldExit.remove();
+                const encabezadoResultados = document.querySelector('.encabezado-resultados');
+                const botonAnteriorRepetir = document.getElementById('btnRepetir');
+                const botonAnteriorSalir = document.getElementById('btnSalir');
+                if (botonAnteriorRepetir) botonAnteriorRepetir.remove();
+                if (botonAnteriorSalir) botonAnteriorSalir.remove();
 
-                // Obtener datos de la sesión actual
-                const resSession = await fetch(`/api/sesion/${sessionId}/info`);
-                const sessionInfo = await resSession.json();
-                const attemptsRemaining = sessionInfo.attempts_remaining || 0;
-                const quizId = sessionInfo.quiz?.id;
+                const respuestaSesion = await fetch(`/api/sesion/${idSesion}/info`);
+                const informacionSesion = await respuestaSesion.json();
+                const intentosRestantes = informacionSesion.attempts_remaining || 0;
+                const idQuiz = informacionSesion.quiz?.id;
 
-                if (attemptsRemaining > 0) {
-                    // 🔸 Botón "Jugar Otra Vez" (reanudar automáticamente)
-                    const btnReplay = document.createElement('button');
-                    btnReplay.className = 'btn';
-                    btnReplay.id = 'replayBtn';
-                    btnReplay.textContent = 'Jugar Otra Vez';
-                    btnReplay.style.marginTop = '12px';
-                    btnReplay.addEventListener('click', async function () {
+                if (intentosRestantes > 0) {
+                    const btnRepetir = document.createElement('button');
+                    btnRepetir.className = 'btn';
+                    btnRepetir.id = 'btnRepetir';
+                    btnRepetir.textContent = 'Jugar Otra Vez';
+                    btnRepetir.style.marginTop = '12px';
+                    btnRepetir.addEventListener('click', async function () {
                         try {
-                            const consumeRes = await fetch(`/api/session/${sessionId}/consume_attempt`, { method: 'POST' });
-                            const consumeData = await consumeRes.json();
-                            if (consumeRes.ok) {
-                                alert(`Intento consumido. Intentos restantes: ${consumeData.attempts_remaining}`);
-                                // 🔁 Reiniciar quiz automáticamente:
-                                startQuizFromBeginning(quizId);
+                            const respuestaConsumir = await fetch(`/api/sesion/${idSesion}/consumir_intento`, { method: 'POST' });
+                            const datosConsumir = await respuestaConsumir.json();
+                            if (respuestaConsumir.ok) {
+                                alert(`Intento consumido. Intentos restantes: ${datosConsumir.attempts_remaining}`);
+                                iniciarQuizDesdeCero(idQuiz);
                             } else {
-                                alert('❌ ' + (consumeData.error || 'No se pudo consumir el intento'));
+                                alert('❌ ' + (datosConsumir.error || 'No se pudo consumir el intento'));
                             }
-                        } catch (err) {
+                        } catch (error) {
                             alert('Error de conexión al consumir intento');
                         }
                     });
-                    resultsHeader.appendChild(btnReplay);
+                    encabezadoResultados.appendChild(btnRepetir);
                 } else {
-                    // 🔸 Botón "Salir" (redirige a /play)
-                    const btnExit = document.createElement('button');
-                    btnExit.className = 'btn';
-                    btnExit.id = 'exitBtn';
-                    btnExit.textContent = 'Salir';
-                    btnExit.style.marginTop = '12px';
-                    btnExit.addEventListener('click', function () {
-                        window.location.href = '/play';
+                    const btnSalir = document.createElement('button');
+                    btnSalir.className = 'btn';
+                    btnSalir.id = 'btnSalir';
+                    btnSalir.textContent = 'Salir';
+                    btnSalir.style.marginTop = '12px';
+                    btnSalir.addEventListener('click', function () {
+                        window.location.href = '/jugar';
                     });
-                    resultsHeader.appendChild(btnExit);
+                    encabezadoResultados.appendChild(btnSalir);
                 }
-            } catch (err) {
-                console.error('Error al mostrar resultados:', err);
+            } catch (error) {
+                console.error('Error al mostrar resultados:', error);
             }
         }
 
-        async function startQuizFromBeginning(quizId) {
+        async function iniciarQuizDesdeCero(idQuiz) {
             try {
-                // Si ya tenemos preguntas cargadas y pertenecen al mismo quiz, reutilizarlas
-                if (!questions || questions.length === 0) {
-                    // Cargar preguntas si no están disponibles
-                    await loadQuestions(quizId);
-                    // loadQuestions deja `questions` poblado
+                if (!preguntas || preguntas.length === 0) {
+                    await cargarPreguntas(idQuiz);
                 }
 
-                if (!questions || questions.length === 0) {
+                if (!preguntas || preguntas.length === 0) {
                     alert('No se pudo cargar el quiz para reiniciar.');
-                    window.location.href = '/play';
+                    window.location.href = '/jugar';
                     return;
                 }
 
-                // Reiniciar estado del jugador localmente
-                currentQuestion = 0;
-                score = 0;
-                // limpiar timers previos
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
+                preguntaActual = 0;
+                puntuacion = 0;
+                if (intervaloReloj) {
+                    clearInterval(intervaloReloj);
+                    intervaloReloj = null;
                 }
 
-                // Mostrar pantalla de juego y primera pregunta (showQuestion espera un índice)
-                const joinEl = document.getElementById('joinScreen');
-                if (joinEl) { joinEl.style.display = 'none'; joinEl.classList.remove('active'); }
-                document.getElementById('resultsScreen').classList.remove('active');
-                document.getElementById('gameScreen').classList.add('active');
+                const elementoUnirse = document.getElementById('pantallaUnirse');
+                if (elementoUnirse) { elementoUnirse.style.display = 'none'; elementoUnirse.classList.remove('activa'); }
+                document.getElementById('pantallaResultados').classList.remove('activa');
+                document.getElementById('pantallaJuego').classList.add('activa');
 
-                // Mostrar la primera pregunta (showQuestion se encargará de llamar startTimer(q.time_limit))
-                showQuestion(0);
+                mostrarPregunta(0);
 
-                // Volver a iniciar el chequeo de sesión si corresponde
-                startSessionCheck();
-            } catch (err) {
-                console.error('Error reiniciando quiz:', err);
+                iniciarVerificacionSesion();
+            } catch (error) {
+                console.error('Error reiniciando quiz:', error);
                 alert('Error reiniciando el quiz.');
-                window.location.href = '/play';
+                window.location.href = '/jugar';
             }
         }
 
-
-
-        function showAlert(message) {
-            const el = document.getElementById('alertError');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
+        function mostrarAlerta(mensaje) {
+            const elemento = document.getElementById('alertaError');
+            elemento.textContent = mensaje;
+            elemento.classList.add('mostrar');
+            setTimeout(() => elemento.classList.remove('mostrar'), 5000);
         }
     </script>
 
-    <script>
-/* API cliente en español — wrappers no destructivos */
-window.apiES = window.apiES || {};
-window.apiES.sessionInfo = () => fetch('/api/informacion_sesion').then(r=>r.json());
-window.apiES.iniciarSesion = (usuario, clave) => fetch('/iniciar_sesion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: usuario, password: clave }) }).then(r=>r.json());
-window.apiES.registrar = (payload) => fetch('/registrar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.unirseJuego = (pin, usuario) => fetch('/api/unirse', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pin_code: pin, username: usuario }) }).then(r=>r.json());
-window.apiES.guardarRespuesta = (payload) => fetch('/api/guardar_respuesta', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.obtenerResultados = (sessionId) => fetch(`/api/resultados/${sessionId}`).then(r=>r.json());
-window.apiES.checkSessionStatus = (sessionId) => fetch(`/api/sesion/${sessionId}/estado`).then(r=>r.json());
-</script>
 </body>
+
 </html>

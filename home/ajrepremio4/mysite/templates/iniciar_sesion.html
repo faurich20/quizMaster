@@ -1,4 +1,4 @@
-<!-- plantilla: login.html (inicio de sesión) -->
+<!-- templates/iniciar_sesion.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,47 +9,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .contenedor-login { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 450px; width: 100%; padding: 40px; }
-        .login-header { text-align: center; margin-bottom: 30px; }
-        .login-header h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
-        .login-header p { color: #666; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
-        .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
+        .encabezado-login { text-align: center; margin-bottom: 30px; }
+        .encabezado-login h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
+        .encabezado-login p { color: #666; }
+        .grupo-formulario { margin-bottom: 20px; }
+        .grupo-formulario label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+        .grupo-formulario input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
+        .grupo-formulario input:focus { outline: none; border-color: #667eea; }
         .btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.1em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .link-container { text-align: center; margin-top: 20px; }
-        .link-container a { color: #667eea; text-decoration: none; font-weight: bold; display: block; margin: 10px 0; }
-        .link-container a:hover { text-decoration: underline; }
-        .alert { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
-        .alert.show { display: block; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .contenedor-enlaces { text-align: center; margin-top: 20px; }
+        .contenedor-enlaces a { color: #667eea; text-decoration: none; font-weight: bold; display: block; margin: 10px 0; }
+        .contenedor-enlaces a:hover { text-decoration: underline; }
+        .alerta { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        .alerta.mostrar { display: block; }
+        .alerta-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
     <div class="contenedor-login">
-        <div class="login-header">
+        <div class="encabezado-login">
             <h1>🎯 Bienvenido</h1>
             <p>Inicia sesión en QuizPlatform</p>
         </div>
         
-        <div class="alert alert-error" id="alertError"></div>
+        <div class="alerta alerta-error" id="alertaError"></div>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Usuario:</label>
-                <input type="text" id="nombre_usuario" name="username" required autofocus>
+        <form id="formularioLogin">
+            <div class="grupo-formulario">
+                <label for="usuario">Usuario:</label>
+                <input type="text" id="usuario" name="usuario" required autofocus>
             </div>
             
-            <div class="form-group">
-                <label for="password">Contraseña:</label>
-                <input type="password" id="password" name="password" required>
+            <div class="grupo-formulario">
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" name="contrasena" required>
             </div>
             
             <button type="submit" class="btn">Iniciar Sesión</button>
         </form>
         
-        <div class="link-container">
+        <div class="contenedor-enlaces">
             <a href="/olvido_contrasena">¿Olvidaste tu contraseña?</a>
             <a href="/registrar">¿No tienes cuenta? Regístrate</a>
             <a href="/">Volver al inicio</a>
@@ -57,19 +57,39 @@
     </div>
     
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('formularioLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const username = document.getElementById('nombre_usuario').value;
-            const password = document.getElementById('password').value;
+            const usuario = document.getElementById('usuario').value;
+            const contrasena = document.getElementById('contrasena').value;
             try {
-                const response = await fetch('/iniciar_sesion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-                const data = await response.json();
-                if (response.ok) { if (data.is_teacher) { window.location.href = '/dashboard'; } else { window.location.href = '/play'; } } else { showAlert(data.error || 'Error al iniciar sesión'); }
-            } catch (error) { showAlert('Error de conexión'); }
+                const respuesta = await fetch('/iniciar_sesion', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ usuario, contrasena }) 
+                });
+                const datos = await respuesta.json();
+                if (respuesta.ok) { 
+                    if (datos.es_profesor) { 
+                        window.location.href = '/panel_control'; 
+                    } else { 
+                        window.location.href = '/jugar'; 
+                    } 
+                } else { 
+                    mostrarAlerta(datos.error || 'Error al iniciar sesión'); 
+                }
+            } catch (error) { 
+                mostrarAlerta('Error de conexión'); 
+            }
         });
-        function showAlert(message) { const alertEl = document.getElementById('alertError'); alertEl.textContent = message; alertEl.classList.add('show'); setTimeout(() => { alertEl.classList.remove('show'); }, 5000); }
-        window.apiES = window.apiES || {};
-        window.apiES.iniciarSesion = (usuario, clave) => fetch('/iniciar_sesion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: usuario, password: clave }) }).then(r=>r.json());
+        
+        function mostrarAlerta(mensaje) { 
+            const elementoAlerta = document.getElementById('alertaError'); 
+            elementoAlerta.textContent = mensaje; 
+            elementoAlerta.classList.add('mostrar'); 
+            setTimeout(() => { 
+                elementoAlerta.classList.remove('mostrar'); 
+            }, 5000); 
+        }
     </script>
 </body>
 </html>

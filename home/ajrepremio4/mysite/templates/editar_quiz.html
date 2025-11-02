@@ -1,4 +1,4 @@
-<!-- templates/quiz_editor.html -->
+<!-- templates/editar_quiz.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,145 +8,212 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f5f7fa}
-    .barra-nav{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+    .barra-navegacion{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
     .btn{background:#fff;color:#667eea;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;text-decoration:none}
-    .contenedor-editor{max-width:1000px;margin:0 auto;padding:24px}
-    .quiz-info{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-    .tarjeta_pregunta{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px}
-    .encabezado_pregunta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-    .num_pregunta{background:#667eea;color:#fff;padding:6px 10px;border-radius:14px;font-weight:700}
+    .contenedor{max-width:1000px;margin:0 auto;padding:24px}
+    .info-quiz{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .tarjeta-pregunta{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px}
+    .encabezado-pregunta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .num-pregunta{background:#667eea;color:#fff;padding:6px 10px;border-radius:14px;font-weight:700}
     .opciones{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .opt{display:flex;align-items:center;gap:10px;border:2px solid #e0e0e0;border-radius:10px;padding:10px}
-    .opt.correct{background:#f1f8f4;border-color:#4caf50}
+    .opcion{display:flex;align-items:center;gap:10px;border:2px solid #e0e0e0;border-radius:10px;padding:10px}
+    .opcion.correcta{background:#f1f8f4;border-color:#4caf50}
     .letra{width:34px;height:34px;border-radius:50%;background:#667eea;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .opt.correct .letra{background:#4caf50}
-    .empty{background:#fff;border-radius:12px;text-align:center;padding:40px;color:#666}
-    .fab{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:30px;padding:12px 20px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(102,126,234,.35)}
+    .opcion.correcta .letra{background:#4caf50}
+    .vacio{background:#fff;border-radius:12px;text-align:center;padding:40px;color:#666}
+    .boton-flotante{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:30px;padding:12px 20px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(102,126,234,.35)}
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:1000}
-    .modal.active{display:flex}
-    .modal-content{background:#fff;border-radius:14px;padding:24px;max-width:720px;width:92%;max-height:90vh;overflow:auto}
-    .form-group{margin-bottom:12px}
-    .form-group label{display:block;font-weight:700;margin-bottom:6px;color:#333}
-    .form-group input,.form-group textarea{width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-family:inherit}
-    .opt-edit{display:flex;gap:10px;align-items:center;background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:8px}
+    .modal.activo{display:flex}
+    .contenido-modal{background:#fff;border-radius:14px;padding:24px;max-width:720px;width:92%;max-height:90vh;overflow:auto}
+    .grupo-formulario{margin-bottom:12px}
+    .grupo-formulario label{display:block;font-weight:700;margin-bottom:6px;color:#333}
+    .grupo-formulario input,.grupo-formulario textarea{width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-family:inherit}
+    .opcion-editar{display:flex;gap:10px;align-items:center;background:#f8f9fa;border-radius:10px;padding:10px;margin-bottom:8px}
   </style>
 </head>
 <body>
-  <div class="barra-nav">
+  <div class="barra-navegacion">
     <h3>📝 Editor de Preguntas</h3>
-    <a href="/dashboard" class="btn">← Dashboard</a>
+    <a href="/panel_control" class="btn">← Panel de Control</a>
   </div>
-  <div class="contenedor-editor">
-    <div class="quiz-info">
-      <h2 id="quizTitle">Cargando...</h2>
-      <p id="quizDescription"></p>
+  <div class="contenedor">
+    <div class="info-quiz">
+      <h2 id="tituloQuiz">Cargando...</h2>
+      <p id="descripcionQuiz"></p>
     </div>
-    <div id="questionsContainer"></div>
-    <button class="fab" onclick="openQuestionModal()">+ Agregar Pregunta</button>
+    <div id="contenedorPreguntas"></div>
+    <button class="boton-flotante" onclick="abrirModalPregunta()">+ Agregar Pregunta</button>
   </div>
 
-  <div class="modal" id="questionModal">
-    <div class="modal-content">
-      <h3 id="modalTitle">Nueva Pregunta</h3>
-      <form id="questionForm">
-        <input type="hidden" id="id_pregunta" />
-        <div class="form-group">
-          <label for="texto_pregunta">Pregunta</label>
-          <textarea id="texto_pregunta" required placeholder="Escribe tu pregunta..."></textarea>
+  <div class="modal" id="modalPregunta">
+    <div class="contenido-modal">
+      <h3 id="tituloModal">Nueva Pregunta</h3>
+      <form id="formularioPregunta">
+        <input type="hidden" id="idPregunta" />
+        <div class="grupo-formulario">
+          <label for="textoPregunta">Pregunta</label>
+          <textarea id="textoPregunta" required placeholder="Escribe tu pregunta..."></textarea>
         </div>
-        <div class="form-group">
-          <label for="imageUrl">URL de Imagen (opcional)</label>
-          <input id="imageUrl" type="url" placeholder="https://..." />
+        <div class="grupo-formulario">
+          <label for="urlImagen">URL de Imagen (opcional)</label>
+          <input id="urlImagen" type="url" placeholder="https://..." />
         </div>
-        <div class="form-group">
-          <label for="videoUrl">URL de Video (opcional)</label>
-          <input id="videoUrl" type="url" placeholder="https://..." />
+        <div class="grupo-formulario">
+          <label for="urlVideo">URL de Video (opcional)</label>
+          <input id="urlVideo" type="url" placeholder="https://..." />
         </div>
-        <div class="form-group">
-          <label for="timeLimit">Tiempo límite (segundos)</label>
-          <input id="timeLimit" type="number" min="10" max="120" value="30" />
-        </div>e
+        <div class="grupo-formulario">
+          <label for="tiempoLimite">Tiempo límite (segundos)</label>
+          <input id="tiempoLimite" type="number" min="10" max="120" value="30" />
+        </div>
         <div style="margin:8px 0 10px 0; color:#666; font-weight:700">Opciones (marca la correcta ✓)</div>
-        <div class="opcion-editar"><div class="letra">A</div><input id="option1" placeholder="Opción A" required /><label><input type="checkbox" name="correct" value="0" onchange="pickCorrect(0)"> Correcta</label></div>
-        <div class="opcion-editar"><div class="letra">B</div><input id="option2" placeholder="Opción B" required /><label><input type="checkbox" name="correct" value="1" onchange="pickCorrect(1)"> Correcta</label></div>
-        <div class="opcion-editar"><div class="letra">C</div><input id="option3" placeholder="Opción C" required /><label><input type="checkbox" name="correct" value="2" onchange="pickCorrect(2)"> Correcta</label></div>
-        <div class="opcion-editar"><div class="letra">D</div><input id="option4" placeholder="Opción D" required /><label><input type="checkbox" name="correct" value="3" onchange="pickCorrect(3)"> Correcta</label></div>
+        <div class="opcion-editar"><div class="letra">A</div><input id="opcion1" placeholder="Opción A" required /><label><input type="checkbox" name="correcta" value="0" onchange="seleccionarCorrecta(0)"> Correcta</label></div>
+        <div class="opcion-editar"><div class="letra">B</div><input id="opcion2" placeholder="Opción B" required /><label><input type="checkbox" name="correcta" value="1" onchange="seleccionarCorrecta(1)"> Correcta</label></div>
+        <div class="opcion-editar"><div class="letra">C</div><input id="opcion3" placeholder="Opción C" required /><label><input type="checkbox" name="correcta" value="2" onchange="seleccionarCorrecta(2)"> Correcta</label></div>
+        <div class="opcion-editar"><div class="letra">D</div><input id="opcion4" placeholder="Opción D" required /><label><input type="checkbox" name="correcta" value="3" onchange="seleccionarCorrecta(3)"> Correcta</label></div>
         <button class="btn" type="submit" style="width:100%;margin-top:8px">Guardar</button>
       </form>
     </div>
   </div>
 
   <script>
-    const quizId = window.location.pathname.split('/').pop();
-    let questions = [];
-    let correctIndex = -1;
+    const idQuiz = window.location.pathname.split('/').pop();
+    let preguntas = [];
+    let indiceCorrecta = -1;
 
-    async function loadQuiz(){
-      try{ const res = await fetch(`/api/quizzes/${quizId}`); const quiz = await res.json();
-        document.getElementById('quizTitle').textContent = quiz.title;
-        document.getElementById('quizDescription').textContent = quiz.description || 'Sin descripción';
-        questions = quiz.questions || []; 
-        window.quizOwnerId = quiz.teacher_id;
-        renderQuestions();
+    async function cargarQuiz(){
+      try{ 
+        const respuesta = await fetch(`/api/quizzes/${idQuiz}`); 
+        const quiz = await respuesta.json();
+        document.getElementById('tituloQuiz').textContent = quiz.titulo;
+        document.getElementById('descripcionQuiz').textContent = quiz.descripcion || 'Sin descripción';
+        preguntas = quiz.questions || []; 
+        window.idPropietarioQuiz = quiz.id_profesor;
+        renderizarPreguntas();
       }catch(e){ alert('Error cargando el quiz'); }
     }
 
-    function renderQuestions(){
-      const c = document.getElementById('questionsContainer');
-      if(!questions.length){ c.innerHTML = `<div class=\"empty\"><div style=\"font-size:46px\">❓</div><h3>No hay preguntas aún</h3><p>Agrega tu primera pregunta</p></div>`; return; }
-      const canEdit = (window.quizOwnerId && window.currentUserId && window.quizOwnerId == window.currentUserId);
-      c.innerHTML = questions.map((q,i)=>`
-        <div class="tarjeta_pregunta">
-          <div class="encabezado_pregunta">
-            <div class="num_pregunta">Pregunta ${i+1}</div>
+    function renderizarPreguntas(){
+      const contenedor = document.getElementById('contenedorPreguntas');
+      if(!preguntas.length){ 
+        contenedor.innerHTML = `<div class=\"vacio\"><div style=\"font-size:46px\">❓</div><h3>No hay preguntas aún</h3><p>Agrega tu primera pregunta</p></div>`; 
+        return; 
+      }
+      const puedeEditar = (window.idPropietarioQuiz && window.idUsuarioActual && window.idPropietarioQuiz == window.idUsuarioActual);
+      contenedor.innerHTML = preguntas.map((pregunta,indice)=>`
+        <div class="tarjeta-pregunta">
+          <div class="encabezado-pregunta">
+            <div class="num-pregunta">Pregunta ${indice+1}</div>
             <div>
-              ${canEdit ? `<button class="btn" onclick="openEdit(${q.id})">✏️ Editar</button>
-              <button class="btn" style="background:#f44336;color:#fff" onclick="delQuestion(${q.id})">🗑️ Eliminar</button>` : ''}
+              ${puedeEditar ? `
+              <button class="btn" onclick="abrirEdicion(${pregunta.id})">✏️ Editar</button>
+              <button class="btn" style="background:#f44336;color:#fff" onclick="eliminarPregunta(${pregunta.id})">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
-          <div style="margin-bottom:8px;color:#333;font-weight:600">${q.question_text}</div>
-          ${q.image_url?`<img src="${q.image_url}" alt="imagen" style="max-width:280px;border-radius:10px;margin:6px 0">`:''}
-          ${q.video_url?`<div style="color:#667">📹 <a href="${q.video_url}" target="_blank">Ver video</a></div>`:''}
-          <div style="color:#666;margin:8px 0">⏱️ ${q.time_limit} s</div>
+          <div style="margin-bottom:8px;color:#333;font-weight:600">${pregunta.texto_pregunta}</div>
+          ${pregunta.url_imagen?`<img src="${pregunta.url_imagen}" alt="img" style="max-width:280px;border-radius:10px;margin:6px 0">`:''}
+          ${pregunta.url_video?`<div style="color:#667">📹 <a href="${pregunta.url_video}" target="_blank">Ver video</a></div>`:''}
+          <div style="color:#666;margin:8px 0">⏱️ ${pregunta.tiempo_limite} s</div>
           <div class="opciones">
-            ${q.options.map((op,idx)=>`<div class="opt ${op.is_correct?'correct':''}"><div class="letra">${String.fromCharCode(65+idx)}</div><div>${op.option_text}</div></div>`).join('')}
+            ${pregunta.opciones.map((opcion,idx)=>`<div class="opcion ${opcion.es_correcta?'correcta':''}"><div class="letra">${String.fromCharCode(65+idx)}</div><div>${opcion.texto_opcion}</div></div>`).join('')}
           </div>
         </div>`).join('');
       // Mostrar/Ocultar botón de agregar pregunta
-      const fab = document.querySelector('.fab');
-      if (fab) fab.style.display = canEdit ? 'inline-block' : 'none';
+      const botonFlotante = document.querySelector('.boton-flotante');
+      if (botonFlotante) botonFlotante.style.display = puedeEditar ? 'inline-block' : 'none';
     }
 
-    function pickCorrect(i){ document.querySelectorAll('input[name="correct"]').forEach((el,idx)=>{ if(idx!==i) el.checked=false; }); correctIndex = i; }
-    function openQuestionModal(){ document.getElementById('modalTitle').textContent='Nueva Pregunta'; document.getElementById('questionForm').reset(); document.getElementById('id_pregunta').value=''; correctIndex=-1; document.querySelectorAll('input[name="correct"]').forEach(el=>el.checked=false); toggleModal(true); }
-    function openEdit(id){ const q = questions.find(x=>x.id===id); if(!q) return; document.getElementById('modalTitle').textContent='Editar Pregunta'; document.getElementById('id_pregunta').value=q.id; document.getElementById('texto_pregunta').value=q.question_text; document.getElementById('imageUrl').value=q.image_url||''; document.getElementById('videoUrl').value=q.video_url||''; document.getElementById('timeLimit').value=q.time_limit; q.options.forEach((o,idx)=>{ document.getElementById('option'+(idx+1)).value=o.option_text; const cb=document.querySelector(`input[name="correct"][value="${idx}"]`); cb.checked=!!o.is_correct; if(o.is_correct) correctIndex=idx; }); toggleModal(true); }
-    function toggleModal(v){ document.getElementById('questionModal').classList.toggle('active', !!v); }
+    function seleccionarCorrecta(indice){ 
+      document.querySelectorAll('input[name="correcta"]').forEach((elemento,idx)=>{ 
+        if(idx!==indice) elemento.checked=false; 
+      }); 
+      indiceCorrecta = indice; 
+    }
 
-    async function delQuestion(id){ if(!confirm('¿Eliminar pregunta?')) return; try{ const r=await fetch(`/api/questions/${id}`,{method:'DELETE'}); if(r.ok){ alert('✅ Pregunta eliminada'); loadQuiz(); } else alert('❌ Error eliminando'); }catch(e){ alert('Error de conexión'); }}
+    function abrirModalPregunta(){ 
+      document.getElementById('tituloModal').textContent='Nueva Pregunta'; 
+      document.getElementById('formularioPregunta').reset(); 
+      document.getElementById('idPregunta').value=''; 
+      indiceCorrecta=-1; 
+      document.querySelectorAll('input[name="correcta"]').forEach(elemento=>elemento.checked=false); 
+      alternarModal(true); 
+    }
 
-    document.getElementById('questionForm').addEventListener('submit', async (e)=>{
-      e.preventDefault(); if(correctIndex===-1){ alert('Selecciona una respuesta correcta'); return; }
-      const qid = document.getElementById('id_pregunta').value;
-      const payload = {
-        question_text: document.getElementById('texto_pregunta').value,
-        image_url: document.getElementById('imageUrl').value,
-        video_url: document.getElementById('videoUrl').value,
-        time_limit: parseInt(document.getElementById('timeLimit').value||'30'),
-        position: questions.length,
-        options: [0,1,2,3].map(i=>({ text: document.getElementById('option'+(i+1)).value, is_correct: correctIndex===i }))
+    function abrirEdicion(id){ 
+      const pregunta = preguntas.find(x=>x.id===id); 
+      if(!pregunta) return; 
+      document.getElementById('tituloModal').textContent='Editar Pregunta'; 
+      document.getElementById('idPregunta').value=pregunta.id; 
+      document.getElementById('textoPregunta').value=pregunta.texto_pregunta; 
+      document.getElementById('urlImagen').value=pregunta.url_imagen||''; 
+      document.getElementById('urlVideo').value=pregunta.url_video||''; 
+      document.getElementById('tiempoLimite').value=pregunta.tiempo_limite; 
+      pregunta.opciones.forEach((opcion,idx)=>{ 
+        document.getElementById('opcion'+(idx+1)).value=opcion.texto_opcion; 
+        const casilla=document.querySelector(`input[name="correcta"][value="${idx}"]`); 
+        casilla.checked=!!opcion.es_correcta; 
+        if(opcion.es_correcta) indiceCorrecta=idx; 
+      }); 
+      alternarModal(true); 
+    }
+
+    function alternarModal(visible){ 
+      document.getElementById('modalPregunta').classList.toggle('activo', !!visible); 
+    }
+
+    async function eliminarPregunta(id){ 
+      if(!confirm('¿Eliminar pregunta?')) return; 
+      try{ 
+        const respuesta=await fetch(`/api/questions/${id}`,{method:'DELETE'}); 
+        if(respuesta.ok){ 
+          alert('✅ Pregunta eliminada'); 
+          cargarQuiz(); 
+        } else alert('❌ Error eliminando'); 
+      }catch(e){ alert('Error de conexión'); }
+    }
+
+    document.getElementById('formularioPregunta').addEventListener('submit', async (e)=>{
+      e.preventDefault(); 
+      if(indiceCorrecta===-1){ alert('Selecciona una respuesta correcta'); return; }
+      const idPreg = document.getElementById('idPregunta').value;
+      const datos = {
+        texto_pregunta: document.getElementById('textoPregunta').value,
+        url_imagen: document.getElementById('urlImagen').value,
+        url_video: document.getElementById('urlVideo').value,
+        tiempo_limite: parseInt(document.getElementById('tiempoLimite').value||'30'),
+        posicion: preguntas.length,
+        opciones: [0,1,2,3].map(i=>({ 
+          text: document.getElementById('opcion'+(i+1)).value, 
+          es_correcta: indiceCorrecta===i 
+        }))
       };
       try{
-        const url = qid? `/api/questions/${qid}` : `/api/quizzes/${quizId}/questions`;
-        const method = qid? 'PUT' : 'POST';
-        const r = await fetch(url,{method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-        if(r.ok){ alert('✅ Guardado'); toggleModal(false); loadQuiz(); } else { alert('❌ Error guardando'); }
+        const url = idPreg? `/api/questions/${idPreg}` : `/api/quizzes/${idQuiz}/questions`;
+        const metodo = idPreg? 'PUT' : 'POST';
+        const respuesta = await fetch(url,{
+          method: metodo, 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify(datos)
+        });
+        if(respuesta.ok){ 
+          alert('✅ Guardado'); 
+          alternarModal(false); 
+          cargarQuiz(); 
+        } else { 
+          alert('❌ Error guardando'); 
+        }
       }catch(e){ alert('Error de conexión'); }
     });
 
-    // Cargar sesión para conocer currentUserId
-    fetch('/api/informacion_sesion').then(r=>r.json()).then(data=>{ window.currentUserId = data.usuario_id; loadQuiz(); }).catch(()=> loadQuiz());
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') toggleModal(false); });
+    // Cargar sesión para conocer idUsuarioActual
+    fetch('/api/informacion_sesion').then(respuesta=>respuesta.json()).then(datos=>{ 
+      window.idUsuarioActual = datos.id_usuario; 
+      cargarQuiz(); 
+    }).catch(()=> cargarQuiz());
+    
+    window.addEventListener('keydown', (e)=>{ 
+      if(e.key==='Escape') alternarModal(false); 
+    });
   </script>
 </body>
 </html>
-

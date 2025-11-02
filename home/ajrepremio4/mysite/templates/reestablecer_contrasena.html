@@ -1,4 +1,4 @@
-<!-- plantilla: reset_password.html -->
+<!-- templates/reestablecer_contrasena.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,63 +8,123 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .contenedor-restablecer { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
-    .header { text-align: center; margin-bottom: 30px; }
-    .header h1 { color: #333; font-size: 2em; margin-bottom: 10px; }
-    .header p { color: #666; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
-    .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
-    .form-group input:focus { outline: none; border-color: #667eea; }
-    .password-requirements { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-top: 10px; font-size: 0.85em; }
-    .password-requirements h4 { color: #333; margin-bottom: 10px; }
-    .requirement { color: #999; margin: 5px 0; display: flex; align-items: center; }
-    .requirement.valid { color: #4caf50; }
-    .requirement::before { content: "✗"; margin-right: 8px; font-weight: bold; }
-    .requirement.valid::before { content: "✓"; }
+    .contenedor { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
+    .encabezado { text-align: center; margin-bottom: 30px; }
+    .encabezado h1 { color: #333; font-size: 2em; margin-bottom: 10px; }
+    .encabezado p { color: #666; }
+    .grupo-formulario { margin-bottom: 20px; }
+    .grupo-formulario label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+    .grupo-formulario input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
+    .grupo-formulario input:focus { outline: none; border-color: #667eea; }
+    .requisitos-contrasena { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-top: 10px; font-size: 0.85em; }
+    .requisitos-contrasena h4 { color: #333; margin-bottom: 10px; }
+    .requisito { color: #999; margin: 5px 0; display: flex; align-items: center; }
+    .requisito.cumplido { color: #4caf50; }
+    .requisito::before { content: "✗"; margin-right: 8px; font-weight: bold; }
+    .requisito.cumplido::before { content: "✓"; }
     .btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.05em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
     .btn:disabled { opacity: .6; cursor: not-allowed; }
-    .alert { padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
-    .alert.show { display: block; }
-    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alerta { padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
+    .alerta.mostrar { display: block; }
+    .alerta-exito { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alerta-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
   </style>
 </head>
 <body>
-  <div class="contenedor-restablecer">
-    <div class="header">
+  <div class="contenedor">
+    <div class="encabezado">
       <h1>🔑 Nueva Contraseña</h1>
       <p>Ingresa tu nueva contraseña</p>
     </div>
 
-    <div class="alert alert-success" id="alertSuccess"></div>
-    <div class="alert alert-error" id="alertError"></div>
+    <div class="alerta alerta-exito" id="alertaExito"></div>
+    <div class="alerta alerta-error" id="alertaError"></div>
 
-    <form id="resetPasswordForm">
-      <div class="form-group">
-        <label for="password">Nueva Contraseña:</label>
-        <input type="password" id="password" name="password" required autofocus />
-        <div class="password-requirements">
+    <form id="formularioRestablecerContrasena">
+      <div class="grupo-formulario">
+        <label for="contrasena">Nueva Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required autofocus />
+        <div class="requisitos-contrasena">
           <h4>Requisitos de contraseña:</h4>
-          <div class="requirement" id="req-length">Mínimo 8 caracteres</div>
-          <div class="requirement" id="req-uppercase">Al menos una mayúscula</div>
-          <div class="requirement" id="req-lowercase">Al menos una minúscula</div>
-          <div class="requirement" id="req-number">Al menos un número</div>
-          <div class="requirement" id="req-special">Al menos un carácter especial (!@#$%^&*)</div>
+          <div class="requisito" id="req-longitud">Mínimo 8 caracteres</div>
+          <div class="requisito" id="req-mayuscula">Al menos una mayúscula</div>
+          <div class="requisito" id="req-minuscula">Al menos una minúscula</div>
+          <div class="requisito" id="req-numero">Al menos un número</div>
+          <div class="requisito" id="req-especial">Al menos un carácter especial (!@#$%^&*)</div>
         </div>
       </div>
-      <div class="form-group">
-        <label for="confirmPassword">Confirmar Contraseña:</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" required />
+      <div class="grupo-formulario">
+        <label for="confirmarContrasena">Confirmar Contraseña:</label>
+        <input type="password" id="confirmarContrasena" name="confirmarContrasena" required />
       </div>
-      <button type="submit" class="btn" id="submitBtn">Restablecer Contraseña</button>
+      <button type="submit" class="btn" id="btnEnviar">Restablecer Contraseña</button>
     </form>
   </div>
 
   <script>
-    window.apiES = window.apiES || {};
-    window.apiES.restablecerContrasena = (token, password) => fetch(`/restablecer_contrasena/${token}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password }) }).then(r=>r.json());
+    const token = "{{ token }}";
+    
+    document.getElementById('contrasena').addEventListener('input', function(e) { 
+      const contrasena = e.target.value; 
+      alternar('req-longitud', contrasena.length >= 8); 
+      alternar('req-mayuscula', /[A-Z]/.test(contrasena)); 
+      alternar('req-minuscula', /[a-z]/.test(contrasena)); 
+      alternar('req-numero', /[0-9]/.test(contrasena)); 
+      alternar('req-especial', /[!@#$%^&*(),.?":{}|<>]/.test(contrasena)); 
+    });
+    
+    function alternar(id, cumple){ 
+      document.getElementById(id).classList.toggle('cumplido', cumple); 
+    }
+    
+    document.getElementById('formularioRestablecerContrasena').addEventListener('submit', async function(e){ 
+      e.preventDefault(); 
+      const contrasena = document.getElementById('contrasena').value; 
+      const confirmarContrasena = document.getElementById('confirmarContrasena').value; 
+      
+      if(contrasena !== confirmarContrasena){ 
+        mostrar('error','Las contraseñas no coinciden'); 
+        return; 
+      } 
+      
+      const requisitos = [ 
+        contrasena.length >= 8, 
+        /[A-Z]/.test(contrasena), 
+        /[a-z]/.test(contrasena), 
+        /[0-9]/.test(contrasena), 
+        /[!@#$%^&*(),.?":{}|<>]/.test(contrasena) 
+      ]; 
+      
+      if(!requisitos.every(Boolean)){ 
+        mostrar('error','La contraseña no cumple con todos los requisitos'); 
+        return; 
+      } 
+      
+      try {
+        const respuesta = await fetch(`/restablecer_contrasena/${token}`, { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ contrasena }) 
+        }); 
+        const datos = await respuesta.json(); 
+        if(respuesta.ok){ 
+          mostrar('exito','✅ Contraseña actualizada. Redirigiendo...'); 
+          setTimeout(()=> location.href='/iniciar_sesion', 1500); 
+        } else { 
+          mostrar('error', datos.error || 'Error al actualizar'); 
+        } 
+      } catch(error){ 
+        mostrar('error','Error de conexión'); 
+      } 
+    });
+    
+    function mostrar(tipo, mensaje){ 
+      const elemento = tipo === 'error' ? document.getElementById('alertaError') : document.getElementById('alertaExito'); 
+      elemento.textContent = mensaje; 
+      elemento.classList.add('mostrar'); 
+      setTimeout(()=> elemento.classList.remove('mostrar'), 5000); 
+    }
   </script>
 </body>
 </html>

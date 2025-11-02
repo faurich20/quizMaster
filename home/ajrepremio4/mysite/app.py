@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_mail import Mail, Message
 import pymysql
@@ -26,17 +27,17 @@ def obtener_bd():
     return obtener_conexion_db(con_dict=True)
 
 
-def validar_contrasena(password):
+def validar_contrasena(contrasena):
     """Valida que la contraseña sea segura"""
-    if len(password) < 8:
+    if len(contrasena) < 8:
         return False, "La contraseña debe tener al menos 8 caracteres"
-    if not re.search(r'[A-Z]', password):
+    if not re.search(r'[A-Z]', contrasena):
         return False, "La contraseña debe contener al menos una mayúscula"
-    if not re.search(r'[a-z]', password):
+    if not re.search(r'[a-z]', contrasena):
         return False, "La contraseña debe contener al menos una minúscula"
-    if not re.search(r'[0-9]', password):
+    if not re.search(r'[0-9]', contrasena):
         return False, "La contraseña debe contener al menos un número"
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', contrasena):
         return False, "La contraseña debe contener al menos un carácter especial"
     return True, "Contraseña válida"
 
@@ -48,1221 +49,1116 @@ def generar_pin():
     """Genera un PIN único para el quiz"""
     return ''.join(secrets.choice(string.digits + string.ascii_uppercase) for _ in range(8))
 
-def enviar_correo_verificacion(email, code):
-    """Envía email de verificación"""
+def enviar_correo_verificacion(correo, codigo):
+    """Envía correo de verificación"""
     try:
-        msg = Message('Verificación de cuenta - QuizPlatform',
+        mensaje = Message('Verificación de cuenta - QuizPlatform',
                       sender=app.config['MAIL_USERNAME'],
-                      recipients=[email])
-        msg.body = f'''
+                      recipients=[correo])
+        mensaje.body = f'''
         Bienvenido a QuizPlatform!
         
-        Tu código de verificación es: {code}
+        Tu código de verificación es: {codigo}
         
         Este código expirará en 15 minutos.
         
         Si no solicitaste esta verificación, ignora este correo.
         '''
-        mail.send(msg)
+        mail.send(mensaje)
         return True
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        print(f"Error enviando correo: {e}")
         return False
 
-def enviar_correo_recuperacion(email, token):
-    """Envía email de recuperación de contraseña"""
+def enviar_correo_recuperacion(correo, token):
+    """Envía correo de recuperación de contraseña"""
     try:
-        reset_url = url_for('restablecer_contrasena', token=token, _external=True)
-        msg = Message('Recuperación de contraseña - QuizPlatform',
+        url_restablecer = url_for('restablecer_contrasena', token=token, _external=True)
+        mensaje = Message('Recuperación de contraseña - QuizPlatform',
                       sender=app.config['MAIL_USERNAME'],
-                      recipients=[email])
-        msg.body = f'''
+                      recipients=[correo])
+        mensaje.body = f'''
         Has solicitado recuperar tu contraseña.
         
         Haz clic en el siguiente enlace para restablecer tu contraseña:
-        {reset_url}
+        {url_restablecer}
         
         Este enlace expirará en 1 hora.
         
         Si no solicitaste esto, ignora este correo.
         '''
-        mail.send(msg)
+        mail.send(mensaje)
         return True
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        print(f"Error enviando correo: {e}")
         return False
 
 def requiere_sesion(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
+    def funcion_decorada(*args, **kwargs):
+        if 'id_usuario' not in session:
             return redirect(url_for('iniciar_sesion'))
         return f(*args, **kwargs)
-    return decorated_function
+    return funcion_decorada
 
 def requiere_docente(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or not session.get('is_teacher'):
+    def funcion_decorada(*args, **kwargs):
+        if 'id_usuario' not in session or not session.get('es_profesor'):
             return jsonify({'error': 'Acceso denegado'}), 403
         return f(*args, **kwargs)
-    return decorated_function
+    return funcion_decorada
 
 @app.route('/')
 def inicio():
-    return render_template('inicio.html')
+    return render_template('index.html')
 
-@app.route('/play')
-@app.route('/play/')
+@app.route('/jugar')
+@app.route('/jugar/')
 def jugar():
     return render_template('jugar.html')
 
-@app.route('/lobby')
-def lobby():
+@app.route('/sala_espera')
+def sala_espera():
     return render_template('sala_espera.html')
 
-@app.route('/group_selection')
-def group_selection():
+@app.route('/seleccion_grupo')
+def seleccion_grupo():
     return render_template('seleccion_grupo.html')
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
-        data = request.json
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        is_teacher = data.get('is_teacher', False)
+        datos = request.json
+        nombre_usuario = datos.get('nombre_usuario')
+        correo = datos.get('correo')
+        contrasena = datos.get('contrasena')
+        es_profesor = datos.get('es_profesor', False)
         
         # Validar contraseña
-        valid, msg = validar_contrasena(password)
-        if not valid:
-            return jsonify({'error': msg}), 400
+        valido, mensaje = validar_contrasena(contrasena)
+        if not valido:
+            return jsonify({'error': mensaje}), 400
         
         # Hash de contraseña
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
         
         # Generar código de verificación
-        code = generar_codigo_verificacion()
-        expires = datetime.now() + timedelta(minutes=15)
+        codigo = generar_codigo_verificacion()
+        expira = datetime.now() + timedelta(minutes=15)
         
-        conn = obtener_bd()
-        cursor = conn.cursor()
+        conexion = obtener_bd()
+        cursor = conexion.cursor()
         
         try:
             cursor.execute('''
-                INSERT INTO users (username, email, password, is_teacher, 
-                                 verification_code, verification_expires)
+                INSERT INTO usuarios (nombre_usuario, correo, contrasena, es_profesor, 
+                                 codigo_verificacion, expira_verificacion)
                 VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (username, email, password_hash, is_teacher, code, expires))
-            conn.commit()
+            ''', (nombre_usuario, correo, hash_contrasena, es_profesor, codigo, expira))
+            conexion.commit()
             
-            # Enviar email de verificación
-            if enviar_correo_verificacion(email, code):
+            # Enviar correo de verificación
+            if enviar_correo_verificacion(correo, codigo):
                 return jsonify({
-                    'success': True,
-                    'message': 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
+                    'exito': True,
+                    'mensaje': 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
                 })
             else:
                 return jsonify({
-                    'success': True,
-                    'message': 'Registro exitoso, pero hubo un error enviando el correo.'
+                    'exito': True,
+                    'mensaje': 'Registro exitoso, pero hubo un error enviando el correo.'
                 })
         except pymysql.IntegrityError:
             return jsonify({'error': 'Usuario o correo ya existe'}), 400
         finally:
-            conn.close()
+            conexion.close()
     
     return render_template('registrar.html')
 
-@app.route('/api/auth/register', methods=['POST'])
-def api_register():
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    is_teacher = data.get('is_teacher', False)
-    valid, msg = validar_contrasena(password)
-    if not valid:
-        return jsonify({'error': msg}), 400
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    code = generar_codigo_verificacion()
-    expires = datetime.now() + timedelta(minutes=15)
-    conn = obtener_bd()
-    cursor = conn.cursor()
+@app.route('/api/auth/registrar', methods=['POST'])
+def api_registrar():
+    datos = request.json
+    nombre_usuario = datos.get('nombre_usuario')
+    correo = datos.get('correo')
+    contrasena = datos.get('contrasena')
+    es_profesor = datos.get('es_profesor', False)
+    valido, mensaje = validar_contrasena(contrasena)
+    if not valido:
+        return jsonify({'error': mensaje}), 400
+    hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
+    codigo = generar_codigo_verificacion()
+    expira = datetime.now() + timedelta(minutes=15)
+    conexion = obtener_bd()
+    cursor = conexion.cursor()
     try:
         cursor.execute('''
-            INSERT INTO users (username, email, password, is_teacher, 
-                             verification_code, verification_expires)
+            INSERT INTO usuarios (nombre_usuario, correo, contrasena, es_profesor, 
+                             codigo_verificacion, expira_verificacion)
             VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (username, email, password_hash, is_teacher, code, expires))
-        conn.commit()
-        if enviar_correo_verificacion(email, code):
-            return jsonify({'success': True, 'message': 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'})
+        ''', (nombre_usuario, correo, hash_contrasena, es_profesor, codigo, expira))
+        conexion.commit()
+        if enviar_correo_verificacion(correo, codigo):
+            return jsonify({'exito': True, 'mensaje': 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'})
         else:
-            return jsonify({'success': True, 'message': 'Registro exitoso, pero hubo un error enviando el correo.'})
+            return jsonify({'exito': True, 'mensaje': 'Registro exitoso, pero hubo un error enviando el correo.'})
     except pymysql.IntegrityError:
         return jsonify({'error': 'Usuario o correo ya existe'}), 400
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/verify', methods=['POST'])
+@app.route('/verificar', methods=['POST'])
 def verificar_cuenta():
-    data = request.json
-    email = data.get('email')
-    code = data.get('code')
+    datos = request.json
+    correo = datos.get('correo')
+    codigo = datos.get('codigo')
     
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     cursor.execute('''
-        SELECT * FROM users 
-        WHERE email = %s AND verification_code = %s 
-        AND verification_expires > NOW()
-    ''', (email, code))
+        SELECT * FROM usuarios 
+        WHERE correo = %s AND codigo_verificacion = %s 
+        AND expira_verificacion > NOW()
+    ''', (correo, codigo))
     
-    user = cursor.fetchone()
+    usuario = cursor.fetchone()
     
-    if user:
+    if usuario:
         cursor.execute('''
-            UPDATE users SET is_verified = 1, 
-            verification_code = NULL, verification_expires = NULL
-            WHERE email = %s
-        ''', (email,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'message': 'Cuenta verificada exitosamente'})
+            UPDATE usuarios SET esta_verificado = 1, 
+            codigo_verificacion = NULL, expira_verificacion = NULL
+            WHERE correo = %s
+        ''', (correo,))
+        conexion.commit()
+        conexion.close()
+        return jsonify({'exito': True, 'mensaje': 'Cuenta verificada exitosamente'})
     else:
-        conn.close()
+        conexion.close()
         return jsonify({'error': 'Código inválido o expirado'}), 400
 
-@app.route('/resend_code', methods=['POST'])
+@app.route('/reenviar_codigo', methods=['POST'])
 def reenviar_codigo():
-    data = request.json
-    email = data.get('email')
+    datos = request.json
+    correo = datos.get('correo')
     
-    code = generar_codigo_verificacion()
-    expires = datetime.now() + timedelta(minutes=15)
+    codigo = generar_codigo_verificacion()
+    expira = datetime.now() + timedelta(minutes=15)
     
-    conn = obtener_bd()
-    cursor = conn.cursor()
+    conexion = obtener_bd()
+    cursor = conexion.cursor()
     
     cursor.execute('''
-        UPDATE users SET verification_code = %s, verification_expires = %s
-        WHERE email = %s AND is_verified = 0
-    ''', (code, expires, email))
+        UPDATE usuarios SET codigo_verificacion = %s, expira_verificacion = %s
+        WHERE correo = %s AND esta_verificado = 0
+    ''', (codigo, expira, correo))
     
     if cursor.rowcount > 0:
-        conn.commit()
-        conn.close()
-        if enviar_correo_verificacion(email, code):
-            return jsonify({'success': True, 'message': 'Código reenviado'})
+        conexion.commit()
+        conexion.close()
+        if enviar_correo_verificacion(correo, codigo):
+            return jsonify({'exito': True, 'mensaje': 'Código reenviado'})
     
-    conn.close()
+    conexion.close()
     return jsonify({'error': 'No se pudo reenviar el código'}), 400
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/iniciar_sesion', methods=['GET', 'POST'])
 def iniciar_sesion():
     if request.method == 'POST':
-        data = request.json
-        username = data.get('username')
-        password = data.get('password')
+        datos = request.json
+        nombre_usuario = datos.get('nombre_usuario')
+        contrasena = datos.get('contrasena')
         
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
         
-        conn = obtener_bd()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        conexion = obtener_bd()
+        cursor = conexion.cursor(pymysql.cursors.DictCursor)
         
         cursor.execute('''
-            SELECT * FROM users 
-            WHERE username = %s AND password = %s
-        ''', (username, password_hash))
+            SELECT * FROM usuarios 
+            WHERE nombre_usuario = %s AND contrasena = %s
+        ''', (nombre_usuario, hash_contrasena))
         
-        user = cursor.fetchone()
-        conn.close()
+        usuario = cursor.fetchone()
+        conexion.close()
         
-        if user:
-            if not user['is_verified']:
+        if usuario:
+            if not usuario['esta_verificado']:
                 return jsonify({'error': 'Debes verificar tu cuenta primero'}), 403
             
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['is_teacher'] = user['is_teacher']
+            session['id_usuario'] = usuario['id']
+            session['nombre_usuario'] = usuario['nombre_usuario']
+            session['es_profesor'] = usuario['es_profesor']
             
             return jsonify({
-                'success': True,
-                'is_teacher': user['is_teacher']
+                'exito': True,
+                'es_profesor': usuario['es_profesor']
             })
         else:
             return jsonify({'error': 'Credenciales inválidas'}), 401
     
     return render_template('iniciar_sesion.html')
 
-@app.route('/api/auth/login', methods=['POST'])
-def api_login():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+@app.route('/api/auth/iniciar_sesion', methods=['POST'])
+def api_iniciar_sesion():
+    datos = request.json
+    nombre_usuario = datos.get('nombre_usuario')
+    contrasena = datos.get('contrasena')
+    hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT * FROM users 
-        WHERE username = %s AND password = %s
-    ''', (username, password_hash))
-    user = cursor.fetchone()
-    conn.close()
-    if user:
-        if not user['is_verified']:
+        SELECT * FROM usuarios 
+        WHERE nombre_usuario = %s AND contrasena = %s
+    ''', (nombre_usuario, hash_contrasena))
+    usuario = cursor.fetchone()
+    conexion.close()
+    if usuario:
+        if not usuario['esta_verificado']:
             return jsonify({'error': 'Debes verificar tu cuenta primero'}), 403
-        session['user_id'] = user['id']
-        session['username'] = user['username']
-        session['is_teacher'] = user['is_teacher']
-        return jsonify({'success': True, 'is_teacher': user['is_teacher']})
+        session['id_usuario'] = usuario['id']
+        session['nombre_usuario'] = usuario['nombre_usuario']
+        session['es_profesor'] = usuario['es_profesor']
+        return jsonify({'exito': True, 'es_profesor': usuario['es_profesor']})
     else:
         return jsonify({'error': 'Credenciales inválidas'}), 401
 
-@app.route('/forgot_password', methods=['GET', 'POST'])
+@app.route('/olvido_contrasena', methods=['GET', 'POST'])
 def olvido_contrasena():
     if request.method == 'POST':
-        data = request.json
-        email = data.get('email')
+        datos = request.json
+        correo = datos.get('correo')
         
         token = secrets.token_urlsafe(32)
-        expires = datetime.now() + timedelta(hours=1)
+        expira = datetime.now() + timedelta(hours=1)
         
-        conn = obtener_bd()
-        cursor = conn.cursor()
+        conexion = obtener_bd()
+        cursor = conexion.cursor()
         
         cursor.execute('''
-            UPDATE users SET reset_token = %s, reset_expires = %s
-            WHERE email = %s
-        ''', (token, expires, email))
+            UPDATE usuarios SET token_restablecer = %s, expira_restablecer = %s
+            WHERE correo = %s
+        ''', (token, expira, correo))
         
         if cursor.rowcount > 0:
-            conn.commit()
-            conn.close()
-            if enviar_correo_recuperacion(email, token):
+            conexion.commit()
+            conexion.close()
+            if enviar_correo_recuperacion(correo, token):
                 return jsonify({
-                    'success': True,
-                    'message': 'Se ha enviado un enlace de recuperación a tu correo'
+                    'exito': True,
+                    'mensaje': 'Se ha enviado un enlace de recuperación a tu correo'
                 })
         
-        conn.close()
+        conexion.close()
         return jsonify({'error': 'Correo no encontrado'}), 404
     
     return render_template('olvido_contrasena.html')
 
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+@app.route('/restablecer_contrasena/<token>', methods=['GET', 'POST'])
 def restablecer_contrasena(token):
     if request.method == 'POST':
-        data = request.json
-        new_password = data.get('password')
+        datos = request.json
+        nueva_contrasena = datos.get('contrasena')
         
-        valid, msg = validar_contrasena(new_password)
-        if not valid:
-            return jsonify({'error': msg}), 400
+        valido, mensaje = validar_contrasena(nueva_contrasena)
+        if not valido:
+            return jsonify({'error': mensaje}), 400
         
-        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        hash_contrasena = hashlib.sha256(nueva_contrasena.encode()).hexdigest()
         
-        conn = obtener_bd()
-        cursor = conn.cursor()
+        conexion = obtener_bd()
+        cursor = conexion.cursor()
         
         cursor.execute('''
-            UPDATE users SET password = %s, reset_token = NULL, reset_expires = NULL
-            WHERE reset_token = %s AND reset_expires > NOW()
-        ''', (password_hash, token))
+            UPDATE usuarios SET contrasena = %s, token_restablecer = NULL, expira_restablecer = NULL
+            WHERE token_restablecer = %s AND expira_restablecer > NOW()
+        ''', (hash_contrasena, token))
         
         if cursor.rowcount > 0:
-            conn.commit()
-            conn.close()
-            return jsonify({'success': True, 'message': 'Contraseña actualizada'})
+            conexion.commit()
+            conexion.close()
+            return jsonify({'exito': True, 'mensaje': 'Contraseña actualizada'})
         
-        conn.close()
+        conexion.close()
         return jsonify({'error': 'Token inválido o expirado'}), 400
     
     return render_template('restablecer_contrasena.html', token=token)
 
-@app.route('/api/join_game', methods=['POST'])
+@app.route('/api/unirse_juego', methods=['POST'])
 def unirse_juego():
-    data = request.json
-    pin_code = data.get('pin_code')
-    username = data.get('username')
+    datos = request.json
+    codigo_pin = datos.get('codigo_pin')
+    nombre_usuario = datos.get('nombre_usuario')
     
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     # Buscar quiz activo con ese PIN
     cursor.execute('''
-        SELECT * FROM quizzes WHERE pin_code = %s
-    ''', (pin_code,))
+        SELECT * FROM quizzes WHERE codigo_pin = %s
+    ''', (codigo_pin,))
     
     quiz = cursor.fetchone()
     
     if not quiz:
-        conn.close()
+        conexion.close()
         return jsonify({'error': 'PIN inválido'}), 404
     
     # Crear o unirse a sesión
     cursor.execute('''
-        SELECT * FROM game_sessions 
-        WHERE quiz_id = %s AND is_active = 1
-        ORDER BY started_at DESC LIMIT 1
+        SELECT * FROM sesiones_juego 
+        WHERE quiz_id = %s AND esta_activa = 1
+        ORDER BY inicio_en_servidor DESC LIMIT 1
     ''', (quiz['id'],))
     
-    session_data = cursor.fetchone()
+    datos_sesion = cursor.fetchone()
     
-    if not session_data:
+    if not datos_sesion:
         cursor.execute('''
-            INSERT INTO game_sessions (quiz_id, pin_code)
+            INSERT INTO sesiones_juego (quiz_id, codigo_pin)
             VALUES (%s, %s)
-        ''', (quiz['id'], pin_code))
-        session_id = cursor.lastrowid
+        ''', (quiz['id'], codigo_pin))
+        id_sesion = cursor.lastrowid
     else:
-        session_id = session_data['id']
+        id_sesion = datos_sesion['id']
     
     # Registrar participante
     cursor.execute('''
-        INSERT INTO participants (session_id, username)
+        INSERT INTO participantes (sesion_id, nombre_usuario)
         VALUES (%s, %s)
-    ''', (session_id, username))
+    ''', (id_sesion, nombre_usuario))
     
-    participant_id = cursor.lastrowid
+    id_participante = cursor.lastrowid
     
-    conn.commit()
-    conn.close()
+    conexion.commit()
+    conexion.close()
     
     return jsonify({
-        'success': True,
-        'session_id': session_id,
-        'participant_id': participant_id,
+        'exito': True,
+        'id_sesion': id_sesion,
+        'id_participante': id_participante,
         'quiz': quiz
     })
 
-@app.route('/api/save_answer', methods=['POST'])
+@app.route('/api/guardar_respuesta', methods=['POST'])
 def guardar_respuesta():
-    data = request.json
+    datos = request.json
     
-    conn = obtener_bd()
-    cursor = conn.cursor()
+    conexion = obtener_bd()
+    cursor = conexion.cursor()
     
     try:
         cursor.execute('''
-            INSERT INTO answers (participant_id, question_id, option_id, 
-                               response_time, points_earned)
+            INSERT INTO respuestas (id_participante, id_pregunta, id_opcion, 
+                               tiempo_respuesta, puntos_ganados)
             VALUES (%s, %s, %s, %s, %s)
-        ''', (data.get('participant_id'), data.get('question_id'),
-              data.get('option_id'), data.get('response_time'),
-              data.get('points_earned', 0)))
+        ''', (datos.get('id_participante'), datos.get('id_pregunta'),
+              datos.get('id_opcion'), datos.get('tiempo_respuesta'),
+              datos.get('puntos_ganados', 0)))
         
-        # Actualizar score del participante
+        # Actualizar puntuación del participante
         cursor.execute('''
-            UPDATE participants 
-            SET total_score = total_score + %s
+            UPDATE participantes 
+            SET puntuacion_total = puntuacion_total + %s
             WHERE id = %s
-        ''', (data.get('points_earned', 0), data.get('participant_id')))
+        ''', (datos.get('puntos_ganados', 0), datos.get('id_participante')))
         
-        conn.commit()
-        return jsonify({'success': True})
+        conexion.commit()
+        return jsonify({'exito': True})
     except Exception as e:
-        conn.rollback()
+        conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/game_results/<int:session_id>')
-def resultados_juego(session_id):
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+@app.route('/api/resultados_juego/<int:id_sesion>')
+def resultados_juego(id_sesion):
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     cursor.execute('''
-        SELECT username, total_score 
-        FROM participants 
-        WHERE session_id = %s
-        ORDER BY total_score DESC
+        SELECT nombre_usuario, puntuacion_total 
+        FROM participantes 
+        WHERE sesion_id = %s
+        ORDER BY puntuacion_total DESC
         LIMIT 20
-    ''', (session_id,))
+    ''', (id_sesion,))
     
-    ranking = cursor.fetchall()
-    conn.close()
+    clasificacion = cursor.fetchall()
+    conexion.close()
     
-    return jsonify(ranking)
+    return jsonify(clasificacion)
 
-@app.route('/api/participant/<int:participant_id>/assign_group', methods=['POST'])
-def asignar_grupo(participant_id):
+@app.route('/api/participante/<int:id_participante>/asignar_grupo', methods=['POST'])
+def asignar_grupo(id_participante):
     """Asignar un grupo a un participante"""
-    data = request.json
-    group_name = data.get('group_name')
+    datos = request.json
+    nombre_grupo = datos.get('nombre_grupo')
     
-    if not group_name:
+    if not nombre_grupo:
         return jsonify({'error': 'Nombre de grupo requerido'}), 400
     
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         # Actualizar el grupo del participante
         cursor.execute('''
-            UPDATE participants 
-            SET group_name = %s
+            UPDATE participantes 
+            SET nombre_grupo = %s
             WHERE id = %s
-        ''', (group_name, participant_id))
+        ''', (nombre_grupo, id_participante))
         
-        conn.commit()
+        conexion.commit()
         
-        return jsonify({'success': True, 'group_name': group_name})
+        return jsonify({'exito': True, 'nombre_grupo': nombre_grupo})
     except Exception as e:
-        conn.rollback()
+        conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/participant/<int:participant_id>/leave', methods=['POST'])
-def abandonar_sesion(participant_id):
+@app.route('/api/participante/<int:id_participante>/salir', methods=['POST'])
+def abandonar_sesion(id_participante):
     """Eliminar un participante de la sesión"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         # Eliminar el participante
         cursor.execute('''
-            DELETE FROM participants 
+            DELETE FROM participantes 
             WHERE id = %s
-        ''', (participant_id,))
+        ''', (id_participante,))
         
-        conn.commit()
+        conexion.commit()
         
-        return jsonify({'success': True})
+        return jsonify({'exito': True})
     except Exception as e:
-        conn.rollback()
+        conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/session/<int:session_id>/info')
-def info_sesion(session_id):
+@app.route('/api/sesion/<int:id_sesion>/info')
+def info_sesion(id_sesion):
     """Obtener información de la sesión y participantes"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         # Obtener información de la sesión
         cursor.execute('''
             SELECT gs.*, q.* 
-            FROM game_sessions gs
+            FROM sesiones_juego gs
             JOIN quizzes q ON gs.quiz_id = q.id
             WHERE gs.id = %s
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        session_data = cursor.fetchone()
+        datos_sesion = cursor.fetchone()
         
-        if not session_data:
+        if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
         
         # Obtener participantes
         cursor.execute('''
-            SELECT id, username, group_name, total_score
-            FROM participants
-            WHERE session_id = %s
+            SELECT id, nombre_usuario, nombre_grupo, puntuacion_total
+            FROM participantes
+            WHERE sesion_id = %s
             ORDER BY id
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        participants = cursor.fetchall()
+        participantes = cursor.fetchall()
         
         return jsonify({
-            'session_id': session_data['id'],
-            'pin_code': session_data['pin_code'],
-            'status': session_data['status'],
-            'attempts_allowed': session_data.get('attempts_allowed', 0),
-            'attempts_remaining': session_data.get('attempts_remaining', 0),
+            'id_sesion': datos_sesion['id'],
+            'codigo_pin': datos_sesion['codigo_pin'],
+            'estado': datos_sesion['estado'],
+            'intentos_permitidos': datos_sesion.get('intentos_permitidos', 0),
+            'intentos_restantes': datos_sesion.get('intentos_restantes', 0),
             'quiz': {
-                'id': session_data['quiz_id'],
-                'title': session_data['title'],
-                'description': session_data['description'],
-                'mode': session_data['mode'],
-                'num_groups': session_data.get('num_groups', 0),
-                'countdown_time': session_data['countdown_time']
+                'id': datos_sesion['quiz_id'],
+                'titulo': datos_sesion['titulo'],
+                'descripcion': datos_sesion['descripcion'],
+                'modo': datos_sesion['modo'],
+                'num_grupos': datos_sesion.get('num_grupos', 0),
+                'tiempo_cuenta_regresiva': datos_sesion['tiempo_cuenta_regresiva']
             },
-            'participants': participants
+            'participantes': participantes
         })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/session/<int:session_id>/status')
-def estado_sesion(session_id):
-    """Verificar el estado de la sesión (para polling)"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+@app.route('/api/sesion/<int:id_sesion>/estado')
+def estado_sesion(id_sesion):
+    """Verificar el estado de la sesión (para consultas periódicas)"""
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         cursor.execute('''
-            SELECT status FROM game_sessions WHERE id = %s
-        ''', (session_id,))
+            SELECT estado FROM sesiones_juego WHERE id = %s
+        ''', (id_sesion,))
         
-        session_data = cursor.fetchone()
+        datos_sesion = cursor.fetchone()
         
-        if not session_data:
+        if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
         
         # Obtener participantes actualizados
         cursor.execute('''
-            SELECT id, username, group_name, total_score
-            FROM participants
-            WHERE session_id = %s
+            SELECT id, nombre_usuario, nombre_grupo, puntuacion_total
+            FROM participantes
+            WHERE sesion_id = %s
             ORDER BY id
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        participants = cursor.fetchall()
+        participantes = cursor.fetchall()
         
         return jsonify({
-            'status': session_data['status'],
-            'active': session_data.get('is_active', 1) == 1,  # Agregar campo active
-            'participants': participants
+            'estado': datos_sesion['estado'],
+            'activa': datos_sesion.get('esta_activa', 1) == 1,  # Agregar campo activa
+            'participantes': participantes
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/session/<int:session_id>/start', methods=['POST'])
+@app.route('/api/sesion/<int:id_sesion>/iniciar', methods=['POST'])
 @requiere_sesion
 @requiere_docente
-def iniciar_quiz_grupal(session_id):
+def iniciar_quiz_grupal(id_sesion):
     """Iniciar una sesión de juego grupal (solo profesor)"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     try:
         # Verificar que la sesión existe y pertenece a un quiz del profesor
         cursor.execute('''
-            SELECT gs.*, q.teacher_id 
-            FROM game_sessions gs
+            SELECT gs.*, q.id_profesor 
+            FROM sesiones_juego gs
             JOIN quizzes q ON gs.quiz_id = q.id
             WHERE gs.id = %s
-        ''', (session_id,))
-        session_data = cursor.fetchone()
-        if not session_data:
+        ''', (id_sesion,))
+        datos_sesion = cursor.fetchone()
+        if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
-        if session_data['teacher_id'] != session['user_id']:
+        if datos_sesion['id_profesor'] != session['id_usuario']:
             return jsonify({'error': 'No autorizado'}), 403
 
-        # Leer payload (minutes opcional, attempts opcional)
-        data = {}
+        # Leer payload (minutos opcional, intentos opcional)
+        datos = {}
         try:
-            data = request.get_json() or {}
+            datos = request.get_json() or {}
         except:
-            data = {}
+            datos = {}
 
-        attempts = int(data.get('attempts', 0)) if data.get('attempts') is not None else 0
+        intentos = int(datos.get('intentos', 0)) if datos.get('intentos') is not None else 0
 
-        # Actualizar estado a 'started' y registrar attempts
+        # Actualizar estado a 'iniciada' y registrar intentos
         cursor.execute('''
-            UPDATE game_sessions 
-            SET status = 'started',
-                attempts_allowed = %s,
-                attempts_remaining = %s,
-                started_at = NOW()
+            UPDATE sesiones_juego 
+            SET estado = 'iniciada',
+                intentos_permitidos = %s,
+                intentos_restantes = %s,
+                inicio_en_servidor = NOW()
             WHERE id = %s
-        ''', (attempts, attempts, session_id))
+        ''', (intentos, intentos, id_sesion))
 
-        conn.commit()
-        return jsonify({'success': True, 'status': 'started', 'attempts_allowed': attempts, 'attempts_remaining': attempts})
+        conexion.commit()
+        return jsonify({'exito': True, 'estado': 'iniciada', 'intentos_permitidos': intentos, 'intentos_restantes': intentos})
     except Exception as e:
-        conn.rollback()
+        conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
 
-@app.route('/api/session/<int:session_id>/finish', methods=['POST'])
+@app.route('/api/sesion/<int:id_sesion>/finalizar', methods=['POST'])
 @requiere_sesion
 @requiere_docente
-def finalizar_quiz_grupal(session_id):
+def finalizar_quiz_grupal(id_sesion):
     """Finalizar una sesión de juego grupal (solo profesor)"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         # Verificar que la sesión existe y pertenece a un quiz del profesor
         cursor.execute('''
-            SELECT gs.*, q.teacher_id 
-            FROM game_sessions gs
+            SELECT gs.*, q.id_profesor 
+            FROM sesiones_juego gs
             JOIN quizzes q ON gs.quiz_id = q.id
             WHERE gs.id = %s
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        session_data = cursor.fetchone()
+        datos_sesion = cursor.fetchone()
         
-        if not session_data:
+        if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
         
-        if session_data['teacher_id'] != session['user_id']:
+        if datos_sesion['id_profesor'] != session['id_usuario']:
             return jsonify({'error': 'No autorizado'}), 403
         
-        # Actualizar estado a 'finished' y desactivar la sesión
+        # Actualizar estado a 'finalizada' y desactivar la sesión
         cursor.execute('''
-            UPDATE game_sessions 
-            SET status = 'finished', 
-                is_active = 0,
-                ended_at = NOW()
+            UPDATE sesiones_juego 
+            SET estado = 'finalizada', 
+                esta_activa = 0,
+                fin_en_servidor = NOW()
             WHERE id = %s
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        conn.commit()
+        conexion.commit()
         
-        return jsonify({'success': True, 'status': 'finished'})
+        return jsonify({'exito': True, 'estado': 'finalizada'})
     except Exception as e:
-        conn.rollback()
+        conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/session/<int:session_id>/consume_attempt', methods=['POST'])
-def consumir_intento(session_id):
+@app.route('/api/sesion/<int:id_sesion>/consumir_intento', methods=['POST'])
+def consumir_intento(id_sesion):
     """
-    Endpoint público que decrementa attempts_remaining en 1 si hay intentos.
+    Endpoint público que decrementa intentos_restantes en 1 si hay intentos.
     Retorna el número de intentos restantes después de consumir.
     """
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     try:
-        # Obtener attempts_remaining actual
-        cursor.execute('SELECT attempts_remaining FROM game_sessions WHERE id = %s FOR UPDATE', (session_id,))
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
+        # Obtener intentos_restantes actual
+        cursor.execute('SELECT intentos_restantes FROM sesiones_juego WHERE id = %s FOR UPDATE', (id_sesion,))
+        fila = cursor.fetchone()
+        if not fila:
+            conexion.close()
             return jsonify({'error': 'Sesión no encontrada'}), 404
 
-        remaining = row.get('attempts_remaining', 0) or 0
-        if remaining <= 0:
-            conn.close()
+        restantes = fila.get('intentos_restantes', 0) or 0
+        if restantes <= 0:
+            conexion.close()
             return jsonify({'error': 'No quedan intentos disponibles'}, 400)
 
         # Decrementar en 1
-        new_remaining = remaining - 1
-        cursor.execute('UPDATE game_sessions SET attempts_remaining = %s WHERE id = %s', (new_remaining, session_id))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True, 'attempts_remaining': new_remaining})
+        nuevos_restantes = restantes - 1
+        cursor.execute('UPDATE sesiones_juego SET intentos_restantes = %s WHERE id = %s', (nuevos_restantes, id_sesion))
+        conexion.commit()
+        conexion.close()
+        return jsonify({'exito': True, 'intentos_restantes': nuevos_restantes})
     except Exception as e:
-        conn.rollback()
-        conn.close()
+        conexion.rollback()
+        conexion.close()
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/session/<int:session_id>/check_status', methods=['GET'])
-def verificar_estado_sesion(session_id):
-    """Verificar si la sesión sigue activa (para polling de estudiantes)"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+@app.route('/api/sesion/<int:id_sesion>/verificar_estado', methods=['GET'])
+def verificar_estado_sesion(id_sesion):
+    """Verificar si la sesión sigue activa (para consultas periódicas de estudiantes)"""
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         cursor.execute('''
-            SELECT status, is_active 
-            FROM game_sessions 
+            SELECT estado, esta_activa 
+            FROM sesiones_juego 
             WHERE id = %s
-        ''', (session_id,))
+        ''', (id_sesion,))
         
-        session_data = cursor.fetchone()
+        datos_sesion = cursor.fetchone()
         
-        if not session_data:
-            return jsonify({'active': False, 'status': 'not_found'}), 404
+        if not datos_sesion:
+            return jsonify({'activa': False, 'estado': 'no_encontrada'}), 404
         
         return jsonify({
-            'active': session_data['is_active'] == 1,
-            'status': session_data['status']
+            'activa': datos_sesion['esta_activa'] == 1,
+            'estado': datos_sesion['estado']
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
 
-@app.route('/api/participant/<int:participant_id>/progress', methods=['GET'])
-def obtener_progreso(participant_id):
+@app.route('/api/participante/<int:id_participante>/progreso', methods=['GET'])
+def obtener_progreso(id_participante):
     """Recuperar el progreso del participante"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         # Obtener última respuesta del participante
         cursor.execute('''
-            SELECT question_id, MAX(answered_at) as last_answer
-            FROM answers
-            WHERE participant_id = %s
-            GROUP BY question_id
-            ORDER BY answered_at DESC
+            SELECT id_pregunta, MAX(momento_respuesta) as ultima_respuesta
+            FROM respuestas
+            WHERE id_participante = %s
+            GROUP BY id_pregunta
+            ORDER BY momento_respuesta DESC
             LIMIT 1
-        ''', (participant_id,))
+        ''', (id_participante,))
         
-        last_answer = cursor.fetchone()
+        ultima_respuesta = cursor.fetchone()
         
         # Obtener puntuación total
         cursor.execute('''
-            SELECT total_score
-            FROM participants
+            SELECT puntuacion_total
+            FROM participantes
             WHERE id = %s
-        ''', (participant_id,))
+        ''', (id_participante,))
         
-        participant = cursor.fetchone()
+        participante = cursor.fetchone()
         
         return jsonify({
-            'last_question_id': last_answer['question_id'] if last_answer else None,
-            'total_score': participant['total_score'] if participant else 0
+            'id_ultima_pregunta': ultima_respuesta['id_pregunta'] if ultima_respuesta else None,
+            'puntuacion_total': participante['puntuacion_total'] if participante else 0
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/api/active_sessions')
+@app.route('/api/sesiones_activas')
 @requiere_sesion
 @requiere_docente
 def sesiones_activas():
     """Obtener sesiones activas de quizzes del profesor"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
         cursor.execute('''
-            SELECT gs.id as session_id, gs.pin_code, gs.status, gs.started_at,
-                q.id as quiz_id, q.title, q.mode,
-                COUNT(p.id) as participant_count,
-                COALESCE(gs.attempts_remaining, 0) as attempts_remaining
-            FROM game_sessions gs
+            SELECT gs.id as id_sesion, gs.codigo_pin, gs.estado, gs.inicio_en_servidor,
+                q.id as quiz_id, q.titulo, q.modo,
+                COUNT(p.id) as contador_participantes,
+                COALESCE(gs.intentos_restantes, 0) as intentos_restantes
+            FROM sesiones_juego gs
             JOIN quizzes q ON gs.quiz_id = q.id
-            LEFT JOIN participants p ON gs.id = p.session_id
-            WHERE q.teacher_id = %s AND gs.is_active = 1 AND q.mode = 'group'
-            GROUP BY gs.id, gs.pin_code, gs.status, gs.started_at, q.id, q.title, q.mode, gs.attempts_remaining
-            ORDER BY gs.started_at DESC
-            ''', (session['user_id'],))
-        sessions = cursor.fetchall()
-        return jsonify(sessions)
+            LEFT JOIN participantes p ON gs.id = p.sesion_id
+            WHERE q.id_profesor = %s AND gs.esta_activa = 1 AND q.modo = 'grupal'
+            GROUP BY gs.id, gs.codigo_pin, gs.estado, gs.inicio_en_servidor, q.id, q.titulo, q.modo, gs.intentos_restantes
+            ORDER BY gs.inicio_en_servidor DESC
+            ''', (session['id_usuario'],))
+        sesiones = cursor.fetchall()
+        return jsonify(sesiones)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        conexion.close()
 
-@app.route('/dashboard')
+@app.route('/panel_control')
 @requiere_sesion
 @requiere_docente
-def dashboard():
-    """Dashboard para docentes"""
-    return render_template('panel_docente.html')
+def panel_control():
+    """Panel de control para docentes"""
+    return render_template('panel_profesor.html')
 
 @app.route('/api/quizzes', methods=['GET', 'POST'])
 @requiere_sesion
 @requiere_docente
 def gestionar_quizzes():
     """Obtener todos los quizzes o crear uno nuevo"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     if request.method == 'GET':
         cursor.execute('''
             SELECT * FROM quizzes 
-            WHERE teacher_id = %s OR is_public = 1
-            ORDER BY created_at DESC
-        ''', (session['user_id'],))
+            WHERE id_profesor = %s OR es_publico = 1
+            ORDER BY creado_en DESC
+        ''', (session['id_usuario'],))
         quizzes = cursor.fetchall()
-        conn.close()
+        conexion.close()
         return jsonify(quizzes)
     
     elif request.method == 'POST':
-        data = request.json
-        pin_code = generar_pin()
+        datos = request.json
+        codigo_pin = generar_pin()
         
         cursor.execute('''
-            INSERT INTO quizzes (teacher_id, title, description, mode, num_groups,
-                               countdown_time, is_public, pin_code)
+            INSERT INTO quizzes (id_profesor, titulo, descripcion, modo, num_grupos,
+                               tiempo_cuenta_regresiva, es_publico, codigo_pin)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (session['user_id'], data.get('title'), data.get('description'),
-              data.get('mode', 'individual'), data.get('num_groups', 0),
-              data.get('countdown_time', 30), data.get('is_public', True), pin_code))
+        ''', (session['id_usuario'], datos.get('titulo'), datos.get('descripcion'),
+              datos.get('modo', 'individual'), datos.get('num_grupos', 0),
+              datos.get('tiempo_cuenta_regresiva', 30), datos.get('es_publico', True), codigo_pin))
         
-        quiz_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
+        id_quiz = cursor.lastrowid
+        conexion.commit()
+        conexion.close()
         
-        return jsonify({'success': True, 'quiz_id': quiz_id, 'pin_code': pin_code})
+        return jsonify({'exito': True, 'id_quiz': id_quiz, 'codigo_pin': codigo_pin})
 
-@app.route('/api/quizzes/<int:quiz_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/quizzes/<int:id_quiz>', methods=['GET', 'PUT', 'DELETE'])
 @requiere_sesion
-def gestionar_quiz(quiz_id):
+def gestionar_quiz(id_quiz):
     """Obtener, actualizar o eliminar un quiz específico"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     if request.method == 'GET':
-        cursor.execute('SELECT * FROM quizzes WHERE id = %s', (quiz_id,))
+        cursor.execute('SELECT * FROM quizzes WHERE id = %s', (id_quiz,))
         quiz = cursor.fetchone()
         
         if not quiz:
-            conn.close()
+            conexion.close()
             return jsonify({'error': 'Quiz no encontrado'}), 404
         
         # Obtener preguntas del quiz
         cursor.execute('''
-            SELECT * FROM questions 
+            SELECT * FROM preguntas 
             WHERE quiz_id = %s 
-            ORDER BY position, id
-        ''', (quiz_id,))
+            ORDER BY posicion, id
+        ''', (id_quiz,))
         
-        questions = cursor.fetchall()
+        preguntas = cursor.fetchall()
         
         # Obtener opciones para cada pregunta
-        for question in questions:
+        for pregunta in preguntas:
             cursor.execute('''
-                SELECT id, option_text, is_correct 
-                FROM options 
-                WHERE question_id = %s
+                SELECT id, texto_opcion, es_correcta 
+                FROM opciones 
+                WHERE pregunta_id = %s
                 ORDER BY id
-            ''', (question['id'],))
-            question['options'] = cursor.fetchall()
+            ''', (pregunta['id'],))
+            pregunta['opciones'] = cursor.fetchall()
         
-        quiz['questions'] = questions
-        conn.close()
+        quiz['preguntas'] = preguntas
+        conexion.close()
         
         return jsonify(quiz)
     
     elif request.method == 'PUT':
         # Verificar que el usuario es el creador
-        cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+        cursor.execute('SELECT id_profesor FROM quizzes WHERE id = %s', (id_quiz,))
         quiz = cursor.fetchone()
         
-        if not quiz or quiz['teacher_id'] != session['user_id']:
-            conn.close()
+        if not quiz or quiz['id_profesor'] != session['id_usuario']:
+            conexion.close()
             return jsonify({'error': 'No autorizado'}), 403
         
-        data = request.json
+        datos = request.json
         cursor.execute('''
             UPDATE quizzes 
-            SET title = %s, description = %s, mode = %s, num_groups = %s,
-                countdown_time = %s, is_public = %s
+            SET titulo = %s, descripcion = %s, modo = %s, num_grupos = %s,
+                tiempo_cuenta_regresiva = %s, es_publico = %s
             WHERE id = %s
-        ''', (data.get('title'), data.get('description'), data.get('mode'),
-              data.get('num_groups', 0), data.get('countdown_time'), 
-              data.get('is_public'), quiz_id))
+        ''', (datos.get('titulo'), datos.get('descripcion'), datos.get('modo'),
+              datos.get('num_grupos', 0), datos.get('tiempo_cuenta_regresiva'), 
+              datos.get('es_publico'), id_quiz))
         
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
+        conexion.commit()
+        conexion.close()
+        return jsonify({'exito': True})
     
     elif request.method == 'DELETE':
         # Verificar que el usuario es el creador
-        cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+        cursor.execute('SELECT id_profesor FROM quizzes WHERE id = %s', (id_quiz,))
         quiz = cursor.fetchone()
         
-        if not quiz or quiz['teacher_id'] != session['user_id']:
-            conn.close()
+        if not quiz or quiz['id_profesor'] != session['id_usuario']:
+            conexion.close()
             return jsonify({'error': 'No autorizado'}), 403
         
-        cursor.execute('DELETE FROM quizzes WHERE id = %s', (quiz_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
+        cursor.execute('DELETE FROM quizzes WHERE id = %s', (id_quiz,))
+        conexion.commit()
+        conexion.close()
+        return jsonify({'exito': True})
 
-@app.route('/quiz_editor/<int:quiz_id>')
+@app.route('/editor_quiz/<int:id_quiz>')
 @requiere_sesion
 @requiere_docente
-def editor_quiz(quiz_id):
+def editor_quiz(id_quiz):
     """Editor de preguntas del quiz"""
-    return render_template('editor_quiz.html', quiz_id=quiz_id)
+    return render_template('editor_quiz.html', id_quiz=id_quiz)
 
-@app.route('/api/quizzes/<int:quiz_id>/questions', methods=['POST'])
+@app.route('/api/quizzes/<int:id_quiz>/preguntas', methods=['POST'])
 @requiere_sesion
 @requiere_docente
-def crear_pregunta(quiz_id):
+def crear_pregunta(id_quiz):
     """Crear una nueva pregunta para un quiz"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     # Verificar que el usuario es el creador del quiz
-    cursor.execute('SELECT teacher_id FROM quizzes WHERE id = %s', (quiz_id,))
+    cursor.execute('SELECT id_profesor FROM quizzes WHERE id = %s', (id_quiz,))
     quiz = cursor.fetchone()
     
-    if not quiz or quiz['teacher_id'] != session['user_id']:
-        conn.close()
+    if not quiz or quiz['id_profesor'] != session['id_usuario']:
+        conexion.close()
         return jsonify({'error': 'No autorizado'}), 403
     
-    data = request.json
+    datos = request.json
     
     try:
         # Insertar la pregunta
         cursor.execute('''
-            INSERT INTO questions (quiz_id, question_text, image_url, video_url, 
-                                 time_limit, position)
+            INSERT INTO preguntas (quiz_id, texto_pregunta, url_imagen, url_video, 
+                                 tiempo_limite, posicion)
             VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (quiz_id, data.get('question_text'), data.get('image_url'),
-              data.get('video_url'), data.get('time_limit', 30),
-              data.get('position', 0)))
+        ''', (id_quiz, datos.get('texto_pregunta'), datos.get('url_imagen'),
+              datos.get('url_video'), datos.get('tiempo_limite', 30),
+              datos.get('posicion', 0)))
         
-        question_id = cursor.lastrowid
+        id_pregunta = cursor.lastrowid
         
         # Insertar las opciones
-        for option in data.get('options', []):
+        for opcion in datos.get('opciones', []):
             cursor.execute('''
-                INSERT INTO options (question_id, option_text, is_correct)
+                INSERT INTO opciones (pregunta_id, texto_opcion, es_correcta)
                 VALUES (%s, %s, %s)
-            ''', (question_id, option.get('text'), option.get('is_correct', False)))
+            ''', (id_pregunta, opcion.get('texto'), opcion.get('es_correcta', False)))
         
-        conn.commit()
-        conn.close()
+        conexion.commit()
+        conexion.close()
         
-        return jsonify({'success': True, 'question_id': question_id})
+        return jsonify({'exito': True, 'id_pregunta': id_pregunta})
     
     except Exception as e:
-        conn.rollback()
-        conn.close()
+        conexion.rollback()
+        conexion.close()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/questions/<int:question_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/preguntas/<int:id_pregunta>', methods=['GET', 'PUT', 'DELETE'])
 @requiere_sesion
-def gestionar_pregunta(question_id):
+def gestionar_pregunta(id_pregunta):
     """Obtener, actualizar o eliminar una pregunta"""
-    conn = obtener_bd()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     if request.method == 'GET':
         cursor.execute('''
-            SELECT q.*, qz.teacher_id 
-            FROM questions q
-            JOIN quizzes qz ON q.quiz_id = qz.id
-            WHERE q.id = %s
-        ''', (question_id,))
+            SELECT p.*, q.id_profesor 
+            FROM preguntas p
+            JOIN quizzes q ON p.quiz_id = q.id
+            WHERE p.id = %s
+        ''', (id_pregunta,))
         
-        question = cursor.fetchone()
+        pregunta = cursor.fetchone()
         
-        if not question:
-            conn.close()
+        if not pregunta:
+            conexion.close()
             return jsonify({'error': 'Pregunta no encontrada'}), 404
         
         # Obtener opciones
         cursor.execute('''
-            SELECT id, option_text, is_correct 
-            FROM options 
-            WHERE question_id = %s
+            SELECT id, texto_opcion, es_correcta 
+            FROM opciones 
+            WHERE pregunta_id = %s
             ORDER BY id
-        ''', (question_id,))
+        ''', (id_pregunta,))
         
-        question['options'] = cursor.fetchall()
-        conn.close()
+        pregunta['opciones'] = cursor.fetchall()
+        conexion.close()
         
-        return jsonify(question)
+        return jsonify(pregunta)
     
     elif request.method == 'PUT':
         # Verificar permisos
         cursor.execute('''
-            SELECT qz.teacher_id 
-            FROM questions q
-            JOIN quizzes qz ON q.quiz_id = qz.id
-            WHERE q.id = %s
-        ''', (question_id,))
+            SELECT q.id_profesor 
+            FROM preguntas p
+            JOIN quizzes q ON p.quiz_id = q.id
+            WHERE p.id = %s
+        ''', (id_pregunta,))
         
-        result = cursor.fetchone()
+        resultado = cursor.fetchone()
         
-        if not result or result['teacher_id'] != session['user_id']:
-            conn.close()
+        if not resultado or resultado['id_profesor'] != session['id_usuario']:
+            conexion.close()
             return jsonify({'error': 'No autorizado'}), 403
         
-        data = request.json
+        datos = request.json
         
         try:
             # Actualizar pregunta
             cursor.execute('''
-                UPDATE questions 
-                SET question_text = %s, image_url = %s, video_url = %s, 
-                    time_limit = %s, position = %s
+                UPDATE preguntas 
+                SET texto_pregunta = %s, url_imagen = %s, url_video = %s, 
+                    tiempo_limite = %s, posicion = %s
                 WHERE id = %s
-            ''', (data.get('question_text'), data.get('image_url'),
-                  data.get('video_url'), data.get('time_limit', 30),
-                  data.get('position', 0), question_id))
+            ''', (datos.get('texto_pregunta'), datos.get('url_imagen'),
+                  datos.get('url_video'), datos.get('tiempo_limite', 30),
+                  datos.get('posicion', 0), id_pregunta))
             
             # Eliminar opciones antiguas
-            cursor.execute('DELETE FROM options WHERE question_id = %s', (question_id,))
+            cursor.execute('DELETE FROM opciones WHERE pregunta_id = %s', (id_pregunta,))
             
             # Insertar nuevas opciones
-            for option in data.get('options', []):
+            for opcion in datos.get('opciones', []):
                 cursor.execute('''
-                    INSERT INTO options (question_id, option_text, is_correct)
+                    INSERT INTO opciones (pregunta_id, texto_opcion, es_correcta)
                     VALUES (%s, %s, %s)
-                ''', (question_id, option.get('text'), option.get('is_correct', False)))
+                ''', (id_pregunta, opcion.get('texto'), opcion.get('es_correcta', False)))
             
-            conn.commit()
-            conn.close()
+            conexion.commit()
+            conexion.close()
             
-            return jsonify({'success': True})
+            return jsonify({'exito': True})
         
         except Exception as e:
-            conn.rollback()
-            conn.close()
+            conexion.rollback()
+            conexion.close()
             return jsonify({'error': str(e)}), 500
     
     elif request.method == 'DELETE':
         # Verificar permisos
         cursor.execute('''
-            SELECT qz.teacher_id 
-            FROM questions q
-            JOIN quizzes qz ON q.quiz_id = qz.id
-            WHERE q.id = %s
-        ''', (question_id,))
+            SELECT q.id_profesor 
+            FROM preguntas p
+            JOIN quizzes q ON p.quiz_id = q.id
+            WHERE p.id = %s
+        ''', (id_pregunta,))
         
-        result = cursor.fetchone()
+        resultado = cursor.fetchone()
         
-        if not result or result['teacher_id'] != session['user_id']:
-            conn.close()
+        if not resultado or resultado['id_profesor'] != session['id_usuario']:
+            conexion.close()
             return jsonify({'error': 'No autorizado'}), 403
         
         try:
             # Eliminar opciones primero (por foreign key)
-            cursor.execute('DELETE FROM options WHERE question_id = %s', (question_id,))
+            cursor.execute('DELETE FROM opciones WHERE pregunta_id = %s', (id_pregunta,))
             # Eliminar pregunta
-            cursor.execute('DELETE FROM questions WHERE id = %s', (question_id,))
+            cursor.execute('DELETE FROM preguntas WHERE id = %s', (id_pregunta,))
             
-            conn.commit()
-            conn.close()
+            conexion.commit()
+            conexion.close()
             
-            return jsonify({'success': True})
+            return jsonify({'exito': True})
         
         except Exception as e:
-            conn.rollback()
-            conn.close()
+            conexion.rollback()
+            conexion.close()
             return jsonify({'error': str(e)}), 500
 
-@app.route('/api/session_info')
+@app.route('/api/info_sesion')
 def info_sesion_usuario():
     """Obtener información de la sesión actual (si existe)"""
     # No requiere sesión - retorna datos vacíos si no está logueado
-    resp = {
-        'user_id': session.get('user_id'),
-        'username': session.get('username'),
-        'is_teacher': session.get('is_teacher', False),
-        # Alias/llaves en español para compatibilidad
-        'usuario_id': session.get('user_id'),
-        'nombre_usuario': session.get('username'),
-        'es_docente': session.get('is_teacher', False)
-    }
-    return jsonify(resp)
+    return jsonify({
+        'id_usuario': session.get('id_usuario'),
+        'nombre_usuario': session.get('nombre_usuario'),
+        'es_profesor': session.get('es_profesor', False)
+    })
 
-@app.route('/ver_play_lobby/<int:session_id>')
+@app.route('/ver_sala_juego/<int:id_sesion>')
 @requiere_sesion
 @requiere_docente
-def ver_play_lobby(session_id):
+def ver_sala_juego(id_sesion):
     """Vista del anfitrión (profesor) para observar una sesión en progreso"""
-    return render_template('ver_play_lobby.html', session_id=session_id)
+    return render_template('ver_sala_juego.html', id_sesion=id_sesion)
 
-
-
-@app.route('/logout')
+@app.route('/cerrar_sesion')
 def cerrar_sesion():
     session.clear()
     return redirect(url_for('inicio'))
 
 # Ruta de diagnóstico para listar rutas activas
-@app.route('/__routes')
-def _list_routes():
-    rules = sorted([str(r) for r in app.url_map.iter_rules()])
-    # Devuelve listado de rutas (clave en español)
-    return jsonify({ 'rutas': rules })
+@app.route('/__rutas')
+def _listar_rutas():
+    reglas = sorted([str(r) for r in app.url_map.iter_rules()])
+    return jsonify({ 'rutas': reglas })
 
-# --- SHIMS / RUTAS EN ESPAÑOL (delegan en handlers existentes) ---
-@app.route('/jugar')
-@app.route('/jugar/')
-def jugar_es():
-    return jugar()
-
-@app.route('/sala_espera')
-def sala_espera_es():
-    return lobby()
-
-@app.route('/seleccion_grupo')
-def seleccion_grupo_es():
-    return group_selection()
-
-@app.route('/registrar', methods=['GET', 'POST'])
-def registrar_es():
-    return registrar()
-
-@app.route('/iniciar_sesion', methods=['GET', 'POST'])
-def iniciar_sesion_es():
-    return iniciar_sesion()
-
-@app.route('/olvido_contrasena', methods=['GET', 'POST'])
-def olvido_contrasena_es():
-    return olvido_contrasena()
-
-@app.route('/restablecer_contrasena/<token>', methods=['GET', 'POST'])
-def restablecer_contrasena_es(token):
-    return restablecer_contrasena(token)
-
-@app.route('/cerrar_sesion')
-def cerrar_sesion_es():
-    return cerrar_sesion()
-
-@app.route('/verificar', methods=['POST'])
-def verificar_cuenta_es_route():
-    return verificar_cuenta()
-
-@app.route('/reenviar_codigo', methods=['POST'])
-def reenviar_codigo_es_route():
-    return reenviar_codigo()
-
-# API shims en español
-@app.route('/api/unirse', methods=['POST'])
-def api_unirse_es():
-    return unirse_juego()
-
-@app.route('/api/guardar_respuesta', methods=['POST'])
-def api_guardar_respuesta_es():
-    return guardar_respuesta()
-
-@app.route('/api/resultados/<int:session_id>')
-def api_resultados_es(session_id):
-    return resultados_juego(session_id)
-
-@app.route('/api/sesion/<int:session_id>/info')
-def api_sesion_info_es(session_id):
-    return info_sesion(session_id)
-
-@app.route('/api/sesion/<int:session_id>/estado')
-def api_sesion_estado_es(session_id):
-    return estado_sesion(session_id)
-
-@app.route('/api/participante/<int:participant_id>/asignar_grupo', methods=['POST'])
-def api_participante_asignar_es(participant_id):
-    return asignar_grupo(participant_id)
-
-@app.route('/api/participante/<int:participant_id>/salir', methods=['POST'])
-def api_participante_salir_es(participant_id):
-    return abandonar_sesion(participant_id)
-
-@app.route('/api/sesiones_activas')
-def api_sesiones_activas_es():
-    return sesiones_activas()
-
-# RUTAS/API adicionales EN ESPAÑOL (shims delegan a handlers existentes)
-@app.route('/api/informacion_sesion')
-def api_informacion_sesion_es():
-    return info_sesion_usuario()
-
-@app.route('/api/sesion/<int:session_id>/iniciar', methods=['POST'])
-@requiere_sesion
-@requiere_docente
-def api_sesion_iniciar_es(session_id):
-    return iniciar_quiz_grupal(session_id)
-
-@app.route('/api/sesion/<int:session_id>/finalizar', methods=['POST'])
-@requiere_sesion
-@requiere_docente
-def api_sesion_finalizar_es(session_id):
-    return finalizar_quiz_grupal(session_id)
-
-@app.route('/api/sesion/<int:session_id>/consumir_intento', methods=['POST'])
-def api_sesion_consumir_intento_es(session_id):
-    return consumir_intento(session_id)
-
-@app.route('/api/participante/<int:participant_id>/progreso', methods=['GET'])
-def api_participante_progreso_es(participant_id):
-    return obtener_progreso(participant_id)
+if __name__ == '__main__':
+    app.run(debug=True)

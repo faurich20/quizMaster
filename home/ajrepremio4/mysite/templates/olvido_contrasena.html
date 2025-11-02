@@ -1,4 +1,4 @@
-<!-- templates/forgot_password.html -->
+<!-- templates/olvido_contrasena.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,68 +8,80 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .contenedor-recuperacion { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 450px; width: 100%; padding: 40px; }
-    .header { text-align: center; margin-bottom: 30px; }
-    .header h1 { color: #333; font-size: 2em; margin-bottom: 10px; }
-    .header p { color: #666; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
-    .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
-    .form-group input:focus { outline: none; border-color: #667eea; }
+    .contenedor { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 450px; width: 100%; padding: 40px; }
+    .encabezado { text-align: center; margin-bottom: 30px; }
+    .encabezado h1 { color: #333; font-size: 2em; margin-bottom: 10px; }
+    .encabezado p { color: #666; }
+    .grupo-formulario { margin-bottom: 20px; }
+    .grupo-formulario label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+    .grupo-formulario input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
+    .grupo-formulario input:focus { outline: none; border-color: #667eea; }
     .btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.05em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
-    .link-container { text-align: center; margin-top: 20px; }
-    .link-container a { color: #667eea; text-decoration: none; font-weight: bold; }
-    .link-container a:hover { text-decoration: underline; }
-    .alert { padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
-    .alert.show { display: block; }
-    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .info-box { background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 10px; padding: 12px; margin-bottom: 15px; color: #004085; }
+    .contenedor-enlaces { text-align: center; margin-top: 20px; }
+    .contenedor-enlaces a { color: #667eea; text-decoration: none; font-weight: bold; }
+    .contenedor-enlaces a:hover { text-decoration: underline; }
+    .alerta { padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
+    .alerta.mostrar { display: block; }
+    .alerta-exito { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alerta-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .caja-informacion { background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 10px; padding: 12px; margin-bottom: 15px; color: #004085; }
   </style>
 </head>
 <body>
-  <div class="contenedor-recuperacion">
-    <div class="header">
+  <div class="contenedor">
+    <div class="encabezado">
       <h1>🔒 Recuperar Contraseña</h1>
       <p>Ingresa tu correo electrónico</p>
     </div>
 
-    <div class="alert alert-success" id="alertSuccess"></div>
-    <div class="alert alert-error" id="alertError"></div>
+    <div class="alerta alerta-exito" id="alertaExito"></div>
+    <div class="alerta alerta-error" id="alertaError"></div>
 
-    <div class="info-box">
+    <div class="caja-informacion">
       <p>📧 Te enviaremos un enlace de recuperación a tu correo electrónico</p>
     </div>
 
-    <form id="forgotPasswordForm">
-      <div class="form-group">
-        <label for="email">Correo Electrónico:</label>
-        <input type="email" id="email" name="email" required autofocus />
+    <form id="formularioOlvidoContrasena">
+      <div class="grupo-formulario">
+        <label for="correo">Correo Electrónico:</label>
+        <input type="email" id="correo" name="correo" required autofocus />
       </div>
       <button type="submit" class="btn">Enviar Enlace de Recuperación</button>
     </form>
 
-    <div class="link-container">
-      <a href="/login">Volver a Iniciar Sesión</a>
+    <div class="contenedor-enlaces">
+      <a href="/iniciar_sesion">Volver a Iniciar Sesión</a>
     </div>
   </div>
 
   <script>
-    document.getElementById('forgotPasswordForm').addEventListener('submit', async function (e) {
+    document.getElementById('formularioOlvidoContrasena').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const email = document.getElementById('email').value;
+      const correo = document.getElementById('correo').value;
       try {
-        const res = await fetch('/forgot_password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-        const data = await res.json();
-        if (res.ok) {
-          show('success', '✅ Revisa tu correo para el enlace de recuperación');
+        const respuesta = await fetch('/olvido_contrasena', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ correo }) 
+        });
+        const datos = await respuesta.json();
+        if (respuesta.ok) {
+          mostrar('exito', '✅ Revisa tu correo para el enlace de recuperación');
         } else {
-          show('error', data.error || 'Error al enviar el correo');
+          mostrar('error', datos.error || 'Error al enviar el correo');
         }
-      } catch (err) { show('error', 'Error de conexión'); }
+      } catch (error) { 
+        mostrar('error', 'Error de conexión'); 
+      }
     });
-    function show(type, msg) { const el = type === 'error' ? document.getElementById('alertError') : document.getElementById('alertSuccess'); el.textContent = msg; el.classList.add('show'); setTimeout(()=> el.classList.remove('show'), 5000); }
+    
+    function mostrar(tipo, mensaje) { 
+      const elemento = tipo === 'error' ? document.getElementById('alertaError') : document.getElementById('alertaExito'); 
+      elemento.textContent = mensaje; 
+      elemento.classList.add('mostrar'); 
+      setTimeout(()=> elemento.classList.remove('mostrar'), 5000); 
+    }
   </script>
 </body>
 </html>

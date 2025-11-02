@@ -1,4 +1,4 @@
-<!-- plantilla: register.html -->
+<!-- templates/registrar.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,154 +8,276 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .contenedor-registrar { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
-        .register-header { text-align: center; margin-bottom: 30px; }
-        .register-header h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
-        .register-header p { color: #666; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
-        .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
-        .form-group input.error { border-color: #f5576c; }
-        .error-message { color: #f5576c; font-size: 0.9em; margin-top: 5px; display: none; }
-        .password-requirements { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-top: 10px; font-size: 0.85em; }
-        .password-requirements h4 { color: #333; margin-bottom: 10px; }
-        .requirement { color: #999; margin: 5px 0; display: flex; align-items: center; }
-        .requirement.valid { color: #4caf50; }
-        .requirement::before { content: "✗"; margin-right: 8px; font-weight: bold; }
-        .requirement.valid::before { content: "✓"; }
-        .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .role-option { border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
-        .role-option:hover { border-color: #667eea; transform: translateY(-2px); }
-        .role-option.selected { border-color: #667eea; background: #f0f4ff; }
-        .role-option input { display: none; }
-        .role-icon { font-size: 3em; margin-bottom: 10px; }
-        .btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.1em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .link-container { text-align: center; margin-top: 20px; }
-        .link-container a { color: #667eea; text-decoration: none; font-weight: bold; }
-        .link-container a:hover { text-decoration: underline; }
-        .verification-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-        .verification-modal.active { display: flex; }
-        .verification-content { background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%; text-align: center; }
-        .verification-content h2 { color: #333; margin-bottom: 15px; }
-        .verification-content p { color: #666; margin-bottom: 20px; }
-        .code-input { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
-        .code-input input { width: 50px; height: 60px; text-align: center; font-size: 2em; border: 2px solid #e0e0e0; border-radius: 10px; }
-        .code-input input:focus { outline: none; border-color: #667eea; }
-        .alert { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
-        .alert.show { display: block; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .contenedor-registro { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
+        .encabezado-registro { text-align: center; margin-bottom: 30px; }
+        .encabezado-registro h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
+        .encabezado-registro p { color: #666; }
+        .grupo-formulario { margin-bottom: 20px; }
+        .grupo-formulario label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+        .grupo-formulario input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; transition: border-color 0.3s ease; }
+        .grupo-formulario input:focus { outline: none; border-color: #667eea; }
+        .grupo-formulario input.error { border-color: #f5576c; }
+        .mensaje-error { color: #f5576c; font-size: 0.9em; margin-top: 5px; display: none; }
+        .requisitos-contrasena { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-top: 10px; font-size: 0.85em; }
+        .requisitos-contrasena h4 { color: #333; margin-bottom: 10px; }
+        .requisito { color: #999; margin: 5px 0; display: flex; align-items: center; }
+        .requisito.valido { color: #4caf50; }
+        .requisito::before { content: "✗"; margin-right: 8px; font-weight: bold; }
+        .requisito.valido::before { content: "✓"; }
+        .selector-rol { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .opcion-rol { border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .opcion-rol:hover { border-color: #667eea; transform: translateY(-2px); }
+        .opcion-rol.seleccionado { border-color: #667eea; background: #f0f4ff; }
+        .opcion-rol input { display: none; }
+        .icono-rol { font-size: 3em; margin-bottom: 10px; }
+        .boton { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px; font-size: 1.1em; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .boton:hover:not(:deshabilitado) { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .boton:deshabilitado { opacity: 0.6; cursor: not-allowed; }
+        .contenedor-enlace { text-align: center; margin-top: 20px; }
+        .contenedor-enlace a { color: #667eea; text-decoration: none; font-weight: bold; }
+        .contenedor-enlace a:hover { text-decoration: underline; }
+        .modal-verificacion { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-verificacion.activo { display: flex; }
+        .contenido-verificacion { background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%; text-align: center; }
+        .contenido-verificacion h2 { color: #333; margin-bottom: 15px; }
+        .contenido-verificacion p { color: #666; margin-bottom: 20px; }
+        .entrada-codigo { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+        .entrada-codigo input { width: 50px; height: 60px; text-align: center; font-size: 2em; border: 2px solid #e0e0e0; border-radius: 10px; }
+        .entrada-codigo input:focus { outline: none; border-color: #667eea; }
+        .alerta { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        .alerta.mostrar { display: block; }
+        .alerta-exito { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alerta-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         
     </style>
 </head>
 <body>
-    <div class="contenedor-registrar">
-        <div class="register-header">
+    <div class="contenedor-registro">
+        <div class="encabezado-registro">
             <h1>👤 Crear Cuenta</h1>
             <p>Únete a la plataforma de aprendizaje gamificado</p>
         </div>
         
-        <div class="alert alert-error" id="alertError"></div>
-        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alerta alerta-error" id="alertaError"></div>
+        <div class="alerta alerta-exito" id="alertaExito"></div>
         
-        <form id="registerForm">
-            <div class="form-group">
+        <form id="formularioRegistro">
+            <div class="grupo-formulario">
                 <label>Selecciona tu rol:</label>
-                <div class="role-selector">
-                    <div class="role-option" onclick="selectRole('student')">
-                        <input type="radio" name="role" value="student" id="roleStudent">
-                        <div class="role-icon">👨‍🎓</div>
+                <div class="selector-rol">
+                    <div class="opcion-rol" onclick="seleccionarRol('estudiante')">
+                        <input type="radio" name="rol" value="estudiante" id="rolEstudiante">
+                        <div class="icono-rol">👨‍🎓</div>
                         <div>Estudiante</div>
                     </div>
-                    <div class="role-option" onclick="selectRole('teacher')">
-                        <input type="radio" name="role" value="teacher" id="roleTeacher">
-                        <div class="role-icon">👨‍🏫</div>
+                    <div class="opcion-rol" onclick="seleccionarRol('profesor')">
+                        <input type="radio" name="rol" value="profesor" id="rolProfesor">
+                        <div class="icono-rol">👨‍🏫</div>
                         <div>Profesor</div>
                     </div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="username">Nombre de usuario:</label>
-                <input type="text" id="nombre_usuario" name="username" required>
-                <div class="error-message" id="usernameError"></div>
+            <div class="grupo-formulario">
+                <label for="nombreUsuario">Nombre de usuario:</label>
+                <input type="text" id="nombreUsuario" name="nombreUsuario" required>
+                <div class="mensaje-error" id="errorNombreUsuario"></div>
             </div>
             
-            <div class="form-group">
-                <label for="email">Correo electrónico:</label>
-                <input type="email" id="correo" name="email" required>
-                <div class="error-message" id="emailError"></div>
+            <div class="grupo-formulario">
+                <label for="correo">Correo electrónico:</label>
+                <input type="email" id="correo" name="correo" required>
+                <div class="mensaje-error" id="errorCorreo"></div>
             </div>
             
-            <div class="form-group">
-                <label for="password">Contraseña:</label>
-                <input type="password" id="contrasena" name="password" required>
-                <div class="error-message" id="passwordError"></div>
+            <div class="grupo-formulario">
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" name="contrasena" required>
+                <div class="mensaje-error" id="errorContrasena"></div>
                 
-                <div class="password-requirements">
+                <div class="requisitos-contrasena">
                     <h4>Requisitos de contraseña:</h4>
-                    <div class="requirement" id="req-length">Mínimo 8 caracteres</div>
-                    <div class="requirement" id="req-uppercase">Al menos una mayúscula</div>
-                    <div class="requirement" id="req-lowercase">Al menos una minúscula</div>
-                    <div class="requirement" id="req-number">Al menos un número</div>
-                    <div class="requirement" id="req-special">Al menos un carácter especial (!@#$%^&*)</div>
+                    <div class="requisito" id="req-longitud">Mínimo 8 caracteres</div>
+                    <div class="requisito" id="req-mayuscula">Al menos una mayúscula</div>
+                    <div class="requisito" id="req-minuscula">Al menos una minúscula</div>
+                    <div class="requisito" id="req-numero">Al menos un número</div>
+                    <div class="requisito" id="req-especial">Al menos un carácter especial (!@#$%^&*)</div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="confirmPassword">Confirmar contraseña:</label>
-                <input type="password" id="confirmar_contrasena" name="confirmPassword" required>
-                <div class="error-message" id="confirmPasswordError"></div>
+            <div class="grupo-formulario">
+                <label for="confirmarContrasena">Confirmar contraseña:</label>
+                <input type="password" id="confirmarContrasena" name="confirmarContrasena" required>
+                <div class="mensaje-error" id="errorConfirmarContrasena"></div>
             </div>
             
-            <button type="submit" class="btn" id="submitBtn">Registrarse</button>
+            <button type="submit" class="boton" id="botonEnviar">Registrarse</button>
         </form>
         
-        <div class="link-container">
+        <div class="contenedor-enlace">
             <p>¿Ya tienes cuenta? <a href="/iniciar_sesion">Iniciar Sesión</a></p>
             <p><a href="/">Volver al inicio</a></p>
         </div>
     </div>
     
     <!-- Modal de Verificación -->
-    <div class="verification-modal" id="verificationModal">
-        <div class="verification-content">
+    <div class="modal-verificacion" id="modalVerificacion">
+        <div class="contenido-verificacion">
             <h2>📧 Verifica tu correo</h2>
-            <p>Hemos enviado un código de 6 dígitos a <strong id="verificationEmail"></strong></p>
+            <p>Hemos enviado un código de 6 dígitos a <strong id="correoVerificacion"></strong></p>
             
-            <div class="code-input">
-                <input type="text" maxlength="1" class="code-digit" data-index="0">
-                <input type="text" maxlength="1" class="code-digit" data-index="1">
-                <input type="text" maxlength="1" class="code-digit" data-index="2">
-                <input type="text" maxlength="1" class="code-digit" data-index="3">
-                <input type="text" maxlength="1" class="code-digit" data-index="4">
-                <input type="text" maxlength="1" class="code-digit" data-index="5">
+            <div class="entrada-codigo">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="0">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="1">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="2">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="3">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="4">
+                <input type="text" maxlength="1" class="digito-codigo" data-indice="5">
             </div>
             
-            <button class="btn" onclick="verifyCode()">Verificar</button>
+            <button class="boton" onclick="verificarCodigo()">Verificar</button>
             <div style="margin-top: 15px;">
-                <a href="#" onclick="resendCode()" style="color: #667eea; text-decoration: none;">Reenviar código</a>
+                <a href="#" onclick="reenviarCodigo()" style="color: #667eea; text-decoration: none;">Reenviar código</a>
             </div>
         </div>
     </div>
     
     <script>
-        let selectedRole = null;
-        let userEmail = '';
-        function selectRole(role) { selectedRole = role; document.querySelectorAll('.role-option').forEach(opt => { opt.classList.remove('selected'); }); event.currentTarget.classList.add('selected'); document.getElementById('role' + (role === 'teacher' ? 'Teacher' : 'Student')).checked = true; }
-        document.getElementById('contrasena').addEventListener('input', function(e) { const password = e.target.value; document.getElementById('req-length').classList.toggle('valid', password.length >= 8); document.getElementById('req-uppercase').classList.toggle('valid', /[A-Z]/.test(password)); document.getElementById('req-lowercase').classList.toggle('valid', /[a-z]/.test(password)); document.getElementById('req-number').classList.toggle('valid', /[0-9]/.test(password)); document.getElementById('req-special').classList.toggle('valid', /[!@#$%^&*(),.?":{}|<>]/.test(password)); });
-        const codeInputs = document.querySelectorAll('.code-digit'); codeInputs.forEach((input, index) => { input.addEventListener('input', function(e) { if (e.target.value.length === 1 && index < 5) { codeInputs[index + 1].focus(); } }); input.addEventListener('keydown', function(e) { if (e.key === 'Backspace' && !e.target.value && index > 0) { codeInputs[index - 1].focus(); } }); });
-        document.getElementById('registerForm').addEventListener('submit', async function(e) { e.preventDefault(); if (!selectedRole) { showAlert('error', 'Por favor selecciona un rol'); return; } const username = document.getElementById('nombre_usuario').value; const email = document.getElementById('correo').value; const password = document.getElementById('contrasena').value; const confirmPassword = document.getElementById('confirmar_contrasena').value; if (password !== confirmPassword) { showAlert('error', 'Las contraseñas no coinciden'); return; } try { const response = await fetch('/registrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password, is_teacher: selectedRole === 'teacher' }) }); const data = await response.json(); if (response.ok) { userEmail = email; document.getElementById('verificationEmail').textContent = email; document.getElementById('verificationModal').classList.add('active'); } else { showAlert('error', data.error || 'Error en el registro'); } } catch (error) { showAlert('error', 'Error de conexión'); } });
-        async function verifyCode() { const code = Array.from(document.querySelectorAll('.code-digit')).map(input => input.value).join(''); if (code.length !== 6) { alert('Por favor ingresa el código completo'); return; } try { const response = await fetch('/verificar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail, code }) }); const data = await response.json(); if (response.ok) { alert('✅ Cuenta verificada exitosamente'); window.location.href = '/iniciar_sesion'; } else { alert('❌ ' + (data.error || 'Código inválido')); } } catch (error) { alert('Error de conexión'); } }
-        async function resendCode() { try { const response = await fetch('/reenviar_codigo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail }) }); const data = await response.json(); if (response.ok) { alert('✅ Código reenviado'); } else { alert('❌ ' + (data.error || 'Error al reenviar')); } } catch (error) { alert('Error de conexión'); } }
-        function showAlert(type, message) { const alertEl = type === 'error' ? document.getElementById('alertError') : document.getElementById('alertSuccess'); alertEl.textContent = message; alertEl.classList.add('show'); setTimeout(() => { alertEl.classList.remove('show'); }, 5000); }
-        window.apiES = window.apiES || {};
-window.apiES.registrar = (payload) => fetch('/registrar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.verificar = (email, codigo) => fetch('/verificar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, code: codigo }) }).then(r=>r.json());
-window.apiES.reenviarCodigo = (email) => fetch('/reenviar_codigo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) }).then(r=>r.json());
+        let rolSeleccionado = null;
+        let correoUsuario = '';
+        
+        function seleccionarRol(rol) {
+            rolSeleccionado = rol;
+            document.querySelectorAll('.opcion-rol').forEach(opcion => {
+                opcion.classList.remove('seleccionado');
+            });
+            evento.currentTarget.classList.add('seleccionado');
+            document.getElementById('rol' + (rol === 'profesor' ? 'Profesor' : 'Estudiante')).checked = true;
+        }
+        
+        document.getElementById('contrasena').addEventListener('input', function(e) {
+            const contrasena = e.target.value;
+            document.getElementById('req-longitud').classList.toggle('valido', contrasena.length >= 8);
+            document.getElementById('req-mayuscula').classList.toggle('valido', /[A-Z]/.test(contrasena));
+            document.getElementById('req-minuscula').classList.toggle('valido', /[a-z]/.test(contrasena));
+            document.getElementById('req-numero').classList.toggle('valido', /[0-9]/.test(contrasena));
+            document.getElementById('req-especial').classList.toggle('valido', /[!@#$%^&*(),.?":{}|<>]/.test(contrasena));
+        });
+        
+        const entradasCodigo = document.querySelectorAll('.digito-codigo');
+        entradasCodigo.forEach((entrada, indice) => {
+            entrada.addEventListener('input', function(e) {
+                if (e.target.value.length === 1 && indice < 5) {
+                    entradasCodigo[indice + 1].focus();
+                }
+            });
+            entrada.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !e.target.value && indice > 0) {
+                    entradasCodigo[indice - 1].focus();
+                }
+            });
+        });
+        
+        document.getElementById('formularioRegistro').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!rolSeleccionado) {
+                mostrarAlerta('error', 'Por favor selecciona un rol');
+                return;
+            }
+            
+            const nombreUsuario = document.getElementById('nombreUsuario').value;
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+            const confirmarContrasena = document.getElementById('confirmarContrasena').value;
+            
+            if (contrasena !== confirmarContrasena) {
+                mostrarAlerta('error', 'Las contraseñas no coinciden');
+                return;
+            }
+            
+            try {
+                const respuesta = await fetch('/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombreUsuario,
+                        correo,
+                        contrasena,
+                        es_profesor: rolSeleccionado === 'profesor'
+                    })
+                });
+                
+                const datos = await respuesta.json();
+                
+                if (respuesta.ok) {
+                    correoUsuario = correo;
+                    document.getElementById('correoVerificacion').textContent = correo;
+                    document.getElementById('modalVerificacion').classList.add('activo');
+                } else {
+                    mostrarAlerta('error', datos.error || 'Error en el registro');
+                }
+            } catch (error) {
+                mostrarAlerta('error', 'Error de conexión');
+            }
+        });
+        
+        async function verificarCodigo() {
+            const codigo = Array.from(document.querySelectorAll('.digito-codigo')).map(entrada => entrada.value).join('');
+            
+            if (codigo.length !== 6) {
+                alert('Por favor ingresa el código completo');
+                return;
+            }
+            
+            try {
+                const respuesta = await fetch('/verificar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo: correoUsuario, codigo })
+                });
+                
+                const datos = await respuesta.json();
+                
+                if (respuesta.ok) {
+                    alert('✅ Cuenta verificada exitosamente');
+                    window.location.href = '/iniciar_sesion';
+                } else {
+                    alert('❌ ' + (datos.error || 'Código inválido'));
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        }
+        
+        async function reenviarCodigo() {
+            try {
+                const respuesta = await fetch('/reenviar_codigo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo: correoUsuario })
+                });
+                
+                const datos = await respuesta.json();
+                
+                if (respuesta.ok) {
+                    alert('✅ Código reenviado');
+                } else {
+                    alert('❌ ' + (datos.error || 'Error al reenviar'));
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        }
+        
+        function mostrarAlerta(tipo, mensaje) {
+            const elementoAlerta = tipo === 'error' ? document.getElementById('alertaError') : document.getElementById('alertaExito');
+            elementoAlerta.textContent = mensaje;
+            elementoAlerta.classList.add('mostrar');
+            setTimeout(() => {
+                elementoAlerta.classList.remove('mostrar');
+            }, 5000);
+        }
     </script>
 </body>
 </html>

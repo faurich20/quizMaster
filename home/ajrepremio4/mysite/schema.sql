@@ -1,93 +1,92 @@
--- Esquema de base de datos para QuizPlatform
+-- Esquema de base de datos para QuizPlatforma
 -- Ejecutar manualmente en MySQL (usar la base de datos que corresponda antes de correr esto)
 
 -- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  password VARCHAR(64) NOT NULL,
-  is_teacher BOOLEAN DEFAULT 0,
-  is_verified BOOLEAN DEFAULT 0,
-  verification_code VARCHAR(6),
-  verification_expires DATETIME,
-  reset_token VARCHAR(64),
-  reset_expires DATETIME,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
+  correo VARCHAR(100) UNIQUE NOT NULL,
+  contrasena VARCHAR(64) NOT NULL,
+  es_profesor BOOLEAN DEFAULT 0,
+  esta_verificado BOOLEAN DEFAULT 0,
+  codigo_verificacion VARCHAR(6),
+  expira_verificacion DATETIME,
+  token_restablecer VARCHAR(64),
+  expira_restablecer DATETIME,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla de quizzes
 CREATE TABLE IF NOT EXISTS quizzes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  teacher_id INT NOT NULL,
-  title VARCHAR(200) NOT NULL,
-  description TEXT,
-  pin_code VARCHAR(8) UNIQUE NOT NULL,
-  mode VARCHAR(20) DEFAULT 'individual',
-  num_groups INT DEFAULT 0,
-  countdown_time INT DEFAULT 30,
-  is_public BOOLEAN DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+  id_profesor INT NOT NULL,
+  titulo VARCHAR(200) NOT NULL,
+  descripcion TEXT,
+  codigo_pin VARCHAR(8) UNIQUE NOT NULL,
+  modo VARCHAR(20) DEFAULT 'individual',
+  num_grupos INT DEFAULT 0,
+  tiempo_cuenta_regresiva INT DEFAULT 30,
+  es_publico BOOLEAN DEFAULT 1,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_profesor) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 -- Tabla de preguntas
-CREATE TABLE IF NOT EXISTS questions (
+CREATE TABLE IF NOT EXISTS preguntas (
   id INT AUTO_INCREMENT PRIMARY KEY,
   quiz_id INT NOT NULL,
-  question_text TEXT NOT NULL,
-  image_url VARCHAR(500),
-  video_url VARCHAR(500),
-  time_limit INT DEFAULT 30,
-  position INT NOT NULL,
+  texto_pregunta TEXT NOT NULL,
+  url_imagen VARCHAR(500),
+  url_video VARCHAR(500),
+  tiempo_limite INT DEFAULT 30,
+  posicion INT NOT NULL,
   FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
 -- Tabla de opciones
-CREATE TABLE IF NOT EXISTS options (
+CREATE TABLE IF NOT EXISTS opciones (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  question_id INT NOT NULL,
-  option_text VARCHAR(500) NOT NULL,
-  is_correct BOOLEAN DEFAULT 0,
-  position INT NOT NULL,
-  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+  pregunta_id INT NOT NULL,
+  texto_opcion VARCHAR(500) NOT NULL,
+  es_correcta BOOLEAN DEFAULT 0,
+  FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
 );
 
 -- Tabla de sesiones de juego
-CREATE TABLE IF NOT EXISTS game_sessions (
+CREATE TABLE IF NOT EXISTS sesiones_juego (
   id INT AUTO_INCREMENT PRIMARY KEY,
   quiz_id INT NOT NULL,
-  pin_code VARCHAR(8) NOT NULL,
-  status VARCHAR(20) DEFAULT 'waiting',
-  started_at TIMESTAMP NULL DEFAULT NULL,
-  ended_at TIMESTAMP NULL DEFAULT NULL,
-  is_active BOOLEAN DEFAULT 1,
-  attempts_allowed INT DEFAULT 0,
-  attempts_remaining INT DEFAULT 0,
-  timer_expires_at DATETIME NULL,
+  codigo_pin VARCHAR(8) NOT NULL,
+  estado VARCHAR(20) DEFAULT 'esperando',
+  esta_activa BOOLEAN DEFAULT 1,
+  intentos_permitidos INT DEFAULT 0,
+  intentos_restantes INT DEFAULT 0,
+  inicio_en_servidor TIMESTAMP NULL DEFAULT NULL,
+  fin_en_servidor TIMESTAMP NULL DEFAULT NULL,
+  expira_temporizador DATETIME NULL,
   FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
 -- Tabla de participantes
-CREATE TABLE IF NOT EXISTS participants (
+CREATE TABLE IF NOT EXISTS participantes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  session_id INT NOT NULL,
-  username VARCHAR(50) NOT NULL,
-  group_name VARCHAR(50),
-  total_score INT DEFAULT 0,
-  FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE
+  sesion_id INT NOT NULL,
+  nombre_usuario VARCHAR(50) NOT NULL,
+  nombre_grupo VARCHAR(50),
+  puntuacion_total INT DEFAULT 0,
+  FOREIGN KEY (sesion_id) REFERENCES sesiones_juego(id) ON DELETE CASCADE
 );
 
 -- Tabla de respuestas
-CREATE TABLE IF NOT EXISTS answers (
+CREATE TABLE IF NOT EXISTS respuestas (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  participant_id INT NOT NULL,
-  question_id INT NOT NULL,
-  option_id INT NOT NULL,
-  response_time FLOAT NOT NULL,
-  points_earned INT DEFAULT 0,
-  answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE,
-  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
-  FOREIGN KEY (option_id) REFERENCES options(id) ON DELETE CASCADE
+  id_participante INT NOT NULL,
+  id_pregunta INT NOT NULL,
+  id_opcion INT NOT NULL,
+  tiempo_respuesta FLOAT NOT NULL,
+  puntos_ganados INT DEFAULT 0,
+  momento_respuesta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_participante) REFERENCES participantes(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_pregunta) REFERENCES preguntas(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_opcion) REFERENCES opciones(id) ON DELETE CASCADE
 );

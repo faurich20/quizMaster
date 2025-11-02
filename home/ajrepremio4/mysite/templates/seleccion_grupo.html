@@ -1,3 +1,4 @@
+<!-- templates/seleccion_grupo.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -15,7 +16,7 @@
             justify-content: center; 
             padding: 20px;
         }
-        .contenedor-seleccion { 
+        .contenedor { 
             background: white; 
             border-radius: 30px; 
             padding: 50px; 
@@ -29,32 +30,32 @@
             font-size: 2.5em; 
             margin-bottom: 15px; 
         }
-        .quiz-info { 
+        .info-quiz { 
             background: #f5f7fa; 
             padding: 20px; 
             border-radius: 15px; 
             margin-bottom: 30px; 
         }
-        .quiz-info h2 { 
+        .info-quiz h2 { 
             color: #667eea; 
             margin-bottom: 10px; 
         }
-        .quiz-info p { 
+        .info-quiz p { 
             color: #666; 
             margin: 5px 0; 
         }
-        .instruction { 
+        .instruccion { 
             font-size: 1.2em; 
             color: #666; 
             margin-bottom: 30px; 
         }
-        .groups-grid { 
+        .cuadricula-grupos { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
             gap: 20px; 
             margin-bottom: 30px; 
         }
-        .group-card { 
+        .tarjeta-grupo { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
             padding: 30px 20px; 
@@ -63,23 +64,23 @@
             transition: all 0.3s ease; 
             border: 3px solid transparent;
         }
-        .group-card:hover { 
+        .tarjeta-grupo:hover { 
             transform: translateY(-10px); 
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); 
         }
-        .group-card.selected { 
+        .tarjeta-grupo.seleccionado { 
             border-color: #ffd700; 
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); 
         }
-        .group-card h3 { 
+        .tarjeta-grupo h3 { 
             font-size: 1.8em; 
             margin-bottom: 10px; 
         }
-        .group-card .count { 
+        .tarjeta-grupo .contador { 
             font-size: 1.1em; 
             opacity: 0.9; 
         }
-        .btn { 
+        .boton { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
             border: none; 
@@ -91,160 +92,160 @@
             transition: all 0.3s ease; 
             margin: 10px;
         }
-        .btn:hover { 
+        .boton:hover { 
             transform: translateY(-3px); 
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); 
         }
-        .btn:disabled { 
+        .boton:deshabilitado { 
             opacity: 0.5; 
             cursor: not-allowed; 
             transform: none; 
         }
-        .btn-secondary { 
+        .boton-secundario { 
             background: #e0e0e0; 
             color: #333; 
         }
-        .btn-secondary:hover { 
+        .boton-secundario:hover { 
             background: #d0d0d0; 
         }
-        .loading { 
+        .cargando { 
             text-align: center; 
             padding: 40px; 
         }
-        .loading-spinner { 
+        .girador-carga { 
             border: 5px solid #f3f3f3; 
             border-top: 5px solid #667eea; 
             border-radius: 50%; 
             width: 50px; 
             height: 50px; 
-            animation: spin 1s linear infinite; 
+            animation: girar 1s linear infinite; 
             margin: 0 auto 20px; 
         }
-        @keyframes spin { 
+        @keyframes girar { 
             0% { transform: rotate(0deg); } 
             100% { transform: rotate(360deg); } 
         }
     </style>
 </head>
 <body>
-    <div class="contenedor-seleccion">
+    <div class="contenedor">
         <h1>🎯 Selecciona tu Grupo</h1>
         
-        <div class="quiz-info" id="quizInfo">
-            <div class="loading">
-                <div class="loading-spinner"></div>
+        <div class="info-quiz" id="infoQuiz">
+            <div class="cargando">
+                <div class="girador-carga"></div>
                 <p>Cargando información del quiz...</p>
             </div>
         </div>
         
-        <p class="instruction">Elige el grupo al que deseas unirte:</p>
+        <p class="instruccion">Elige el grupo al que deseas unirte:</p>
         
-        <div class="groups-grid" id="groupsGrid"></div>
+        <div class="cuadricula-grupos" id="cuadriculaGrupos"></div>
         
         <div>
-            <button class="btn" id="joinBtn" onclick="joinGroup()" disabled>
+            <button class="boton" id="botonUnirse" onclick="unirseAGrupo()" disabled>
                 Unirse al Grupo
             </button>
-            <button class="btn btn-secondary" onclick="goBack()">
+            <button class="boton boton-secundario" onclick="volver()">
                 ← Volver
             </button>
         </div>
     </div>
     
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('session_id');
-        const participantId = urlParams.get('participant_id');
-        let selectedGroup = null;
-        let quizData = null;
+        const parametrosUrl = new URLSearchParams(window.location.search);
+        const idSesion = parametrosUrl.get('id_sesion');
+        const idParticipante = parametrosUrl.get('id_participante');
+        let grupoSeleccionado = null;
+        let datosQuiz = null;
         
         // Cargar información del quiz y grupos
-        async function loadQuizInfo() {
+        async function cargarInfoQuiz() {
             try {
-                const response = await fetch(`/api/sesion/${sessionId}/info`);
-                const data = await response.json();
+                const respuesta = await fetch(`/api/sesion/${idSesion}/info`);
+                const datos = await respuesta.json();
                 
-                if (!response.ok) {
-                    alert('Error: ' + (data.error || 'No se pudo cargar el quiz'));
-                    window.location.href = '/play';
+                if (!respuesta.ok) {
+                    alert('Error: ' + (datos.error || 'No se pudo cargar el quiz'));
+                    window.location.href = '/jugar';
                     return;
                 }
                 
-                quizData = data;
+                datosQuiz = datos;
                 
                 // Mostrar información del quiz
-                document.getElementById('quizInfo').innerHTML = `
-                    <h2>${data.quiz.title}</h2>
-                    <p>${data.quiz.description || ''}</p>
-                    <p><strong>PIN:</strong> ${data.pin_code}</p>
+                document.getElementById('infoQuiz').innerHTML = `
+                    <h2>${datos.quiz.titulo}</h2>
+                    <p>${datos.quiz.descripcion || ''}</p>
+                    <p><strong>PIN:</strong> ${datos.codigo_pin}</p>
                 `;
                 
                 // Generar tarjetas de grupos
-                const numGroups = data.quiz.num_groups || 4;
-                const groupsGrid = document.getElementById('groupsGrid');
+                const numGrupos = datos.quiz.num_grupos || 4;
+                const cuadriculaGrupos = document.getElementById('cuadriculaGrupos');
                 
                 // Contar participantes por grupo
-                const groupCounts = {};
-                data.participants.forEach(p => {
-                    if (p.group_name) {
-                        groupCounts[p.group_name] = (groupCounts[p.group_name] || 0) + 1;
+                const contadoresGrupos = {};
+                datos.participantes.forEach(p => {
+                    if (p.nombre_grupo) {
+                        contadoresGrupos[p.nombre_grupo] = (contadoresGrupos[p.nombre_grupo] || 0) + 1;
                     }
                 });
                 
-                groupsGrid.innerHTML = '';
-                for (let i = 1; i <= numGroups; i++) {
-                    const groupName = `GRUPO ${i}`;
-                    const count = groupCounts[groupName] || 0;
+                cuadriculaGrupos.innerHTML = '';
+                for (let i = 1; i <= numGrupos; i++) {
+                    const nombreGrupo = `GRUPO ${i}`;
+                    const contador = contadoresGrupos[nombreGrupo] || 0;
                     
-                    const card = document.createElement('div');
-                    card.className = 'group-card';
-                    card.innerHTML = `
-                        <h3>📚 ${groupName}</h3>
-                        <p class="count">👥 ${count} participante${count !== 1 ? 's' : ''}</p>
+                    const tarjeta = document.createElement('div');
+                    tarjeta.className = 'tarjeta-grupo';
+                    tarjeta.innerHTML = `
+                        <h3>📚 ${nombreGrupo}</h3>
+                        <p class="contador">👥 ${contador} participante${contador !== 1 ? 's' : ''}</p>
                     `;
-                    card.onclick = () => selectGroup(groupName, card);
-                    groupsGrid.appendChild(card);
+                    tarjeta.onclick = () => seleccionarGrupo(nombreGrupo, tarjeta);
+                    cuadriculaGrupos.appendChild(tarjeta);
                 }
                 
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error de conexión');
-                window.location.href = '/play';
+                window.location.href = '/jugar';
             }
         }
         
-        function selectGroup(groupName, cardElement) {
+        function seleccionarGrupo(nombreGrupo, elementoTarjeta) {
             // Remover selección anterior
-            document.querySelectorAll('.group-card').forEach(card => {
-                card.classList.remove('selected');
+            document.querySelectorAll('.tarjeta-grupo').forEach(tarjeta => {
+                tarjeta.classList.remove('seleccionado');
             });
             
             // Seleccionar nuevo grupo
-            cardElement.classList.add('selected');
-            selectedGroup = groupName;
-            document.getElementById('joinBtn').disabled = false;
+            elementoTarjeta.classList.add('seleccionado');
+            grupoSeleccionado = nombreGrupo;
+            document.getElementById('botonUnirse').disabled = false;
         }
         
-        async function joinGroup() {
-            if (!selectedGroup) {
+        async function unirseAGrupo() {
+            if (!grupoSeleccionado) {
                 alert('Por favor selecciona un grupo');
                 return;
             }
             
             try {
-                const response = await fetch(`/api/participante/${participantId}/asignar_grupo`, {
+                const respuesta = await fetch(`/api/participante/${idParticipante}/asignar_grupo`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ group_name: selectedGroup })
+                    body: JSON.stringify({ nombre_grupo: grupoSeleccionado })
                 });
                 
-                const data = await response.json();
+                const datos = await respuesta.json();
                 
-                if (response.ok) {
-                    // Redirigir al lobby
-                    window.location.href = `/sala_espera?session_id=${sessionId}&participant_id=${participantId}`;
+                if (respuesta.ok) {
+                    // Redirigir a la sala de espera
+                    window.location.href = `/sala_espera?id_sesion=${idSesion}&id_participante=${idParticipante}`;
                 } else {
-                    alert('Error: ' + (data.error || 'No se pudo unir al grupo'));
+                    alert('Error: ' + (datos.error || 'No se pudo unir al grupo'));
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -252,16 +253,16 @@
             }
         }
         
-        function goBack() {
-            window.location.href = '/play';
+        function volver() {
+            window.location.href = '/jugar';
         }
         
         // Validar parámetros
-        if (!sessionId || !participantId) {
+        if (!idSesion || !idParticipante) {
             alert('Parámetros inválidos');
-            window.location.href = '/play';
+            window.location.href = '/jugar';
         } else {
-            loadQuizInfo();
+            cargarInfoQuiz();
         }
     </script>
 </body>

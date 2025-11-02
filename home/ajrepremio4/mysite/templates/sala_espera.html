@@ -1,4 +1,4 @@
-<!-- templates/lobby.html -->
+<!-- templates/sala_espera.html -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
 
-        .barra-nav {
+        .barra-navegacion {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
@@ -29,21 +29,21 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .barra-nav.show {
+        .barra-navegacion.mostrar {
             display: flex;
         }
 
-        .barra-nav h1 {
+        .barra-navegacion h1 {
             font-size: 1.8em;
         }
 
-        .navbar-right {
+        .derecha-navegacion {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .btn-nav {
+        .boton-nav {
             background: white;
             color: #667eea;
             border: 2px solid white;
@@ -55,7 +55,7 @@
             transition: all 0.3s ease;
         }
 
-        .btn-nav:hover {
+        .boton-nav:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
         }
@@ -68,7 +68,7 @@
             min-height: 100vh;
         }
 
-        .barra-nav.show+.contenido-pagina {
+        .barra-navegacion.mostrar+.contenido-pagina {
             min-height: calc(100vh - 60px);
         }
 
@@ -82,22 +82,22 @@
             text-align: center;
         }
 
-        .lobby-header {
+        .encabezado-sala {
             margin-bottom: 30px;
         }
 
-        .lobby-header h1 {
+        .encabezado-sala h1 {
             color: #333;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
 
-        .lobby-header p {
+        .encabezado-sala p {
             color: #666;
             font-size: 1.2em;
         }
 
-        .quiz-info {
+        .info-quiz {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 25px;
@@ -105,44 +105,44 @@
             margin-bottom: 30px;
         }
 
-        .quiz-info h2 {
+        .info-quiz h2 {
             font-size: 2em;
             margin-bottom: 10px;
         }
 
-        .quiz-info p {
+        .info-quiz p {
             font-size: 1.1em;
             opacity: 0.9;
             margin-bottom: 5px;
         }
 
-        .pin-display {
+        .mostrar-pin {
             background: rgba(255, 255, 255, 0.2);
             padding: 15px;
             border-radius: 10px;
             margin-top: 15px;
         }
 
-        .pin-display strong {
+        .mostrar-pin strong {
             font-size: 2em;
             letter-spacing: 3px;
         }
 
-        .waiting-animation {
+        .animacion-espera {
             margin: 40px 0;
         }
 
-        .spinner {
+        .girador {
             width: 80px;
             height: 80px;
             margin: 0 auto 20px;
             border: 8px solid #f3f3f3;
             border-top: 8px solid #667eea;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: girar 1s linear infinite;
         }
 
-        @keyframes spin {
+        @keyframes girar {
             0% {
                 transform: rotate(0deg);
             }
@@ -152,43 +152,43 @@
             }
         }
 
-        .waiting-text {
+        .texto-espera {
             color: #667eea;
             font-size: 1.3em;
             font-weight: bold;
         }
 
-        .participants-section {
+        .seccion-participantes {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 20px;
         }
 
-        .participants-section h3 {
+        .seccion-participantes h3 {
             color: #333;
             margin-bottom: 15px;
             font-size: 1.5em;
         }
 
-        .participants-grid {
+        .cuadricula-participantes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 10px;
         }
 
-        .participant-card {
+        .tarjeta-participante {
             background: white;
             padding: 15px;
             border-radius: 10px;
             border-left: 4px solid #667eea;
         }
 
-        .participant-card strong {
+        .tarjeta-participante strong {
             color: #333;
         }
 
-        .btn-secondary {
+        .boton-secundario {
             background: white;
             color: #667eea;
             border: 2px solid #667eea;
@@ -202,7 +202,7 @@
             display: inline-block;
         }
 
-        .btn-secondary:hover {
+        .boton-secundario:hover {
             background: #667eea;
             color: white;
             transform: translateY(-2px);
@@ -211,89 +211,87 @@
 </head>
 
 <body>
-    <div class="barra-nav" id="barra-nav">
+    <div class="barra-navegacion" id="barraNavegacion">
         <h1>🎯 QuizPlatform</h1>
-        <div class="navbar-right">
-            <span>Bienvenido, <strong id="nav_nombre"></strong></span>
-            <a href="/logout" class="btn-nav">Cerrar Sesión</a>
+        <div class="derecha-navegacion">
+            <span>Bienvenido, <strong id="nombreUsuarioNav"></strong></span>
+            <a href="/cerrar_sesion" class="boton-nav">Cerrar Sesión</a>
         </div>
     </div>
 
     <div class="contenido-pagina">
         <div class="contenedor-sala">
-            <div class="lobby-header">
+            <div class="encabezado-sala">
                 <h1>⏳</h1>
                 <h1>Sala de Espera</h1>
                 <p>Esperando que el profesor inicie el quiz...</p>
             </div>
 
-            <div class="quiz-info">
-                <h2 id="quizTitle">Cargando...</h2>
-                <p id="descripcion_quiz"></p>
-                <p id="quizMode"></p>
-                <p id="groupInfo" style="font-size: 1.3em; margin-top: 10px;"></p>
-                <div class="pin-display">
-                    PIN: <strong id="pinCode"></strong>
+            <div class="info-quiz">
+                <h2 id="tituloQuiz">Cargando...</h2>
+                <p id="descripcionQuiz"></p>
+                <p id="modoQuiz"></p>
+                <p id="infoGrupo" style="font-size: 1.3em; margin-top: 10px;"></p>
+                <div class="mostrar-pin">
+                    PIN: <strong id="codigoPin"></strong>
                 </div>
             </div>
 
-            <div class="waiting-animation">
-                <div class="spinner"></div>
-                <p class="waiting-text">Esperando al profesor...</p>
+            <div class="animacion-espera">
+                <div class="girador"></div>
+                <p class="texto-espera">Esperando al profesor...</p>
             </div>
 
-            <div class="participants-section">
-                <h3 id="participantsTitle">👥 Participantes Conectados: <span id="participantCount">0</span></h3>
-                <div class="participants-grid" id="participantsList"></div>
+            <div class="seccion-participantes">
+                <h3 id="tituloParticipantes">👥 Participantes Conectados: <span id="contadorParticipantes">0</span></h3>
+                <div class="cuadricula-participantes" id="listaParticipantes"></div>
             </div>
 
-            <button class="btn-secondary" onclick="changeGroup()" style="margin-right: 10px;">🔄 Cambiar Grupo</button>
-            <button class="btn-secondary" onclick="leaveLobby()">← Salir de la Sala</button>
+            <button class="boton-secundario" onclick="cambiarGrupo()" style="margin-right: 10px;">🔄 Cambiar Grupo</button>
+            <button class="boton-secundario" onclick="salirDeSala()">← Salir de la Sala</button>
         </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('session_id');
-        const participantId = urlParams.get('participant_id');
-        let pollingInterval = null;
-        let loggedInUsername = null;
-        let currentParticipantData = null;
+        const parametrosUrl = new URLSearchParams(window.location.search);
+        const idSesion = parametrosUrl.get('id_sesion');
+        const idParticipante = parametrosUrl.get('id_participante');
+        let intervaloConsulta = null;
+        let nombreUsuarioLogueado = null;
+        let datosParticipanteActual = null;
 
-        // Verificar si hay un usuario logueado (usar endpoint en español y claves en español)
-        fetch('/api/informacion_sesion')
-            .then(res => res.json())
-            .then(data => {
-                if (data.nombre_usuario && !data.es_docente) {
-                    loggedInUsername = data.nombre_usuario;
-                    document.getElementById('nav_nombre').textContent = data.nombre_usuario;
-                    document.getElementById('barra-nav').classList.add('show');
-                } else if (data.nombre_usuario && data.es_docente) {
-                    window.location.href = '/dashboard';
+        // Verificar si hay un usuario logueado
+        fetch('/api/info_sesion')
+            .then(respuesta => respuesta.json())
+            .then(datos => {
+                if (datos.nombre_usuario && !datos.es_profesor) {
+                    nombreUsuarioLogueado = datos.nombre_usuario;
+                    document.getElementById('nombreUsuarioNav').textContent = datos.nombre_usuario;
+                    document.getElementById('barraNavegacion').classList.add('mostrar');
+                } else if (datos.nombre_usuario && datos.es_profesor) {
+                    window.location.href = '/panel_control';
                 } else {
-                    const back = document.getElementById('backToHomeBtn');
-                    if (back) back.style.display = 'inline-block';
+                    document.getElementById('botonVolverInicio').style.display = 'inline-block';
                 }
             })
-            .catch(err => {
-                const back = document.getElementById('backToHomeBtn');
-                if (back) back.style.display = 'inline-block';
+            .catch(error => {
+                document.getElementById('botonVolverInicio').style.display = 'inline-block';
             });
 
         // Cargar información de la sesión
-        async function loadSessionInfo() {
+        async function cargarInfoSesion() {
             try {
-                const response = await fetch(`/api/sesion/${sessionId}/info`);
-                const data = await response.json();
+                const respuesta = await fetch(`/api/sesion/${idSesion}/info`);
+                const datos = await respuesta.json();
 
-                if (response.ok) {
-                    document.getElementById('quizTitle').textContent = data.quiz.title;
-                    document.getElementById('descripcion_quiz').textContent = data.quiz.description || 'Sin descripción';
-                    document.getElementById('quizMode').textContent = `🎮 Modo: ${data.quiz.mode === 'group' ? 'Grupal' : 'Individual'}`;
-                    document.getElementById('pinCode').textContent = data.pin_code;
+                if (respuesta.ok) {
+                    document.getElementById('tituloQuiz').textContent = datos.quiz.titulo;
+                    document.getElementById('descripcionQuiz').textContent = datos.quiz.descripcion || 'Sin descripción';
+                    document.getElementById('modoQuiz').textContent = `🎮 Modo: ${datos.quiz.modo === 'grupal' ? 'Grupal' : 'Individual'}`;
+                    document.getElementById('codigoPin').textContent = datos.codigo_pin;
 
                     // Actualizar lista de participantes
-                    updateParticipants(data.participants);
+                    actualizarParticipantes(datos.participantes);
                 } else {
                     alert('Error cargando información de la sesión');
                     window.location.href = '/';
@@ -304,64 +302,64 @@
         }
 
         // Actualizar lista de participantes
-        function updateParticipants(participants) {
-            const list = document.getElementById('participantsList');
-            const count = document.getElementById('participantCount');
-            const title = document.getElementById('participantsTitle');
+        function actualizarParticipantes(participantes) {
+            const lista = document.getElementById('listaParticipantes');
+            const contador = document.getElementById('contadorParticipantes');
+            const titulo = document.getElementById('tituloParticipantes');
 
             // Encontrar datos del participante actual
-            currentParticipantData = participants.find(p => p.id == participantId);
+            datosParticipanteActual = participantes.find(p => p.id == idParticipante);
 
             // Mostrar grupo asignado
-            if (currentParticipantData && currentParticipantData.group_name) {
-                document.getElementById('groupInfo').innerHTML = `📚 Tu grupo: <strong>${currentParticipantData.group_name}</strong>`;
+            if (datosParticipanteActual && datosParticipanteActual.nombre_grupo) {
+                document.getElementById('infoGrupo').innerHTML = `📚 Tu grupo: <strong>${datosParticipanteActual.nombre_grupo}</strong>`;
 
                 // Filtrar solo participantes del mismo grupo
-                const myGroup = currentParticipantData.group_name;
-                const sameGroupParticipants = participants.filter(p => p.group_name === myGroup);
+                const miGrupo = datosParticipanteActual.nombre_grupo;
+                const participantesMismoGrupo = participantes.filter(p => p.nombre_grupo === miGrupo);
 
                 // Actualizar título
-                title.innerHTML = `👥 Participantes de tu Grupo: <span id="participantCount">${sameGroupParticipants.length}</span>`;
+                titulo.innerHTML = `👥 Participantes de tu Grupo: <span id="contadorParticipantes">${participantesMismoGrupo.length}</span>`;
 
-                list.innerHTML = sameGroupParticipants.map(p => {
-                    const isMe = p.id == participantId;
-                    return `<div class="participant-card"><strong>${p.username}${isMe ? ' (Tú)' : ''}</strong></div>`;
+                lista.innerHTML = participantesMismoGrupo.map(p => {
+                    const soyYo = p.id == idParticipante;
+                    return `<div class="tarjeta-participante"><strong>${p.nombre_usuario}${soyYo ? ' (Tú)' : ''}</strong></div>`;
                 }).join('');
             } else {
                 // Si no tiene grupo asignado, mostrar todos
-                title.innerHTML = `👥 Participantes Conectados: <span id="participantCount">${participants.length}</span>`;
+                titulo.innerHTML = `👥 Participantes Conectados: <span id="contadorParticipantes">${participantes.length}</span>`;
 
-                list.innerHTML = participants.map(p => {
-                    const isMe = p.id == participantId;
-                    const groupTag = p.group_name ? ` <span style="color: #667eea;">(${p.group_name})</span>` : '';
-                    return `<div class="participant-card"><strong>${p.username}${isMe ? ' (Tú)' : ''}</strong>${groupTag}</div>`;
+                lista.innerHTML = participantes.map(p => {
+                    const soyYo = p.id == idParticipante;
+                    const etiquetaGrupo = p.nombre_grupo ? ` <span style="color: #667eea;">(${p.nombre_grupo})</span>` : '';
+                    return `<div class="tarjeta-participante"><strong>${p.nombre_usuario}${soyYo ? ' (Tú)' : ''}</strong>${etiquetaGrupo}</div>`;
                 }).join('');
             }
         }
 
         // Cambiar de grupo
-        function changeGroup() {
-            window.location.href = `/seleccion_grupo?session_id=${sessionId}&participant_id=${participantId}`;
+        function cambiarGrupo() {
+            window.location.href = `/seleccion_grupo?id_sesion=${idSesion}&id_participante=${idParticipante}`;
         }
 
         // Salir de la sala
-        async function leaveLobby() {
+        async function salirDeSala() {
             if (!confirm('¿Estás seguro de que deseas salir de la sala?')) {
                 return;
             }
 
             try {
-                // Detener polling
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
+                // Detener consultas periódicas
+                if (intervaloConsulta) {
+                    clearInterval(intervaloConsulta);
                 }
 
                 // Eliminar participante
-                await fetch(`/api/participante/${participantId}/salir`, {
+                await fetch(`/api/participante/${idParticipante}/salir`, {
                     method: 'POST'
                 });
 
-                // Redirigir a home
+                // Redirigir a inicio
                 window.location.href = '/';
             } catch (error) {
                 console.error('Error al salir:', error);
@@ -369,28 +367,28 @@
             }
         }
 
-        // Verificar estado de la sesión (polling)
-        async function checkSessionStatus() {
+        // Verificar estado de la sesión (consultas periódicas)
+        async function verificarEstadoSesion() {
             try {
-                const response = await fetch(`/api/sesion/${sessionId}/estado`);
-                const data = await response.json();
+                const respuesta = await fetch(`/api/sesion/${idSesion}/estado`);
+                const datos = await respuesta.json();
 
                 // ✅ Si la sesión fue finalizada, mostrar mensaje y redirigir
-                if (data.status === 'finished' || !data.active) {
-                    clearInterval(pollingInterval);
+                if (datos.estado === 'finalizada' || !datos.activa) {
+                    clearInterval(intervaloConsulta);
                     window.location.href = '/';
                     return;
                 }
 
-                if (data.status === 'started') {
-                    // El profesor inició el quiz, redirigir a play
-                    clearInterval(pollingInterval);
-                    window.location.href = `/play?session_id=${sessionId}&participant_id=${participantId}&auto_start=true`;
+                if (datos.estado === 'iniciada') {
+                    // El profesor inició el quiz, redirigir a jugar
+                    clearInterval(intervaloConsulta);
+                    window.location.href = `/jugar?id_sesion=${idSesion}&id_participante=${idParticipante}&inicio_automatico=true`;
                 }
 
                 // Actualizar participantes
-                if (data.participants) {
-                    updateParticipants(data.participants);
+                if (datos.participantes) {
+                    actualizarParticipantes(datos.participantes);
                 }
             } catch (error) {
                 console.error('Error verificando estado:', error);
@@ -398,24 +396,24 @@
         }
 
         // ✅ NUEVA FUNCIÓN: Detectar si el usuario está reingresando
-        async function checkUserReentry() {
+        async function verificarReingresoUsuario() {
             try {
-                // Verificar si ya existe un participante con este username en la sesión
-                const response = await fetch(`/api/sesion/${sessionId}/info`);
-                const data = await response.json();
+                // Verificar si ya existe un participante con este nombre de usuario en la sesión
+                const respuesta = await fetch(`/api/sesion/${idSesion}/info`);
+                const datos = await respuesta.json();
 
-                if (data.participants) {
+                if (datos.participantes) {
                     // Buscar si ya existe un participante con el mismo ID
-                    const existingParticipant = data.participants.find(p => p.id == participantId);
+                    const participanteExistente = datos.participantes.find(p => p.id == idParticipante);
 
-                    if (existingParticipant) {
-                        console.log('✅ Reingreso detectado:', existingParticipant.username);
+                    if (participanteExistente) {
+                        console.log('✅ Reingreso detectado:', participanteExistente.nombre_usuario);
 
                         // Si ya tiene grupo asignado, mostrar mensaje
-                        if (existingParticipant.group_name) {
-                            const groupInfo = document.getElementById('groupInfo');
-                            if (groupInfo) {
-                                groupInfo.innerHTML = `📚 Tu grupo: <strong>${existingParticipant.group_name}</strong> (reingresaste)`;
+                        if (participanteExistente.nombre_grupo) {
+                            const infoGrupo = document.getElementById('infoGrupo');
+                            if (infoGrupo) {
+                                infoGrupo.innerHTML = `📚 Tu grupo: <strong>${participanteExistente.nombre_grupo}</strong> (reingresaste)`;
                             }
                         }
                     }
@@ -426,15 +424,15 @@
         }
 
         // Llamar al cargar la sesión
-        if (!sessionId || !participantId) {
+        if (!idSesion || !idParticipante) {
             alert('Sesión inválida');
             window.location.href = '/';
         } else {
-            loadSessionInfo();
-            checkUserReentry(); // ✅ Verificar reingreso
+            cargarInfoSesion();
+            verificarReingresoUsuario(); // ✅ Verificar reingreso
 
-            // Polling cada 2 segundos
-            pollingInterval = setInterval(checkSessionStatus, 2000);
+            // Consultas periódicas cada 2 segundos
+            intervaloConsulta = setInterval(verificarEstadoSesion, 2000);
         }
     </script>
 </body>

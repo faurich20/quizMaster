@@ -1,4 +1,4 @@
-<!-- plantilla: index.html (página principal) -->
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -37,14 +37,14 @@
             color: white;
         }
 
-        .encabezado-contenido { 
+        .contenido-encabezado { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             gap: 20px; 
         }
 
-        .encabezado-izquierda { 
+        .izquierda-encabezado { 
             text-align: left; 
             flex: 1; 
         }
@@ -60,7 +60,7 @@
             opacity: 0.9;
         }
 
-        .encabezado-derecha { 
+        .derecha-encabezado { 
             display: flex; 
             align-items: center; 
             gap: 12px; 
@@ -69,13 +69,13 @@
             border-radius: 12px; 
             backdrop-filter: blur(2px);
         }
-        .encabezado-derecha .login-cta { 
+        .derecha-encabezado .texto-inicio-sesion { 
             margin: 0; 
             font-weight: 600; 
             color: #fff; 
             opacity: 0.95; 
         }
-        .btn-login { 
+        .btn-inicio-sesion { 
             background: #fff; 
             color: #5b6ee1; 
             border: none; 
@@ -84,14 +84,14 @@
             border-radius: 10px; 
         }
         
-        .content {
+        .contenido {
             padding: 50px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
         }
         
-        .card {
+        .tarjeta {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 30px;
@@ -100,24 +100,24 @@
             border: 2px solid transparent;
         }
         
-        .card:hover {
+        .tarjeta:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             border-color: #667eea;
         }
         
-        .card-icon {
+        .icono-tarjeta {
             font-size: 4em;
             margin-bottom: 20px;
         }
         
-        .card h2 {
+        .tarjeta h2 {
             color: #333;
             margin-bottom: 15px;
             font-size: 1.8em;
         }
         
-        .card p {
+        .tarjeta p {
             color: #666;
             margin-bottom: 25px;
             line-height: 1.6;
@@ -142,29 +142,29 @@
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         
-        .btn-secondary {
+        .btn-secundario {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         
-        .features {
+        .caracteristicas {
             padding: 30px 50px;
             background: #f8f9fa;
         }
         
-        .features h3 {
+        .caracteristicas h3 {
             text-align: center;
             color: #333;
             font-size: 2em;
             margin-bottom: 30px;
         }
         
-        .features-grid {
+        .cuadricula-caracteristicas {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
         }
         
-        .feature-item {
+        .item-caracteristica {
             display: flex;
             align-items: center;
             padding: 15px;
@@ -173,37 +173,37 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
-        .feature-icon {
+        .icono-caracteristica {
             font-size: 2em;
             margin-right: 15px;
         }
         
-        .feature-text {
+        .texto-caracteristica {
             flex: 1;
         }
         
-        .feature-text h4 {
+        .texto-caracteristica h4 {
             color: #667eea;
             margin-bottom: 5px;
         }
         
-        .feature-text p {
+        .texto-caracteristica p {
             color: #666;
             font-size: 0.9em;
         }
         
-        .user-info {
+        .info-usuario {
             display: flex;
             align-items: center;
             gap: 15px;
         }
         
-        .user-name {
+        .nombre-usuario {
             font-weight: 600;
             color: #fff;
         }
         
-        .btn-logout {
+        .btn-cerrar-sesion {
             background: rgba(255,255,255,0.2);
             color: #fff;
             border: 2px solid #fff;
@@ -214,27 +214,27 @@
             transition: all 0.3s ease;
         }
         
-        .btn-logout:hover {
+        .btn-cerrar-sesion:hover {
             background: #fff;
             color: #667eea;
         }
         
-        .hidden {
+        .oculto {
             display: none !important;
         }
         
         @media (max-width: 768px) {
-            .encabezado-contenido { flex-direction: column; align-items: flex-start; }
-            .encabezado-derecha { align-self: stretch; justify-content: space-between; }
+            .contenido-encabezado { flex-direction: column; align-items: flex-start; }
+            .derecha-encabezado { align-self: stretch; justify-content: space-between; }
             .encabezado h1 {
                 font-size: 2em;
             }
             
-            .content {
+            .contenido {
                 padding: 30px;
             }
             
-            .features {
+            .caracteristicas {
                 padding: 30px 20px;
             }
         }
@@ -243,177 +243,178 @@
 <body>
     <div class="contenedor">
         <div class="encabezado">
-            <div class="encabezado-contenido">
-                <div class="encabezado-izquierda">
+            <div class="contenido-encabezado">
+                <div class="izquierda-encabezado">
                     <link href="/index.html"> <h1>🎯 QuizPlatform</h1>
                     
                     <p>Transforma el aprendizaje en una experiencia divertida e interactiva</p>
                 </div>
-                <div class="encabezado-derecha" id="encabezado_derecha">
+                <div class="derecha-encabezado" id="derechaEncabezado">
                     <!-- Contenido para usuarios NO logueados -->
-                    <div id="contenido_no_logueado">
-                        <p class="login-cta">¿Ya tienes cuenta?</p>
-                        <a href="/iniciar_sesion" class="btn btn-iniciar">Iniciar Sesión</a>
+                    <div id="contenidoNoLogueado">
+                        <p class="texto-inicio-sesion">¿Ya tienes cuenta?</p>
+                        <a href="/iniciar_sesion" class="btn btn-inicio-sesion">Iniciar Sesión</a>
                     </div>
                     
                     <!-- Contenido para usuarios logueados -->
-                    <div id="contenido_logueado" class="user-info hidden">
-                        <span class="user-name">Bienvenido, <strong id="nombre_usuario"></strong></span>
-                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    <div id="contenidoLogueado" class="info-usuario oculto">
+                        <span class="nombre-usuario">Bienvenido, <strong id="nombreUsuario"></strong></span>
+                        <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="content">
+        <div class="contenido">
             <!-- Tarjeta para usuarios NO logueados -->
-            <div class="card" id="tarjeta_registro">
-                <div class="card-icon">🚀</div>
+            <div class="tarjeta" id="tarjetaRegistro">
+                <div class="icono-tarjeta">🚀</div>
                 <h2>¿Aún no tienes cuenta?</h2>
                 <p>Únete a nuestra plataforma y comienza a crear o participar en cuestionarios interactivos. ¡Regístrate ahora y descubre una nueva forma de aprender!</p>
                 <a href="/registrar" class="btn">Registrarse Ahora</a>
             </div>
             
             <!-- Tarjeta para ESTUDIANTES logueados -->
-            <div class="card hidden" id="tarjeta_estudiante">
-                <div class="card-icon">📚</div>
+            <div class="tarjeta oculto" id="tarjetaEstudiante">
+                <div class="icono-tarjeta">📚</div>
                 <h2>Mis Quizzes</h2>
                 <p>Revisa tu historial de participación, puntuaciones y estadísticas. ¡Sigue mejorando tu aprendizaje!</p>
-                <a href="/student_dashboard" class="btn">Ver Mi Progreso</a>
+                <a href="/panel_estudiante" class="btn">Ver Mi Progreso</a>
             </div>
             
             <!-- Tarjeta para PROFESORES logueados -->
-            <div class="card hidden" id="tarjeta_profesor">
-                <div class="card-icon">👨‍🏫</div>
+            <div class="tarjeta oculto" id="tarjetaProfesor">
+                <div class="icono-tarjeta">👨‍🏫</div>
                 <h2>Panel de Profesor</h2>
                 <p>Crea, gestiona y analiza tus quizzes. Revisa el rendimiento de tus estudiantes y mejora tus clases.</p>
-                <a href="/dashboard" class="btn">Ir al Dashboard</a>
+                <a href="/panel_control" class="btn">Ir al Panel</a>
             </div>
             
-            <div class="card">
-                <div class="card-icon">🎮</div>
+            <div class="tarjeta">
+                <div class="icono-tarjeta">🎮</div>
                 <h2>Jugar con PIN</h2>
                 <p>¿Tienes un código PIN? Únete a una sesión de juego en vivo y compite con otros participantes mientras aprendes de forma divertida</p>
-                <a href="/jugar" class="btn btn-secondary">Jugar Ahora</a>
+                <a href="/jugar" class="btn btn-secundario">Jugar Ahora</a>
             </div>
         </div>
         
-        <div class="features">
+        <div class="caracteristicas">
             <h3>✨ Características Principales</h3>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">🎮</div>
-                    <div class="feature-text">
+            <div class="cuadricula-caracteristicas">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">🎮</div>
+                    <div class="texto-caracteristica">
                         <h4>Gamificación</h4>
                         <p>Ranking en tiempo real y sistema de puntuación</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">📱</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">📱</div>
+                    <div class="texto-caracteristica">
                         <h4>M-Learning</h4>
                         <p>Acceso desde cualquier dispositivo móvil</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">👥</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">👥</div>
+                    <div class="texto-caracteristica">
                         <h4>Modo Grupal</h4>
                         <p>Juega individualmente o en equipos</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">🖼️</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">🖼️</div>
+                    <div class="texto-caracteristica">
                         <h4>Multimedia</h4>
                         <p>Agrega imágenes y videos a tus preguntas</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">⏱️</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">⏱️</div>
+                    <div class="texto-caracteristica">
                         <h4>Temporizador</h4>
                         <p>Configura el tiempo límite por pregunta</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">📊</div>
+                    <div class="texto-caracteristica">
                         <h4>Exportación</h4>
                         <p>Exporta resultados a Excel o Google Drive</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">🔄</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">🔄</div>
+                    <div class="texto-caracteristica">
                         <h4>Repositorio</h4>
                         <p>Reutiliza y modifica quizzes públicos</p>
                     </div>
                 </div>
                 
-                <div class="feature-item">
-                    <div class="feature-icon">🔒</div>
-                    <div class="feature-text">
+                <div class="item-caracteristica">
+                    <div class="icono-caracteristica">🔒</div>
+                    <div class="texto-caracteristica">
                         <h4>Seguridad</h4>
                         <p>Verificación de cuenta y contraseñas seguras</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        
     </div>
     
     <script>
         // Verificar si hay un usuario logueado
-        async function checkSession() {
+        async function verificarSesion() {
             try {
-                const response = await fetch('/api/informacion_sesion');
-                const data = await response.json();
+                const respuesta = await fetch('/api/informacion_sesion');
+                const datos = await respuesta.json();
                 
-                if (data.nombre_usuario) {
+                if (datos.nombre_usuario) {
                     // Usuario logueado
-                    document.getElementById('contenido_no_logueado').classList.add('hidden');
-                    document.getElementById('contenido_logueado').classList.remove('hidden');
-                    document.getElementById('nombre_usuario').textContent = data.nombre_usuario;
+                    document.getElementById('contenidoNoLogueado').classList.add('oculto');
+                    document.getElementById('contenidoLogueado').classList.remove('oculto');
+                    document.getElementById('nombreUsuario').textContent = datos.nombre_usuario;
                     
                     // Ocultar tarjeta de registro
-                    document.getElementById('tarjeta_registro').classList.add('hidden');
+                    document.getElementById('tarjetaRegistro').classList.add('oculto');
                     
                     // Mostrar tarjeta según tipo de usuario
-                    if (data.es_docente) {
-                        document.getElementById('tarjeta_profesor').classList.remove('hidden');
+                    if (datos.es_profesor) {
+                        document.getElementById('tarjetaProfesor').classList.remove('oculto');
                     } else {
-                        document.getElementById('tarjeta_estudiante').classList.remove('hidden');
+                        document.getElementById('tarjetaEstudiante').classList.remove('oculto');
                     }
                 } else {
                     // Usuario NO logueado - mostrar contenido por defecto
-                    document.getElementById('contenido_no_logueado').classList.remove('hidden');
-                    document.getElementById('contenido_logueado').classList.add('hidden');
-                    document.getElementById('tarjeta_registro').classList.remove('hidden');
+                    document.getElementById('contenidoNoLogueado').classList.remove('oculto');
+                    document.getElementById('contenidoLogueado').classList.add('oculto');
+                    document.getElementById('tarjetaRegistro').classList.remove('oculto');
                 }
             } catch (error) {
                 console.error('Error verificando sesión:', error);
                 // En caso de error, mostrar contenido por defecto (no logueado)
-                document.getElementById('contenido_no_logueado').classList.remove('hidden');
-                document.getElementById('contenido_logueado').classList.add('hidden');
+                document.getElementById('contenidoNoLogueado').classList.remove('oculto');
+                document.getElementById('contenidoLogueado').classList.add('oculto');
             }
         }
         
         // Función para cerrar sesión
-        async function logout() {
+        async function cerrarSesion() {
             try {
-                const response = await fetch('/cerrar_sesion', {
-                    method: 'GET'
+                const respuesta = await fetch('/cerrar_sesion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
-                if (response.ok) {
+                if (respuesta.ok) {
                     window.location.reload();
                 } else {
                     // Si el endpoint es GET, redirigir directamente
@@ -426,7 +427,7 @@
         }
         
         // Ejecutar al cargar la página
-        checkSession();
+        verificarSesion();
     </script>
 </body>
 </html>

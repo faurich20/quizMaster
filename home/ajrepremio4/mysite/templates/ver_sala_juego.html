@@ -1,0 +1,419 @@
+<!-- templates/ver_sala_juego.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modo Anfitrión - QuizPlatform</title>
+  <style>
+    /* Estilos reutilizados de jugar.html para que luzca igual */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+           background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+           min-height:100vh; }
+    .barra-navegacion { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+             color:white; padding:15px 30px; display:flex; justify-content:space-between;
+             align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    .barra-navegacion h1 { font-size:1.8em; }
+    .derecha-navegacion { display:flex; align-items:center; gap:20px; }
+    .boton { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+           color:white; border:2px solid white; padding:10px 20px; border-radius:10px;
+           text-decoration:none; font-weight:bold; transition:all .2s ease; }
+    .boton:hover { background:white; color:#667eea; border:2px solid #667eea; }
+
+    .contenido-pagina { display:flex; align-items:center; justify-content:center;
+                    padding:20px; min-height:100vh; }
+    .contenedor-juego { background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+                     max-width:500px; width:100%; padding:40px; text-align:center; }
+
+    .contenedor-pregunta { background:white; border-radius:20px; padding:30px; margin-bottom:20px; }
+    .barra-temporizador { height:8px; background:#e0e0e0; border-radius:10px; overflow:hidden; margin-bottom:20px; }
+    .relleno-temporizador { height:100%; background: linear-gradient(90deg,#4caf50,#ffc107,#f44336); transition:width .1s linear; width:100%; }
+    .numero-pregunta { color:#667eea; font-weight:bold; margin-bottom:15px; }
+    .texto-pregunta { font-size:1.5em; color:#333; margin-bottom:20px; font-weight:500; }
+    .multimedia-pregunta img { max-width:100%; border-radius:10px; margin-bottom:20px; }
+
+    .cuadricula-respuestas { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; }
+    .boton-respuesta { padding:20px; border:3px solid #e0e0e0; border-radius:15px; background:white;
+                  display:flex; align-items:center; gap:15px; font-size:1em; font-weight:500;
+                  transition:all .3s ease; cursor:default; user-select:none; }
+    .letra-respuesta { width:40px; height:40px; border-radius:50%; background:#667eea; color:white;
+                     display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2em; flex-shrink:0; }
+    .texto-respuesta { flex:1; text-align:left; }
+
+    /* marcas visuales para correcto/incorrecto si queremos mostrar (no interactivo) */
+    .boton-respuesta.correcta { border-color:#4caf50; background:#4caf50; color:white; }
+    .boton-respuesta.incorrecta { border-color:#f44336; background:#f44336; color:white; }
+
+    .pantalla-resultados { display:none; text-align:center; }
+    .pantalla-resultados.activa { display:block; }
+    .encabezado-resultados { margin-bottom:30px; }
+    .mostrar-puntuacion { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                     color:white; padding:30px; border-radius:15px; margin-bottom:30px; }
+    .lista-clasificacion { background:#f8f9fa; border-radius:15px; padding:20px; margin-bottom:20px; }
+    .elemento-clasificacion { display:flex; justify-content:space-between; align-items:center; padding:15px;
+                    background:white; border-radius:10px; margin-bottom:10px; }
+    .posicion-clasificacion { width:40px; height:40px; border-radius:50%; background:#667eea; color:white;
+                       display:flex; align-items:center; justify-content:center; font-weight:bold; }
+    .posicion-clasificacion.primero { background:#ffd700; color:#333; }
+    .posicion-clasificacion.segundo { background:#c0c0c0; color:#333; }
+    .posicion-clasificacion.tercero { background:#cd7f32; color:white; }
+
+    @media (max-width:768px) {
+      .cuadricula-respuestas { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body data-id-sesion="{{ id_sesion }}">
+  <div class="barra-navegacion">
+    <h1>🎯 QuizPlatform</h1>
+    <div class="derecha-navegacion">
+      <span>Bienvenido, <strong id="nombreUsuarioAnfitrion"></strong></span>
+      <a href="/panel_control" class="boton">← Volver al Panel</a>
+      <a href="/cerrar_sesion" class="boton">Cerrar Sesión</a>
+    </div>
+  </div>
+
+  <div class="contenido-pagina">
+    <div class="contenedor-juego">
+      <!-- Vista igual a jugar.html: pantalla de juego (solo visual) -->
+      <div id="pantallaJuego" class="pantalla-juego activa">
+        <div class="contenedor-pregunta">
+          <div class="barra-temporizador"><div id="rellenoTemporizador" class="relleno-temporizador"></div></div>
+          <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 1</div>
+          <div class="texto-pregunta" id="textoPregunta"></div>
+          <div class="multimedia-pregunta" id="multimediaPregunta"></div>
+        </div>
+
+        <div class="cuadricula-respuestas" id="cuadriculaRespuestas"></div>
+      </div>
+
+      <!-- Resultados -->
+      <div id="pantallaResultados" class="pantalla-resultados">
+        <div class="encabezado-resultados"><h2>🎉 ¡Juego Terminado!</h2></div>
+        <div class="mostrar-puntuacion"><h3 id="puntuacionFinal">—</h3><p>Vista del Profesor</p></div>
+        <div class="lista-clasificacion">
+          <h3 style="margin-bottom:15px; color:#333;">🏆 Clasificación Final</h3>
+          <div id="listaClasificacion"></div>
+        </div>
+        <a href="/panel_control" class="boton" style="display:inline-block; margin-top:10px;">Volver al Panel</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // data-id-sesion inyectado por Flask (render_template)
+    const idSesion = document.body.dataset.idSesion;
+    let preguntas = [];
+    let preguntaActual = 0;
+    let intervalo = null;
+    let intervaloConsulta = null;
+    let marcaTiempoInicioPreguntaCliente = null; // marca de tiempo en ms cuando empezó la pregunta en cliente
+    let tiempoLimitePregunta = 0;
+    let inicioEnServidor = null; // cadena ISO del servidor cuando la sesión comenzó (si existe)
+
+    // Mostrar nombre del profesor en barra de navegación si corresponde (consistente con jugar.html)
+    fetch('/api/info_sesion').then(r => r.json()).then(d => {
+      if (d.nombre_usuario) document.getElementById('nombreUsuarioAnfitrion').textContent = d.nombre_usuario;
+    }).catch(()=>{});
+
+    // 1) Carga inicial: info sesión -> id quiz -> preguntas
+    async function cargarSesionYPreguntas() {
+      try {
+        const respuesta = await fetch(`/api/sesion/${idSesion}/info`);
+        if (!respuesta.ok) throw new Error('Sesión no encontrada');
+        const infoSesion = await respuesta.json();
+
+        if (!infoSesion.quiz || !infoSesion.quiz.id) {
+          throw new Error('Quiz no disponible');
+        }
+
+        // Guardar inicio_en_servidor si existe (para sincronizar tiempo)
+        inicioEnServidor = infoSesion.inicio_en_servidor || null;
+
+        // Cargar preguntas del quiz
+        await cargarPreguntas(infoSesion.quiz.id);
+
+        // Si la sesión ya está iniciada, calcular en qué pregunta y cuánto tiempo restante
+        // si no, esperar a que el profesor inicie (consultarEstado lo detectará)
+        const respuestaEstado = await fetch(`/api/sesion/${idSesion}/verificar_estado`);
+        const datosEstado = await respuestaEstado.json();
+
+        if (datosEstado && datosEstado.activa && datosEstado.estado === 'iniciada') {
+          // Si inicio_en_servidor está disponible en infoSesion, usarlo para calcular la posición actual
+          if (inicioEnServidor) {
+            iniciarDesdeMarcaTiempoServidor(inicioEnServidor);
+          } else {
+            // Si no hay inicio_en_servidor, arrancar desde 0 como respaldo
+            iniciarDesdeIndice(0);
+          }
+        } else {
+          // mostrar pantalla de espera estilo "sala" pero en modo anfitrión: dejamos la primera pregunta cargada pero no arrancamos temporizador
+          if (preguntas.length > 0) {
+            mostrarPregunta(0, /*iniciarTemporizadorAuto=*/ false);
+          }
+          // iniciar consulta periódica del estado para detectar cuando el profe inicie
+          consultarEstado();
+        }
+      } catch (error) {
+        console.error('Error cargando sesión/preguntas:', error);
+        document.getElementById('textoPregunta').textContent = '⚠️ Error cargando sesión o preguntas.';
+      }
+    }
+
+    async function cargarPreguntas(idQuiz) {
+      try {
+        const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
+        if (!respuesta.ok) { preguntas = []; return; }
+        const quiz = await respuesta.json();
+        preguntas = quiz.preguntas || [];
+      } catch (e) {
+        console.error('Error cargarPreguntas:', e);
+        preguntas = [];
+      }
+    }
+
+    // Si la sesión ya se inició antes de que el anfitrión abra la vista,
+    // calcular la posición actual usando inicio_en_servidor del servidor.
+    function iniciarDesdeMarcaTiempoServidor(inicioEnServidorCadena) {
+      try {
+        // El servidor probablemente devuelve en formato ISO o 'AAAA-MM-DD HH:MM:SS'
+        // Date.parse maneja ISO; si no, reemplazamos espacio por 'T' para intentar parsear.
+        let marcaTiempoServidor = Date.parse(inicioEnServidorCadena);
+        if (isNaN(marcaTiempoServidor)) {
+          marcaTiempoServidor = Date.parse(inicioEnServidorCadena.replace(' ', 'T'));
+        }
+        if (isNaN(marcaTiempoServidor)) {
+          // respaldo: iniciar desde 0
+          iniciarDesdeIndice(0);
+          return;
+        }
+
+        const ahora = Date.now();
+        const msTranscurridos = ahora - marcaTiempoServidor; // ms desde que el profe inició la sesión
+        let segundosTranscurridos = Math.floor(msTranscurridos / 1000);
+
+        // recorrer preguntas acumulando sus tiempo_limite para encontrar la pregunta actual
+        let indice = 0;
+        while (indice < preguntas.length && segundosTranscurridos >= (preguntas[indice].tiempo_limite || 0)) {
+          segundosTranscurridos -= (preguntas[indice].tiempo_limite || 0);
+          indice++;
+        }
+
+        if (indice >= preguntas.length) {
+          // ya terminó todo -> mostrar resultados
+          mostrarResultados();
+          return;
+        }
+
+        // Mostrar la pregunta indice y ajustar temporizador con segundosTranscurridos ya usado
+        mostrarPregunta(indice, /*iniciarTemporizadorAuto=*/ true, /*segundosEnPregunta=*/ segundosTranscurridos);
+      } catch (e) {
+        console.error('Error iniciarDesdeMarcaTiempoServidor:', e);
+        iniciarDesdeIndice(0);
+      }
+    }
+
+    // Iniciar desde índice y opcionalmente arrancar el temporizador (si iniciarAuto true)
+    // segundosEnPregunta (segundos) indica cuánto ya pasó de esta pregunta (para sincronizar)
+    function mostrarPregunta(indice, iniciarAuto = true, segundosEnPregunta = 0) {
+      if (!preguntas || preguntas.length === 0) {
+        document.getElementById('numeroPregunta').textContent = 'Sin preguntas';
+        document.getElementById('textoPregunta').textContent = 'Este quiz no tiene preguntas.';
+        document.getElementById('cuadriculaRespuestas').innerHTML = '';
+        return;
+      }
+
+      if (indice >= preguntas.length) {
+        mostrarResultados();
+        return;
+      }
+
+      // Renderizar pregunta (no interactiva)
+      const p = preguntas[indice];
+      preguntaActual = indice;
+
+      document.getElementById('numeroPregunta').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
+      document.getElementById('textoPregunta').textContent = p.texto_pregunta || '';
+      document.getElementById('multimediaPregunta').innerHTML = p.url_imagen ? `<img src="${p.url_imagen}" alt="Imagen de pregunta">` : '';
+
+      // Renderizar opciones como DIV (sin onclick)
+      const cuadricula = document.getElementById('cuadriculaRespuestas');
+      cuadricula.innerHTML = (p.opciones || []).map((opcion, i) => {
+        // si quieres mostrar cuál es la correcta en anfitrión al terminar, podríamos marcarla, pero por ahora solo mostramos
+        return `<div class="boton-respuesta" data-id-opcion="${opcion.id}">
+                  <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div>
+                  <div class="texto-respuesta">${opcion.texto_opcion}</div>
+                </div>`;
+      }).join('');
+
+      // Si iniciarAuto es true -> iniciar temporizador teniendo en cuenta segundosEnPregunta
+      // segundosEnPregunta: segundos ya consumidos en esta pregunta
+      if (iniciarAuto) {
+        const tiempoLimite = parseInt(p.tiempo_limite || 30, 10);
+        const restante = Math.max(0, tiempoLimite - (segundosEnPregunta || 0));
+        iniciarTemporizador(restante, tiempoLimite);
+      } else {
+        // mostrar barra llena a 100% (sin iniciar)
+        const relleno = document.getElementById('rellenoTemporizador');
+        relleno.style.width = '100%';
+        // actualizar número de pregunta aunque sin temporizador
+      }
+    }
+
+    // iniciarTemporizador(segundosRestantes, limiteOriginalPregunta)
+    // segundosRestantes = segundos para contar en esta visualización (podría ser menos cuando se une tarde)
+    function iniciarTemporizador(segundosRestantes, limiteOriginalParaVisual) {
+      // limpiar previo
+      if (intervalo) {
+        clearInterval(intervalo);
+        intervalo = null;
+      }
+
+      // guardar datos
+      tiempoLimitePregunta = limiteOriginalParaVisual || segundosRestantes;
+      marcaTiempoInicioPreguntaCliente = Date.now();
+
+      const relleno = document.getElementById('rellenoTemporizador');
+      // Protección: si segundosRestantes <= 0 -> ir a siguiente pregunta inmediatamente
+      if (segundosRestantes <= 0) {
+        // avanzar a siguiente (mantenemos un pequeño retraso visual)
+        setTimeout(() => {
+          mostrarPregunta(preguntaActual + 1, true, 0);
+        }, 300);
+        return;
+      }
+
+      let tiempoRestante = segundosRestantes;
+      relleno.style.width = `${(tiempoRestante / (limiteOriginalParaVisual || segundosRestantes)) * 100}%`;
+
+      intervalo = setInterval(() => {
+        tiempoRestante--;
+        // evitar división por cero
+        const denominador = (limiteOriginalParaVisual && limiteOriginalParaVisual > 0) ? limiteOriginalParaVisual : Math.max(1, segundosRestantes);
+        relleno.style.width = `${Math.max(0, (tiempoRestante / denominador) * 100)}%`;
+
+        if (tiempoRestante <= 0) {
+          clearInterval(intervalo);
+          intervalo = null;
+          // esperar 800ms para transición visual como en jugar.html
+          setTimeout(() => {
+            mostrarPregunta(preguntaActual + 1, true, 0);
+          }, 800);
+        }
+      }, 1000);
+    }
+
+    // Consulta periódica del estado de sesión para detectar cuando el profesor la inicia o la finaliza
+    async function consultarEstado() {
+      try {
+        const respuesta = await fetch(`/api/sesion/${idSesion}/verificar_estado`);
+        if (!respuesta.ok) {
+          // si 404 u otro, paramos consulta periódica
+          console.error('verificar_estado no ok', respuesta.estado);
+          return;
+        }
+        const s = await respuesta.json();
+
+        if (!s.activa || s.estado === 'finalizada') {
+          // finalizar vista de anfitrión y ver clasificación
+          if (intervalo) { clearInterval(intervalo); intervalo = null; }
+          await cargarResultadosYMostrar();
+          return;
+        }
+
+        if (s.estado === 'iniciada') {
+          // Si la sesión está iniciada pero nuestro temporizador no corre (o estamos en pantalla previa), sincronizar:
+          // Preferimos usar inicio_en_servidor desde /api/sesion/<id>/info porque verificar_estado no incluye inicio_en_servidor.
+          // Obtener info completa solo la primera vez o si no tenemos inicioEnServidor.
+          if (!inicioEnServidor) {
+            const respuestaInfo = await fetch(`/api/sesion/${idSesion}/info`);
+            if (respuestaInfo.ok) {
+              const datosInfo = await respuestaInfo.json();
+              inicioEnServidor = datosInfo.inicio_en_servidor || null;
+              if (inicioEnServidor) {
+                iniciarDesdeMarcaTiempoServidor(inicioEnServidor);
+                // luego seguir consulta periódica
+              } else {
+                // respaldo: si no hay inicio_en_servidor, empezar desde 0 si no estamos ya jugando
+                if (!intervalo) iniciarDesdeIndice(0);
+              }
+            } else {
+              // respaldo
+              if (!intervalo) iniciarDesdeIndice(0);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error consultarEstado:', error);
+      } finally {
+        // re-agendar consulta periódica
+        if (!intervaloConsulta) {
+          intervaloConsulta = setTimeout(consultarEstado, 2000);
+        } else {
+          // si ya programado con setTimeout, no hacemos nada; si no, volvemos a programar
+        }
+      }
+    }
+
+    // Ayudante que inicia desde índice 0 (o el índice indicado)
+    function iniciarDesdeIndice(indice) {
+      if (!preguntas || preguntas.length === 0) {
+        return;
+      }
+      mostrarPregunta(indice, true, 0);
+    }
+
+    // Cargar y mostrar resultados (igual que en jugar.html)
+    async function cargarResultadosYMostrar() {
+      try {
+        // detener consulta periódica
+        if (intervaloConsulta) { clearTimeout(intervaloConsulta); intervaloConsulta = null; }
+        if (intervalo) { clearInterval(intervalo); intervalo = null; }
+
+        // ocultar pantalla de juego
+        const pj = document.getElementById('pantallaJuego');
+        if (pj) pj.style.display = 'none';
+
+        // mostrar pantalla de resultados
+        const pr = document.getElementById('pantallaResultados');
+        if (pr) pr.classList.add('activa');
+
+        // obtener clasificación
+        const respuesta = await fetch(`/api/resultados_juego/${idSesion}`);
+        if (!respuesta.ok) {
+          throw new Error('Error al obtener resultados');
+        }
+        const clasificacion = await respuesta.json();
+
+        // pintar clasificación
+        const elementoLista = document.getElementById('listaClasificacion');
+        elementoLista.innerHTML = clasificacion.map((participante, indice) => {
+          const clase = indice === 0 ? 'primero' : indice === 1 ? 'segundo' : indice === 2 ? 'tercero' : '';
+          const medalla = indice === 0 ? '🥇' : indice === 1 ? '🥈' : indice === 2 ? '🥉' : (indice + 1);
+          return `<div class="elemento-clasificacion">
+                    <div class="posicion-clasificacion ${clase}">${medalla}</div>
+                    <div class="nombre-clasificacion">${participante.nombre_usuario}</div>
+                    <div class="puntuacion-clasificacion">${participante.puntuacion_total} pts</div>
+                  </div>`;
+        }).join('');
+
+      } catch (error) {
+        console.error('Error cargando resultados:', error);
+        document.getElementById('listaClasificacion').innerHTML = '<p>Error al cargar resultados.</p>';
+      }
+    }
+
+    // seguridad al cerrar pestaña: limpiar intervalos
+    window.addEventListener('beforeunload', () => {
+      if (intervalo) clearInterval(intervalo);
+      if (intervaloConsulta) clearTimeout(intervaloConsulta);
+    });
+
+    // Iniciar todo
+    cargarSesionYPreguntas();
+    // iniciar consulta periódica de estado (para detectar inicio/fin)
+    consultarEstado();
+  </script>
+</body>
+</html>

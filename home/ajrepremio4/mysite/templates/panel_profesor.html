@@ -1,11 +1,11 @@
-<!-- plantilla: dashboard.html (panel del profesor) -->
+<!-- templates/panel_profesor.html -->
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - QuizPlatform</title>
+    <title>Panel de Control - QuizPlatform</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +18,7 @@
             background: #f5f7fa;
         }
 
-        .barra-nav {
+        .barra-navegacion {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
@@ -28,17 +28,17 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .barra-nav h1 {
+        .barra-navegacion h1 {
             font-size: 1.8em;
         }
 
-        .navbar-right {
+        .derecha-navegacion {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .btn {
+        .boton {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: 2px solid white;
@@ -50,36 +50,36 @@
             transition: all 0.3s ease;
         }
 
-        .btn:hover {
+        .boton:hover {
             background: white;
             color: #667eea;
             border: 2px solid #667eea;
         }
 
-        .btn-primary {
+        .boton-principal {
             background: white;
             color: #667eea;
         }
 
-        .btn-primary:hover {
+        .boton-principal:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
         }
 
-        .contenedor-panel {
+        .contenedor {
             max-width: 1400px;
             margin: 0 auto;
             padding: 30px;
         }
 
-        .stats-grid {
+        .cuadricula-estadisticas {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        .stat-card {
+        .tarjeta-estadistica {
             background: white;
             border-radius: 15px;
             padding: 25px;
@@ -89,39 +89,39 @@
             gap: 20px;
         }
 
-        .stat-icon {
+        .icono-estadistica {
             font-size: 3em;
         }
 
-        .stat-info h3 {
+        .info-estadistica h3 {
             color: #333;
             font-size: 2em;
             margin-bottom: 5px;
         }
 
-        .stat-info p {
+        .info-estadistica p {
             color: #666;
         }
 
-        .section-header {
+        .encabezado-seccion {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        .section-header h2 {
+        .encabezado-seccion h2 {
             color: #333;
             font-size: 2em;
         }
 
-        .quizzes-grid {
+        .cuadricula-quizzes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
 
-        .quiz-card {
+        .tarjeta-quiz {
             background: white;
             border-radius: 15px;
             padding: 25px;
@@ -130,23 +130,23 @@
             cursor: pointer;
         }
 
-        .quiz-card:hover {
+        .tarjeta-quiz:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .quiz-card h3 {
+        .tarjeta-quiz h3 {
             color: #333;
             margin-bottom: 10px;
             font-size: 1.5em;
         }
 
-        .quiz-card p {
+        .tarjeta-quiz p {
             color: #666;
             margin-bottom: 15px;
         }
 
-        .quiz-meta {
+        .meta-quiz {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -155,7 +155,7 @@
             color: #999;
         }
 
-        .pin-code {
+        .codigo-pin {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 8px 15px;
@@ -164,13 +164,13 @@
             letter-spacing: 2px;
         }
 
-        .quiz-actions {
+        .acciones-quiz {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
 
-        .btn-small {
+        .boton-pequeno {
             padding: 8px 15px;
             font-size: 0.9em;
             border-radius: 8px;
@@ -180,39 +180,39 @@
             transition: all 0.3s ease;
         }
 
-        .btn-edit {
+        .boton-editar {
             background: #4caf50;
             color: white;
         }
 
-        .btn-edit:hover {
+        .boton-editar:hover {
             background: #45a049;
         }
 
-        .btn-share {
+        .boton-compartir {
             background: #2196f3;
             color: white;
         }
 
-        .btn-share:hover {
+        .boton-compartir:hover {
             background: #0d8bf2;
         }
 
-        .btn-delete {
+        .boton-eliminar {
             background: #f44336;
             color: white;
         }
 
-        .btn-delete:hover {
+        .boton-eliminar:hover {
             background: #da190b;
         }
 
-        .btn-duplicate {
+        .boton-duplicar {
             background: #ff9800;
             color: white;
         }
 
-        .btn-duplicate:hover {
+        .boton-duplicar:hover {
             background: #e68900;
         }
 
@@ -229,11 +229,11 @@
             z-index: 1000;
         }
 
-        .modal.active {
+        .modal.activo {
             display: flex;
         }
 
-        .modal-content {
+        .contenido-modal {
             background: white;
             border-radius: 20px;
             padding: 40px;
@@ -243,18 +243,18 @@
             overflow-y: auto;
         }
 
-        .modal-header {
+        .encabezado-modal {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        .modal-header h2 {
+        .encabezado-modal h2 {
             color: #333;
         }
 
-        .close-btn {
+        .boton-cerrar {
             background: none;
             border: none;
             font-size: 2em;
@@ -262,24 +262,24 @@
             color: #999;
         }
 
-        .close-btn:hover {
+        .boton-cerrar:hover {
             color: #333;
         }
 
-        .form-group {
+        .grupo-formulario {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        .grupo-formulario label {
             display: block;
             color: #333;
             font-weight: bold;
             margin-bottom: 8px;
         }
 
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .grupo-formulario input,
+        .grupo-formulario textarea,
+        .grupo-formulario select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
@@ -288,63 +288,63 @@
             font-family: inherit;
         }
 
-        .form-group textarea {
+        .grupo-formulario textarea {
             resize: vertical;
             min-height: 100px;
         }
 
-        .checkbox-group {
+        .grupo-casilla-verificacion {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .checkbox-group input {
+        .grupo-casilla-verificacion input {
             width: auto;
         }
 
-        .empty-state {
+        .estado-vacio {
             text-align: center;
             padding: 60px 20px;
         }
 
-        .empty-state-icon {
+        .icono-estado-vacio {
             font-size: 5em;
             margin-bottom: 20px;
             opacity: 0.3;
         }
 
-        .empty-state h3 {
+        .estado-vacio h3 {
             color: #666;
             margin-bottom: 10px;
         }
 
-        .empty-state p {
+        .estado-vacio p {
             color: #999;
             margin-bottom: 20px;
         }
 
-        .confirm-dialog {
+        .dialogo-confirmacion {
             text-align: center;
         }
 
-        .confirm-dialog h3 {
+        .dialogo-confirmacion h3 {
             color: #333;
             margin-bottom: 15px;
         }
 
-        .confirm-dialog p {
+        .dialogo-confirmacion p {
             color: #666;
             margin-bottom: 30px;
         }
 
-        .confirm-actions {
+        .acciones-confirmacion {
             display: flex;
             gap: 15px;
             justify-content: center;
         }
 
-        .btn-confirm {
+        .boton-confirmar {
             padding: 12px 30px;
             border-radius: 10px;
             border: none;
@@ -353,17 +353,17 @@
             font-size: 1em;
         }
 
-        .btn-yes {
+        .boton-si {
             background: #f44336;
             color: white;
         }
 
-        .btn-no {
+        .boton-no {
             background: #e0e0e0;
             color: #333;
         }
 
-        .session-card {
+        .tarjeta-sesion {
             background: white;
             border-radius: 15px;
             padding: 25px;
@@ -372,58 +372,58 @@
             border-left: 5px solid #4caf50;
         }
 
-        .session-card.waiting {
+        .tarjeta-sesion.esperando {
             border-left-color: #ff9800;
         }
 
-        .session-card.started {
+        .tarjeta-sesion.iniciada {
             border-left-color: #4caf50;
         }
 
-        .session-header {
+        .encabezado-sesion {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
 
-        .session-title {
+        .titulo-sesion {
             font-size: 1.5em;
             color: #333;
             font-weight: bold;
         }
 
-        .session-status {
+        .estado-sesion {
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.9em;
         }
 
-        .session-status.waiting {
+        .estado-sesion.esperando {
             background: #fff3cd;
             color: #856404;
         }
 
-        .session-status.started {
+        .estado-sesion.iniciada {
             background: #d4edda;
             color: #155724;
         }
 
-        .session-info {
+        .info-sesion {
             display: flex;
             gap: 20px;
             margin-bottom: 15px;
             color: #666;
         }
 
-        .session-info span {
+        .info-sesion span {
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        .btn-start-quiz {
+        .boton-iniciar-quiz {
             background: #4caf50;
             color: white;
             padding: 12px 30px;
@@ -435,13 +435,13 @@
             transition: all 0.3s ease;
         }
 
-        .btn-start-quiz:hover {
+        .boton-iniciar-quiz:hover {
             background: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
         }
 
-        .btn-start-quiz:disabled {
+        .boton-iniciar-quiz:deshabilitado {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
@@ -450,41 +450,41 @@
 </head>
 
 <body>
-    <div class="barra-nav">
+    <div class="barra-navegacion">
         <h1>🎯 QuizPlatform</h1>
-        <div class="navbar-right">
-            <span>Bienvenido, <strong id="nombre_usuario"></strong></span>
-            <button class="btn btn-primary" onclick="openCreateModal()">+ Crear Quiz</button>
-            <a href="/logout" class="btn">Cerrar Sesión</a>
+        <div class="derecha-navegacion">
+            <span>Bienvenido, <strong id="nombreUsuario"></strong></span>
+            <button class="boton boton-principal" onclick="abrirModalCrear()">+ Crear Quiz</button>
+            <a href="/cerrar_sesion" class="boton">Cerrar Sesión</a>
         </div>
     </div>
 
-    <div class="contenedor-panel">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📚</div>
-                <div class="stat-info">
+    <div class="contenedor">
+        <div class="cuadricula-estadisticas">
+            <div class="tarjeta-estadistica">
+                <div class="icono-estadistica">📚</div>
+                <div class="info-estadistica">
                     <h3 id="totalQuizzes">0</h3>
                     <p>Quizzes Creados</p>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎮</div>
-                <div class="stat-info">
+            <div class="tarjeta-estadistica">
+                <div class="icono-estadistica">🎮</div>
+                <div class="info-estadistica">
                     <h3 id="totalGames">0</h3>
                     <p>Partidas Jugadas</p>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-info">
-                    <h3 id="totalParticipants">0</h3>
+            <div class="tarjeta-estadistica">
+                <div class="icono-estadistica">👥</div>
+                <div class="info-estadistica">
+                    <h3 id="totalparticipantes">0</h3>
                     <p>Participantes</p>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">⭐</div>
-                <div class="stat-info">
+            <div class="tarjeta-estadistica">
+                <div class="icono-estadistica">⭐</div>
+                <div class="info-estadistica">
                     <h3 id="totalPublic">0</h3>
                     <p>Quizzes Públicos</p>
                 </div>
@@ -492,241 +492,290 @@
         </div>
 
         <!-- Sesiones Activas (Modo Grupal) -->
-        <div id="activeSessionsSection" style="display: none; margin-bottom: 30px;">
-            <div class="section-header">
+        <div id="seccionSesionesActivas" style="display: none; margin-bottom: 30px;">
+            <div class="encabezado-seccion">
                 <h2>🎮 Sesiones Grupales Activas</h2>
             </div>
-            <div id="activeSessionsContainer"></div>
+            <div id="contenedorSesionesActivas"></div>
         </div>
 
-        <div class="section-header">
-            <h2 id="quizzesTitle">Todos los Quizzes</h2>
+        <div class="encabezado-seccion">
+            <h2 id="tituloQuizzes">Todos los Quizzes</h2>
             <div>
-                <button class="btn" onclick="loadQuizzes('all')">Todos</button>
-                <button class="btn" onclick="loadQuizzes('my')">Míos</button>
+                <button class="boton" onclick="cargarQuizzes('todos')">Todos</button>
+                <button class="boton" onclick="cargarQuizzes('mios')">Míos</button>
             </div>
         </div>
 
-        <div id="quizzesContainer"></div>
+        <div id="contenedorQuizzes"></div>
     </div>
 
     <!-- Modal Crear/Editar Quiz -->
-    <div class="modal" id="quizModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Crear Nuevo Quiz</h2>
-                <button class="close-btn" onclick="closeModal('quizModal')">&times;</button>
+    <div class="modal" id="modalQuiz">
+        <div class="contenido-modal">
+            <div class="encabezado-modal">
+                <h2 id="tituloModal">Crear Nuevo Quiz</h2>
+                <button class="boton-cerrar" onclick="cerrarModal('modalQuiz')">&times;</button>
             </div>
-            <form id="quizForm">
-                <input type="hidden" id="quizId">
-                <div class="form-group">
-                    <label for="title">Título del Quiz:</label>
-                    <input type="text" id="title" required>
+            <form id="formularioQuiz">
+                <input type="hidden" id="idQuiz">
+                <div class="grupo-formulario">
+                    <label for="titulo">Título del Quiz:</label>
+                    <input type="text" id="titulo" required>
                 </div>
-                <div class="form-group">
-                    <label for="description">Descripción:</label>
-                    <textarea id="description"></textarea>
+                <div class="grupo-formulario">
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion"></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="mode">Modo de Juego:</label>
-                    <select id="mode" onchange="toggleGroupsInput()">
+                <div class="grupo-formulario">
+                    <label for="modo">Modo de Juego:</label>
+                    <select id="modo" onchange="alternarEntradaGrupos()">
                         <option value="individual">Individual</option>
-                        <option value="group">Grupal</option>
+                        <option value="grupal">Grupal</option>
                     </select>
                 </div>
-                <div class="form-group" id="numGroupsContainer" style="display: none;">
-                    <label for="numGroups">Número de Grupos:</label>
-                    <input type="number" id="numGroups" min="2" max="20" value="4">
+                <div class="grupo-formulario" id="contenedorNumGrupos" style="display: none;">
+                    <label for="numGrupos">Número de Grupos:</label>
+                    <input type="number" id="numGrupos" min="2" max="20" value="4">
                 </div>
-                <div class="form-group">
-                    <label for="countdownTime">Tiempo por pregunta (segundos):</label>
-                    <input type="number" id="countdownTime" min="10" max="120" value="30">
+                <div class="grupo-formulario">
+                    <label for="tiempoCuentaRegresiva">Tiempo por pregunta (segundos):</label>
+                    <input type="number" id="tiempoCuentaRegresiva" min="10" max="120" value="30">
                 </div>
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="isPublic" checked>
-                        <label for="isPublic">Hacer público (otros usuarios pueden usarlo)</label>
+                <div class="grupo-formulario">
+                    <div class="grupo-casilla-verificacion">
+                        <input type="checkbox" id="esPublico" checked>
+                        <label for="esPublico">Hacer público (otros usuarios pueden usarlo)</label>
                     </div>
                 </div>
-                <button type="submit" class="btn">Guardar Quiz</button>
+                <button type="submit" class="boton">Guardar Quiz</button>
             </form>
         </div>
     </div>
 
     <!-- Modal Confirmación -->
-    <div class="modal" id="confirmModal">
-        <div class="modal-content">
-            <div class="confirm-dialog">
-                <h3 id="confirmTitle">¿Estás seguro?</h3>
-                <p id="confirmMessage">Esta acción no se puede deshacer.</p>
-                <div class="confirm-actions">
-                    <button class="btn-confirm btn-yes" onclick="confirmAction()">Sí, continuar</button>
-                    <button class="btn-confirm btn-no" onclick="closeModal('confirmModal')">Cancelar</button>
+    <div class="modal" id="modalConfirmacion">
+        <div class="contenido-modal">
+            <div class="dialogo-confirmacion">
+                <h3 id="tituloConfirmacion">¿Estás seguro?</h3>
+                <p id="mensajeConfirmacion">Esta acción no se puede deshacer.</p>
+                <div class="acciones-confirmacion">
+                    <button class="boton-confirmar boton-si" onclick="confirmarAccion()">Sí, continuar</button>
+                    <button class="boton-confirmar boton-no" onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentQuizId = null;
-        let confirmCallback = null;
-        async function loadQuizzes(filter = 'all') {
+        let idQuizActual = null;
+        let callbackConfirmacion = null;
+
+        async function cargarQuizzes(filtro = 'todos') {
             try {
-                const response = await fetch('/api/quizzes');
-                const quizzes = await response.json();
-                const container = document.getElementById('quizzesContainer');
-                const titleEl = document.getElementById('quizzesTitle');
+                const respuesta = await fetch('/api/quizzes');
+                const quizzes = await respuesta.json();
+                const contenedor = document.getElementById('contenedorQuizzes');
+                const elementoTitulo = document.getElementById('tituloQuizzes');
                 // Título dinámico según filtro
-                titleEl.textContent = (filter === 'my') ? 'Mis Quizzes' : 'Todos los Quizzes';
+                elementoTitulo.textContent = (filtro === 'mios') ? 'Mis Quizzes' : 'Todos los Quizzes';
 
                 if (quizzes.length === 0) {
-                    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="btn" onclick="openCreateModal()">Crear Quiz</button></div>`;
+                    contenedor.innerHTML = `<div class="estado-vacio"><div class="icono-estado-vacio">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="boton" onclick="abrirModalCrear()">Crear Quiz</button></div>`;
                     return;
                 }
 
                 // Aplicar filtros
-                let filteredQuizzes = quizzes;
-                if (filter === 'my') {
-                    filteredQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId());
+                let quizzesFiltrados = quizzes;
+                if (filtro === 'mios') {
+                    quizzesFiltrados = quizzes.filter(q => q.id_profesor == obtenerIdUsuarioActual());
                 }
 
                 // Verificar si hay resultados después del filtro
-                if (filteredQuizzes.length === 0) {
-                    const filterName = filter === 'my' ? 'tuyos' : '';
-                    container.innerHTML = `<div class=\"empty-state\"><div class=\"empty-state-icon\">🔍</div><h3>No hay quizzes ${filterName}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class=\"btn\" onclick=\"loadQuizzes('all')\">Ver Todos</button></div>`;
+                if (quizzesFiltrados.length === 0) {
+                    const nombreFiltro = filtro === 'mios' ? 'tuyos' : '';
+                    contenedor.innerHTML = `<div class=\"estado-vacio\"><div class=\"icono-estado-vacio\">🔍</div><h3>No hay quizzes ${nombreFiltro}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class=\"boton\" onclick=\"cargarQuizzes('todos')\">Ver Todos</button></div>`;
                     return;
                 }
 
-                container.innerHTML = '<div class="quizzes-grid">' + filteredQuizzes.map(quiz => `
-                        <div class="quiz-card">
-                            <h3>${quiz.title}</h3>
-                            <p>${quiz.description || 'Sin descripción'}</p>
-                            <div class="quiz-meta">
-                                <span>🎮 ${quiz.mode === 'group' ? 'Grupal' : 'Individual'}</span>
-                                <span>⏱️ ${quiz.countdown_time}s</span>
-                                <span>${quiz.is_public ? '🌐 Público' : '🔒 Privado'}</span>
+                contenedor.innerHTML = '<div class="cuadricula-quizzes">' + quizzesFiltrados.map(quiz => `
+                        <div class="tarjeta-quiz">
+                            <h3>${quiz.titulo}</h3>
+                            <p>${quiz.descripcion || 'Sin descripción'}</p>
+                            <div class="meta-quiz">
+                                <span>🎮 ${quiz.modo === 'group' ? 'Grupal' : 'Individual'}</span>
+                                <span>⏱️ ${quiz.tiempo_cuenta_regresiva}s</span>
+                                <span>${quiz.es_publico ? '🌐 Público' : '🔒 Privado'}</span>
                             </div>
-                            <div class="pin-code">PIN: ${quiz.pin_code}</div>
-                            <div class="quiz-actions" style="margin-top: 15px;">
-                                ${quiz.teacher_id == getCurrentUserId() ? `
-                                <button class="btn-small btn-edit" onclick="editQuiz(${quiz.id})">✏️ Editar</button>
-                                <button class="btn-small btn-edit" onclick="manageQuestions(${quiz.id})">📝 Preguntas</button>
+                            <div class="codigo-pin">PIN: ${quiz.codigo_pin}</div>
+                            <div class="acciones-quiz" style="margin-top: 15px;">
+                                ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
+                                <button class="boton-pequeno boton-editar" onclick="editarQuiz(${quiz.id})">✏️ Editar</button>
+                                <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                                 ` : `
-                                <button class="btn-small btn-edit" onclick="manageQuestions(${quiz.id})">📝 Preguntas</button>
+                                <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                                 `}
-                                <button class="btn-small btn-share" onclick="shareQuiz('${quiz.pin_code}')">🔗 Compartir</button>
-                                <button class="btn-small btn-duplicate" onclick="duplicateQuiz(${quiz.id})">📋 Duplicar</button>
-                                ${quiz.teacher_id == getCurrentUserId() ? `
-                                <button class="btn-small btn-delete" onclick="confirmDeleteQuiz(${quiz.id})">🗑️ Eliminar</button>
+                                <button class="boton-pequeno boton-compartir" onclick="compartirQuiz('${quiz.codigo_pin}')">🔗 Compartir</button>
+                                <button class="boton-pequeno boton-duplicar" onclick="duplicarQuiz(${quiz.id})">📋 Duplicar</button>
+                                ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
+                                <button class="boton-pequeno boton-eliminar" onclick="confirmarEliminarQuiz(${quiz.id})">🗑️ Eliminar</button>
                                 ` : ''}
                             </div>
                         </div>
                     `).join('') + '</div>';
-                updateStats(quizzes);
+                actualizarEstadisticas(quizzes);
             } catch (error) { console.error('Error cargando quizzes:', error); }
         }
-        function updateStats(quizzes) {
+
+        function actualizarEstadisticas(quizzes) {
             // Quizzes Creados: solo los del profesor actual
-            const myQuizzes = quizzes.filter(q => q.teacher_id == getCurrentUserId());
-            document.getElementById('totalQuizzes').textContent = myQuizzes.length;
+            const misQuizzes = quizzes.filter(q => q.id_profesor == obtenerIdUsuarioActual());
+            document.getElementById('totalQuizzes').textContent = misQuizzes.length;
             // Quizzes Públicos: todos los públicos del sistema (de la respuesta actual)
-            document.getElementById('totalPublic').textContent = quizzes.filter(q => q.is_public).length;
+            document.getElementById('totalPublic').textContent = quizzes.filter(q => q.es_publico).length;
         }
-        function toggleGroupsInput() {
-            const mode = document.getElementById('mode').value;
-            const container = document.getElementById('numGroupsContainer');
-            container.style.display = mode === 'group' ? 'block' : 'none';
+
+        function alternarEntradaGrupos() {
+            const modo = document.getElementById('modo').value;
+            const contenedor = document.getElementById('contenedorNumGrupos');
+            contenedor.style.display = modo === 'grupal' ? 'block' : 'none';
         }
-        function openCreateModal() {
-            document.getElementById('modalTitle').textContent = 'Crear Nuevo Quiz';
-            document.getElementById('quizForm').reset(); document.getElementById('quizId').value = '';
-            toggleGroupsInput(); // Resetear visibilidad
-            document.getElementById('quizModal').classList.add('active');
+
+        function abrirModalCrear() {
+            document.getElementById('tituloModal').textContent = 'Crear Nuevo Quiz';
+            document.getElementById('formularioQuiz').reset(); document.getElementById('idQuiz').value = '';
+            alternarEntradaGrupos(); // Resetear visibilidad
+            document.getElementById('modalQuiz').classList.add('activo');
         }
-        async function editQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`); const quiz = await response.json(); document.getElementById('modalTitle').textContent = 'Editar Quiz'; document.getElementById('quizId').value = quiz.id; document.getElementById('title').value = quiz.title; document.getElementById('description').value = quiz.description || ''; document.getElementById('mode').value = quiz.mode; document.getElementById('numGroups').value = quiz.num_groups || 4; document.getElementById('countdownTime').value = quiz.countdown_time; document.getElementById('isPublic').checked = quiz.is_public; toggleGroupsInput(); document.getElementById('quizModal').classList.add('active'); } catch (error) { alert('Error cargando el quiz'); } }
-        function manageQuestions(quizId) { window.location.href = `/quiz_editor/${quizId}`; }
-        function shareQuiz(pinCode) { const url = `${window.location.origin}/quiz/${pinCode}`; navigator.clipboard.writeText(url).then(() => { alert(`✅ Enlace copiado al portapapeles:\n${url}\n\nPIN: ${pinCode}`); }); }
-        async function duplicateQuiz(quizId) {
+
+        async function editarQuiz(idQuiz) {
+            try {
+                const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
+                const quiz = await respuesta.json();
+                document.getElementById('tituloModal').textContent = 'Editar Quiz';
+                document.getElementById('idQuiz').value = quiz.id;
+                document.getElementById('titulo').value = quiz.titulo;
+                document.getElementById('descripcion').value = quiz.descripcion || '';
+                document.getElementById('modo').value = quiz.modo;
+                document.getElementById('numGrupos').value = quiz.num_grupos || 4;
+                document.getElementById('tiempoCuentaRegresiva').value = quiz.tiempo_cuenta_regresiva;
+                document.getElementById('esPublico').checked = quiz.es_publico;
+                alternarEntradaGrupos();
+                document.getElementById('modalQuiz').classList.add('activo');
+            } catch (error) { alert('Error cargando el quiz'); }
+        }
+
+        function gestionarPreguntas(idQuiz) { window.location.href = `/editor_quiz/${idQuiz}`; }
+
+        function compartirQuiz(codigoPin) {
+            const url = `${window.location.origin}/quiz/${codigoPin}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert(`✅ Enlace copiado al portapapeles:\n${url}\n\nPIN: ${codigoPin}`);
+            });
+        }
+
+        async function duplicarQuiz(idQuiz) {
             if (!confirm('¿Deseas duplicar este quiz y sus preguntas?')) return;
             try {
                 // 1) Obtener quiz original con preguntas y opciones
-                const response = await fetch(`/api/quizzes/${quizId}`);
-                const quiz = await response.json();
+                const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
+                const quiz = await respuesta.json();
                 if (!quiz || !quiz.id) { alert('No se pudo cargar el quiz original'); return; }
 
-                // 2) Crear nuevo quiz perteneciente al usuario actual (is_public=false por defecto)
-                const newQuiz = {
-                    title: quiz.title + ' (Copia)',
-                    description: quiz.description,
-                    mode: quiz.mode,
-                    num_groups: quiz.num_groups || 0,
-                    countdown_time: quiz.countdown_time,
-                    is_public: false
+                // 2) Crear nuevo quiz perteneciente al usuario actual (esPublico=false por defecto)
+                const nuevoQuiz = {
+                    titulo: quiz.titulo + ' (Copia)',
+                    descripcion: quiz.descripcion,
+                    modo: quiz.modo,
+                    num_grupos: quiz.num_grupos || 0,
+                    tiempo_cuenta_regresiva: quiz.tiempo_cuenta_regresiva,
+                    es_publico: false
                 };
-                const createResponse = await fetch('/api/quizzes', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newQuiz)
+                const respuestaCrear = await fetch('/api/quizzes', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoQuiz)
                 });
-                const created = await createResponse.json();
-                if (!createResponse.ok || !created.quiz_id) { alert('No se pudo crear la copia'); return; }
-                const newQuizId = created.quiz_id;
+                const creado = await respuestaCrear.json();
+                if (!respuestaCrear.ok || !creado.quiz_id) { alert('No se pudo crear la copia'); return; }
+                const nuevoIdQuiz = creado.quiz_id;
 
                 // 3) Copiar preguntas y opciones al nuevo quiz (una por una)
-                const questions = quiz.questions || [];
-                for (const q of questions) {
-                    const payload = {
-                        question_text: q.question_text,
-                        image_url: q.image_url,
-                        video_url: q.video_url,
-                        time_limit: q.time_limit,
-                        position: q.position || 0,
-                        options: (q.options || []).map(o => ({ text: o.option_text, is_correct: !!o.is_correct }))
+                const preguntas = quiz.questions || [];
+                for (const p of preguntas) {
+                    const cargaUtil = {
+                        texto_pregunta: p.texto_pregunta,
+                        url_imagen: p.url_imagen,
+                        url_video: p.url_video,
+                        tiempo_limite: p.tiempo_limite,
+                        posicion: p.posicion || 0,
+                        opciones: (p.opciones || []).map(o => ({ text: o.texto_opcion, es_correcta: !!o.es_correcta }))
                     };
-                    await fetch(`/api/quizzes/${newQuizId}/questions`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    await fetch(`/api/quizzes/${nuevoIdQuiz}/questions`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cargaUtil)
                     });
                 }
 
                 alert('✅ Quiz duplicado exitosamente con sus preguntas');
                 // Opcional: ir directo al editor de preguntas del nuevo quiz
                 if (confirm('¿Deseas abrir el editor de preguntas de la copia?')) {
-                    manageQuestions(newQuizId);
+                    gestionarPreguntas(nuevoIdQuiz);
                 } else {
-                    loadQuizzes();
+                    cargarQuizzes();
                 }
             } catch (error) {
                 console.error(error);
                 alert('Error duplicando el quiz');
             }
         }
-        function confirmDeleteQuiz(quizId) { document.getElementById('confirmTitle').textContent = '¿Eliminar Quiz?'; document.getElementById('confirmMessage').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.'; confirmCallback = () => deleteQuiz(quizId); document.getElementById('confirmModal').classList.add('active'); }
-        async function deleteQuiz(quizId) { try { const response = await fetch(`/api/quizzes/${quizId}`, { method: 'DELETE' }); if (response.ok) { alert('✅ Quiz eliminado'); closeModal('confirmModal'); loadQuizzes(); } else { alert('❌ Error eliminando el quiz'); } } catch (error) { alert('Error de conexión'); } }
-        function confirmAction() { if (confirmCallback) { confirmCallback(); confirmCallback = null; } }
-        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
-        document.getElementById('quizForm').addEventListener('submit', async function (e) {
+
+        function confirmarEliminarQuiz(idQuiz) {
+            document.getElementById('tituloConfirmacion').textContent = '¿Eliminar Quiz?';
+            document.getElementById('mensajeConfirmacion').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.';
+            callbackConfirmacion = () => eliminarQuiz(idQuiz);
+            document.getElementById('modalConfirmacion').classList.add('activo');
+        }
+
+        async function eliminarQuiz(idQuiz) {
+            try {
+                const respuesta = await fetch(`/api/quizzes/${idQuiz}`, { method: 'DELETE' });
+                if (respuesta.ok) {
+                    alert('✅ Quiz eliminado');
+                    cerrarModal('modalConfirmacion');
+                    cargarQuizzes();
+                } else {
+                    alert('❌ Error eliminando el quiz');
+                }
+            } catch (error) { alert('Error de conexión'); }
+        }
+
+        function confirmarAccion() { if (callbackConfirmacion) { callbackConfirmacion(); callbackConfirmacion = null; } }
+
+        function cerrarModal(idModal) { document.getElementById(idModal).classList.remove('activo'); }
+
+        document.getElementById('formularioQuiz').addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!confirm('¿Deseas guardar este quiz?')) { return; }
-            const quizId = document.getElementById('quizId').value;
-            const mode = document.getElementById('mode').value;
-            const quizData = {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                mode: mode,
-                num_groups: mode === 'group' ? parseInt(document.getElementById('numGroups').value) : 0,
-                countdown_time: parseInt(document.getElementById('countdownTime').value),
-                is_public: document.getElementById('isPublic').checked
+            const idQuiz = document.getElementById('idQuiz').value;
+            const modo = document.getElementById('modo').value;
+            const datosQuiz = {
+                titulo: document.getElementById('titulo').value,
+                descripcion: document.getElementById('descripcion').value,
+                modo: modo,
+                num_grupos: modo === 'grupal' ? parseInt(document.getElementById('numGrupos').value) : 0,
+                tiempo_cuenta_regresiva: parseInt(document.getElementById('tiempoCuentaRegresiva').value),
+                es_publico: document.getElementById('esPublico').checked
             };
             try {
-                const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes';
-                const method = quizId ? 'PUT' : 'POST';
-                const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(quizData) });
-                const data = await response.json();
-                if (response.ok) {
+                const url = idQuiz ? `/api/quizzes/${idQuiz}` : '/api/quizzes';
+                const metodo = idQuiz ? 'PUT' : 'POST';
+                const respuesta = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datosQuiz) });
+                const datos = await respuesta.json();
+                if (respuesta.ok) {
                     alert('✅ Quiz guardado exitosamente');
-                    closeModal('quizModal');
-                    loadQuizzes();
-                    if (!quizId && data.quiz_id) {
+                    cerrarModal('modalQuiz');
+                    cargarQuizzes();
+                    if (!idQuiz && datos.quiz_id) {
                         if (confirm('¿Deseas agregar preguntas ahora?')) {
-                            manageQuestions(data.quiz_id);
+                            gestionarPreguntas(datos.quiz_id);
                         }
                     }
                 } else {
@@ -736,68 +785,70 @@
                 alert('Error de conexión');
             }
         });
-        let currentUserId = null;
-        function getCurrentUserId() { return currentUserId; }
+
+        let idUsuarioActual = null;
+
+        function obtenerIdUsuarioActual() { return idUsuarioActual; }
 
         // Cargar sesiones activas (modo grupal)
-        async function loadActiveSessions() {
+        async function cargarSesionesActivas() {
             try {
-                const response = await fetch('/api/sesiones_activas');
-                const sessions = await response.json();
+                const respuesta = await fetch('/api/sesiones_activas');
+                const sesiones = await respuesta.json();
 
-                const section = document.getElementById('activeSessionsSection');
-                const container = document.getElementById('activeSessionsContainer');
+                const seccion = document.getElementById('seccionSesionesActivas');
+                const contenedor = document.getElementById('contenedorSesionesActivas');
 
-                if (sessions.length === 0) {
-                    section.style.display = 'none';
+                if (sesiones.length === 0) {
+                    seccion.style.display = 'none';
                     // Participantes: 0 si no hay sesiones activas
-                    document.getElementById('totalParticipants').textContent = 0;
+                    document.getElementById('totalparticipantes').textContent = 0;
                     return;
                 }
 
                 // Participantes en tiempo real: suma de participant_count de todas las sesiones activas del profesor
-                const totalParticipants = sessions.reduce((acc, s) => acc + (s.participant_count || 0), 0);
-                document.getElementById('totalParticipants').textContent = totalParticipants;
+                const totalParticipantes = sesiones.reduce((acum, s) => acum + (s.participant_count || 0), 0);
+                document.getElementById('totalparticipantes').textContent = totalParticipantes;
 
-                section.style.display = 'block';
-                container.innerHTML = sessions.map(session => `
-                    <div class="session-card ${session.status}">
-                        <div class="session-header">
-                            <div class="session-title">${session.title}</div>
-                            <div class="session-status ${session.status}">
-                                ${session.status === 'waiting' ? '⏳ Esperando' : session.status === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}                           
+                seccion.style.display = 'block';
+                contenedor.innerHTML = sesiones.map(sesion => `
+                    <div class="tarjeta-sesion ${sesion.estado}">
+                        <div class="encabezado-sesion">
+                            <div class="titulo-sesion">${sesion.titulo}</div>
+                            <div class="estado-sesion ${sesion.estado}">
+                                ${sesion.estado === 'waiting' ? '⏳ Esperando' :sesiones_juego.estado === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}                           
                             </div>
                         </div>
-                        <div class="session-info">
-                            <span>📌 PIN: <strong>${session.pin_code}</strong></span>
-                            <span>👥 Participantes: <strong>${session.participant_count}</strong></span>
-                            <span>🕒 ${new Date(session.started_at).toLocaleString()}</span>
+                        <div class="info-sesion">
+                            <span>📌 PIN: <strong>${sesion.codigo_pin}</strong></span>
+                            <span>👥 Participantes: <strong>${sesion.participant_count}</strong></span>
+                            <span>🕒 ${new Date(sesion.inicio_en_servidor).toLocaleString()}</span>
                         </div>
-                        ${session.status === 'started' ? `
+                        ${sesion.estado === 'started' ? `
                             <div style="background: #fff3cd; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; color: #856404; text-align: center;">
-                                <span id="timer-${session.session_id}">⏳ Queda: --:--</span>
+                                <span id="temporizador-${sesion.sesion_id}">⏳ Queda: --:--</span>
                             </div>
                         ` : ''}
 
-                        ${session.status === 'waiting' ? `
+                        ${sesion.estado === 'waiting' ? `
                             <div style="margin:8px 0; display:flex; gap:8px; align-items:center; justify-content:center;">
-                                <label for="attempts-${session.session_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
-                                <input id="attempts-${session.session_id}" type="number" min="0" value="${session.attempts_remaining ? session.attempts_remaining : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                                <button class="btn-start-quiz" onclick="startQuizSession(${session.session_id})" style="margin-left:6px;">
+                                <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
+                                <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.attempts_remaining ?sesiones_juego.attempts_remaining : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                                <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})" style="margin-left:6px;">
                                     🚀 INICIAR QUIZ
                                 </button>
                             </div>
 
-                        ` : session.status === 'started' ? `
+                        ` :sesiones_juego.estado === 'started' ? `
                             <div style="display: flex; gap: 10px;">
                                 <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>                     
                             </div>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px;">
-                                <button class="btn-start-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
-                                    onclick="window.open('/ver_play_lobby/${session.session_id}', '_blank')">
+                                <button class="boton-iniciar-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
+                                    onclick="window.open('/ver_sala_juego/${sesion.sesion_id}', '_blank')">
                                     👁️ Ver como anfitrión
                                 </button>
-                                <button class="btn-start-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finishQuizSession(${session.session_id})">
+                                <button class="boton-iniciar-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finalizarSesionQuiz(${sesion.sesion_id})">
                                     ⛔ Finalizar Ahora
                                 </button>   
                             </div>
@@ -808,203 +859,103 @@
                     </div>
                 `).join('');
 
-                // IMPORTANTE: Después de renderizar, re-activar los timers existentes
-                sessions.forEach(s => {
-                    if (s.status === 'started' && window.sessionTimers && window.sessionTimers[s.session_id]) {
-                        updateTimerDisplay(s.session_id);
+                // IMPORTANTE: Después de renderizar, re-activar los temporizadores existentes
+                sesiones.forEach(s => {
+                    if (s.estado === 'started' && window.temporizadoresSesion && window.temporizadoresSesion[s.sesion_id]) {
+                        actualizarVisualizacionTemporizador(s.sesion_id);
                     }
                 });
 
-                // Re-activar timers en DOM si existen en memoria después de render
-                sessions.forEach(s => { if (s.status === 'started' && window.sessionTimers && window.sessionTimers[s.session_id]) { updateTimerDisplay(s.session_id); } });
+                // Re-activar temporizadores en DOM si existen en memoria después de render
+                sesiones.forEach(s => { if (s.estado === 'started' && window.temporizadoresSesion && window.temporizadoresSesion[s.sesion_id]) { actualizarVisualizacionTemporizador(s.sesion_id); } });
             } catch (error) {
                 console.error('Error cargando sesiones activas:', error);
             }
         }
 
         // Gestión de temporizadores locales
-        window.sessionTimers = window.sessionTimers || {}; // { sessionId: msEpochEnds }
-        function startLocalTimer(sessionId, minutes) {
-            const mins = parseInt(minutes, 10);
+        window.temporizadoresSesion = window.temporizadoresSesion || {}; // { sessionId: msEpochEnds }
+        function iniciarTemporizadorLocal(idSesion, minutos) {
+            const mins = parseInt(minutos, 10);
             if (isNaN(mins) || mins <= 0) return;
-            window.sessionTimers[sessionId] = Date.now() + (mins * 60 * 1000);
-            updateTimerDisplay(sessionId);
+            window.temporizadoresSesion[idSesion] = Date.now() + (mins * 60 * 1000);
+            actualizarVisualizacionTemporizador(idSesion);
         }
-        function updateTimerDisplay(sessionId) {
-            const el = document.getElementById(`timer-${sessionId}`);
-            if (!el) return;
-            const ends = window.sessionTimers[sessionId];
-            if (!ends) { el.textContent = '⏳ Queda: --:--'; return; }
-            const rem = Math.max(0, ends - Date.now());
-            const mm = String(Math.floor(rem / 60000)).padStart(2, '0');
-            const ss = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
-            el.textContent = `⏳ Queda: ${mm}:${ss}`;
-            if (rem === 0) {
+
+        function actualizarVisualizacionTemporizador(idSesion) {
+            const elemento = document.getElementById(`temporizador-${idSesion}`);
+            if (!elemento) return;
+            const fin = window.temporizadoresSesion[idSesion];
+            if (!fin) { elemento.textContent = '⏳ Queda: --:--'; return; }
+            const restante = Math.max(0, fin - Date.now());
+            const mm = String(Math.floor(restante / 60000)).padStart(2, '0');
+            const ss = String(Math.floor((restante % 60000) / 1000)).padStart(2, '0');
+            elemento.textContent = `⏳ Queda: ${mm}:${ss}`;
+            if (restante === 0) {
                 // Auto-finalizar (sin confirmación)
-                finishQuizSession(sessionId, true);
+                finalizarSesionQuiz(idSesion, true);
             }
         }
+
         setInterval(() => {
-            if (!window.sessionTimers) return;
-            Object.keys(window.sessionTimers).forEach(id => updateTimerDisplay(id));
+            Object.keys(window.temporizadoresSesion).forEach(idSesion => {
+                actualizarVisualizacionTemporizador(idSesion);
+            });
         }, 1000);
 
-        // Finalizar sesión de quiz grupal
-        async function finishQuizSession(sessionId) {
-            // Si es llamada automática (por timer), no pedir confirmación
-            const isAutomatic = arguments[1] === true;
-
-            if (!isAutomatic && !confirm('¿Deseas finalizar este quiz? Los participantes dejarán de poder jugar y se cerrará la sesión.')) {
-                return;
-            }
-
+        async function iniciarSesionQuiz(idSesion) {
+            const intentos = document.getElementById(`intentos-${idSesion}`).value;
+            if (!confirm(`¿Iniciar el quiz con ${intentos} intentos?`)) return;
             try {
-                const response = await fetch(`/api/session/${sessionId}/finish`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                const respuesta = await fetch(`/api/sessions/${idSesion}/start`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attempts_remaining: parseInt(intentos) })
                 });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (!isAutomatic) {
-                        alert('✅ Quiz finalizado exitosamente.');
-                    } else {
-                        alert('⏰ El tiempo del quiz ha expirado. Quiz finalizado automáticamente.');
-                    }
-
-                    // Limpiar temporizador
-                    if (window.sessionTimers) {
-                        delete window.sessionTimers[sessionId];
-                    }
-
-                    loadActiveSessions();
+                if (respuesta.ok) {
+                    alert('✅ Quiz iniciado');
+                    cargarSesionesActivas();
                 } else {
-                    if (!isAutomatic) {
-                        alert('❌ Error: ' + (data.error || 'No se pudo finalizar el quiz'));
-                    }
-                }
-            } catch (error) {
-                if (!isAutomatic) {
-                    alert('Error de conexión');
-                }
-            }
-        }
-
-        // Iniciar sesión de quiz grupal con duración opcional
-        async function startQuizSession(sessionId) {
-            const minutesStr = prompt('Duración del quiz en minutos (dejar vacío para sin temporizador):', '');
-            // Validar entrada
-            if (minutesStr !== null && minutesStr !== '' && (isNaN(minutesStr) || parseInt(minutesStr) <= 0)) {
-                alert('Por favor ingresa un número válido de minutos');
-                return;
-            }
-
-            // Leer attempts del input (si existe)
-            const attemptsInput = document.getElementById(`attempts-${sessionId}`);
-            let attempts = 0;
-            if (attemptsInput) {
-                attempts = parseInt(attemptsInput.value) || 0;
-                if (attempts < 0) attempts = 0;
-            }
-
-            if (!confirm('¿Deseas iniciar este quiz? Todos los participantes comenzarán a jugar.')) {
-                return;
-            }
-
-            try {
-                const payload = { attempts: attempts };
-                const response = await fetch(`/api/session/${sessionId}/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Configurar temporizador si se especificó tiempo
-                    const minutes = parseInt(minutesStr, 10);
-                    if (!isNaN(minutes) && minutes > 0) {
-                        startLocalTimer(sessionId, minutes);
-                        alert(`✅ Quiz iniciado! Duración: ${minutes} minuto(s)`);
-                    } else {
-                        alert('✅ Quiz iniciado!');
-                    }
-                    loadActiveSessions();
-                } else {
-                    alert('❌ Error: ' + (data.error || 'No se pudo iniciar el quiz'));
+                    alert('❌ Error iniciando el quiz');
                 }
             } catch (error) {
                 alert('Error de conexión');
             }
         }
 
-
-        // Finalizar sesión de quiz grupal
-        async function finishQuizSession(sessionId) {
-            // Si es llamada automática (por timer), no pedir confirmación
-            const isAutomatic = arguments[1] === true;
-
-            if (!isAutomatic && !confirm('¿Deseas finalizar este quiz? Los participantes dejarán de poder jugar y se cerrará la sesión.')) {
-                return;
-            }
-
+        async function finalizarSesionQuiz(idSesion, automatico = false) {
+            if (!automatico && !confirm('¿Finalizar el quiz ahora? Los participantes no podrán continuar.')) return;
             try {
-                const response = await fetch(`/api/session/${sessionId}/finish`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (!isAutomatic) {
-                        alert('✅ Quiz finalizado exitosamente.');
-                    } else {
-                        alert('⏰ El tiempo del quiz ha expirado. Quiz finalizado automáticamente.');
-                    }
-
-                    // Limpiar temporizador
-                    if (window.sessionTimers) {
-                        delete window.sessionTimers[sessionId];
-                    }
-
-                    loadActiveSessions();
+                const respuesta = await fetch(`/api/sessions/${idSesion}/end`, { method: 'POST' });
+                if (respuesta.ok) {
+                    if (!automatico) alert('✅ Quiz finalizado');
+                    delete window.temporizadoresSesion[idSesion];
+                    cargarSesionesActivas();
                 } else {
-                    if (!isAutomatic) {
-                        alert('❌ Error: ' + (data.error || 'No se pudo finalizar el quiz'));
-                    }
+                    alert('❌ Error finalizando el quiz');
                 }
             } catch (error) {
-                if (!isAutomatic) {
-                    alert('Error de conexión');
-                }
+                alert('Error de conexión');
             }
         }
 
-        /* Cargar información de sesión */
-        fetch('/api/informacion_sesion')
-            .then(res => res.json())
-            .then(data => {
-                if (data.nombre_usuario) {
-                    document.getElementById('nombre_usuario').textContent = data.nombre_usuario;
-                    currentUserId = data.usuario_id;
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                const respuesta = await fetch('/api/user');
+                const usuario = await respuesta.json();
+                if (usuario && usuario.name) {
+                    document.getElementById('nombreUsuario').textContent = usuario.name;
+                    idUsuarioActual = usuario.id;
+                } else {
+                    window.location.href = '/';
                 }
-            })
-            .catch(err => console.error('Error cargando sesión:', err));
-
-        loadQuizzes();
-        loadActiveSessions();
-
-        // Actualizar sesiones activas cada 5 segundos
-        setInterval(loadActiveSessions, 5000);
+            } catch (error) {
+                window.location.href = '/';
+            }
+            cargarQuizzes();
+            cargarSesionesActivas();
+            setInterval(cargarSesionesActivas, 5000); // Actualizar cada 5 segundos
+        });
     </script>
-    <script>
-window.apiES = window.apiES || {};
-window.apiES.listarQuizzes = () => fetch('/api/quizzes').then(r=>r.json());
-window.apiES.listarSesionesActivas = () => fetch('/api/sesiones_activas').then(r=>r.json());
-window.apiES.crearQuiz = (payload) => fetch('/api/quizzes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r=>r.json());
-window.apiES.iniciarSesionProfesor = (sessionId) => fetch(`/api/session/${sessionId}/start`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) }).then(r=>r.json());
-</script>
 </body>
+
 </html>
