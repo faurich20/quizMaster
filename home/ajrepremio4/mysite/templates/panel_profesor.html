@@ -603,7 +603,7 @@
                             <h3>${quiz.titulo}</h3>
                             <p>${quiz.descripcion || 'Sin descripción'}</p>
                             <div class="meta-quiz">
-                                <span>🎮 ${quiz.modo === 'group' ? 'Grupal' : 'Individual'}</span>
+                                <span>🎮 ${quiz.modo === 'grupal' ? 'Grupal' : 'Individual'}</span>
                                 <span>⏱️ ${quiz.tiempo_cuenta_regresiva}s</span>
                                 <span>${quiz.es_publico ? '🌐 Público' : '🔒 Privado'}</span>
                             </div>
@@ -699,7 +699,7 @@
                 const nuevoIdQuiz = creado.quiz_id;
 
                 // 3) Copiar preguntas y opciones al nuevo quiz (una por una)
-                const preguntas = quiz.questions || [];
+                const preguntas = quiz.preguntas || [];
                 for (const p of preguntas) {
                     const cargaUtil = {
                         texto_pregunta: p.texto_pregunta,
@@ -709,7 +709,7 @@
                         posicion: p.posicion || 0,
                         opciones: (p.opciones || []).map(o => ({ text: o.texto_opcion, es_correcta: !!o.es_correcta }))
                     };
-                    await fetch(`/api/quizzes/${nuevoIdQuiz}/questions`, {
+                    await fetch(`/api/quizzes/${nuevoIdQuiz}/preguntas`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cargaUtil)
                     });
                 }
@@ -833,7 +833,7 @@
                         ${sesion.estado === 'waiting' ? `
                             <div style="margin:8px 0; display:flex; gap:8px; align-items:center; justify-content:center;">
                                 <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
-                                <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.attempts_remaining ?sesiones_juego.attempts_remaining : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                                <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes ?sesiones_juego.intentos_restantes : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
                                 <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})" style="margin-left:6px;">
                                     🚀 INICIAR QUIZ
                                 </button>
@@ -907,8 +907,8 @@
             const intentos = document.getElementById(`intentos-${idSesion}`).value;
             if (!confirm(`¿Iniciar el quiz con ${intentos} intentos?`)) return;
             try {
-                const respuesta = await fetch(`/api/sessions/${idSesion}/start`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attempts_remaining: parseInt(intentos) })
+                const respuesta = await fetch(`/api/sessions/${idSesion}/iniciar`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intentos_restantes: parseInt(intentos) })
                 });
                 if (respuesta.ok) {
                     alert('✅ Quiz iniciado');
@@ -940,7 +940,7 @@
         // Inicialización
         document.addEventListener('DOMContentLoaded', async function () {
             try {
-                const respuesta = await fetch('/api/user');
+                const respuesta = await fetch('/api/usuarios');
                 const usuario = await respuesta.json();
                 if (usuario && usuario.name) {
                     document.getElementById('nombreUsuario').textContent = usuario.name;

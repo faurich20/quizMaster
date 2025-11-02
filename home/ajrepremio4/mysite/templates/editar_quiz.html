@@ -87,7 +87,7 @@
         const quiz = await respuesta.json();
         document.getElementById('tituloQuiz').textContent = quiz.titulo;
         document.getElementById('descripcionQuiz').textContent = quiz.descripcion || 'Sin descripción';
-        preguntas = quiz.questions || []; 
+        preguntas = quiz.preguntas || []; 
         window.idPropietarioQuiz = quiz.id_profesor;
         renderizarPreguntas();
       }catch(e){ alert('Error cargando el quiz'); }
@@ -164,7 +164,7 @@
     async function eliminarPregunta(id){ 
       if(!confirm('¿Eliminar pregunta?')) return; 
       try{ 
-        const respuesta=await fetch(`/api/questions/${id}`,{method:'DELETE'}); 
+        const respuesta=await fetch(`/api/preguntas/${id}`,{method:'DELETE'}); 
         if(respuesta.ok){ 
           alert('✅ Pregunta eliminada'); 
           cargarQuiz(); 
@@ -188,7 +188,7 @@
         }))
       };
       try{
-        const url = idPreg? `/api/questions/${idPreg}` : `/api/quizzes/${idQuiz}/questions`;
+        const url = idPreg? `/api/preguntas/${idPreg}` : `/api/quizzes/${idQuiz}/preguntas`;
         const metodo = idPreg? 'PUT' : 'POST';
         const respuesta = await fetch(url,{
           method: metodo, 
@@ -206,7 +206,7 @@
     });
 
     // Cargar sesión para conocer idUsuarioActual
-    fetch('/api/informacion_sesion').then(respuesta=>respuesta.json()).then(datos=>{ 
+    fetch('/api/info_sesion').then(respuesta=>respuesta.json()).then(datos=>{ 
       window.idUsuarioActual = datos.id_usuario; 
       cargarQuiz(); 
     }).catch(()=> cargarQuiz());

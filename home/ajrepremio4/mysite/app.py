@@ -471,7 +471,7 @@ def guardar_respuesta():
     finally:
         conexion.close()
 
-@app.route('/api/resultados_juego/<int:id_sesion>')
+@app.route('/api/resultados_juego/<int:sesion_id>')
 def resultados_juego(id_sesion):
     conexion = obtener_bd()
     cursor = conexion.cursor(pymysql.cursors.DictCursor)

@@ -519,7 +519,7 @@
         let tiempoInicioPregunta = null;
 
         const parametrosURL = new URLSearchParams(window.location.search);
-        const inicioAutomatico = parametrosURL.get('auto_start');
+        const inicioAutomatico = parametrosURL.get('inicio_automatico');
         const idSesionURL = parametrosURL.get('sesion_id');
         const idParticipanteURL = parametrosURL.get('id_participante');
 
@@ -551,8 +551,8 @@
                 const respuesta = await fetch(`/api/participante/${idParticipante}/progreso`);
                 const progreso = await respuesta.json();
 
-                if (progreso.last_pregunta_id && preguntas.length > 0) {
-                    const ultimoIndice = preguntas.findIndex(p => p.id === progreso.last_pregunta_id);
+                if (progreso.id_ultima_pregunta && preguntas.length > 0) {
+                    const ultimoIndice = preguntas.findIndex(p => p.id === progreso.id_ultima_pregunta);
 
                     if (ultimoIndice >= 0 && ultimoIndice < preguntas.length - 1) {
                         preguntaActual = ultimoIndice + 1;
@@ -589,7 +589,7 @@
                     const respuesta = await fetch(`/api/sesion/${idSesion}/verificar_estado`);
                     const datos = await respuesta.json();
 
-                    if (!datos.active || datos.estado === 'finished') {
+                    if (!datos.activa || datos.estado === 'finalizada') {
                         clearInterval(intervaloVerificacionSesion);
                         clearInterval(intervaloReloj);
                         mostrarResultados();
@@ -607,7 +607,7 @@
         });
 
         function inicializarInterfazUsuario() {
-            fetch('/api/informacion_sesion')
+            fetch('/api/info_sesion')
                 .then(respuesta => respuesta.json())
                 .then(datos => {
                     if (datos.nombre_usuario && !datos.es_profesor) {
@@ -668,7 +668,7 @@
                         idParticipante = datos.id_participante;
                         idSesion = datos.sesion_id;
 
-                        if (datos.quiz.modo === 'group') {
+                        if (datos.quiz.modo === 'grupal') {
                             window.location.href = `/seleccion_grupo?sesion_id=${idSesion}&id_participante=${idParticipante}`;
                             return;
                         }
@@ -691,7 +691,7 @@
             try {
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
                 const quiz = await respuesta.json();
-                preguntas = quiz.questions || [];
+                preguntas = quiz.preguntas || [];
             } catch (error) {
                 console.error('Error cargando preguntas:', error);
             }
@@ -814,7 +814,7 @@
 
                 const respuestaSesion = await fetch(`/api/sesion/${idSesion}/info`);
                 const informacionSesion = await respuestaSesion.json();
-                const intentosRestantes = informacionSesion.attempts_remaining || 0;
+                const intentosRestantes = informacionSesion.intentos_restantes || 0;
                 const idQuiz = informacionSesion.quiz?.id;
 
                 if (intentosRestantes > 0) {
@@ -828,7 +828,7 @@
                             const respuestaConsumir = await fetch(`/api/sesion/${idSesion}/consumir_intento`, { method: 'POST' });
                             const datosConsumir = await respuestaConsumir.json();
                             if (respuestaConsumir.ok) {
-                                alert(`Intento consumido. Intentos restantes: ${datosConsumir.attempts_remaining}`);
+                                alert(`Intento consumido. Intentos restantes: ${datosConsumir.intentos_restantes}`);
                                 iniciarQuizDesdeCero(idQuiz);
                             } else {
                                 alert('❌ ' + (datosConsumir.error || 'No se pudo consumir el intento'));

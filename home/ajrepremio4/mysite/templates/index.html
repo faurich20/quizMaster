@@ -372,7 +372,7 @@
         // Verificar si hay un usuario logueado
         async function verificarSesion() {
             try {
-                const respuesta = await fetch('/api/informacion_sesion');
+                const respuesta = await fetch('/api/info_sesion');
                 const datos = await respuesta.json();
                 
                 if (datos.nombre_usuario) {
