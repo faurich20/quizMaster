@@ -816,7 +816,8 @@
                         <div class="encabezado-sesion">
                             <div class="titulo-sesion">${sesion.titulo}</div>
                             <div class="estado-sesion ${sesion.estado}">
-                                ${sesion.estado === 'waiting' ? '⏳ Esperando' :sesiones_juego.estado === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}                           
+                                ${sesion.estado === 'waiting' ? '⏳ Esperando' :
+                                sesion.estado === 'started' ? '✅ Iniciado' : '🏁 Finalizado'}                           
                             </div>
                         </div>
                         <div class="info-sesion">
@@ -833,13 +834,13 @@
                         ${sesion.estado === 'waiting' ? `
                             <div style="margin:8px 0; display:flex; gap:8px; align-items:center; justify-content:center;">
                                 <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
-                                <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes ?sesiones_juego.intentos_restantes : 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                                <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes || 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
                                 <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})" style="margin-left:6px;">
                                     🚀 INICIAR QUIZ
                                 </button>
                             </div>
 
-                        ` :sesiones_juego.estado === 'started' ? `
+                        ` :sesion.estado === 'started' ? `
                             <div style="display: flex; gap: 10px;">
                                 <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>                     
                             </div>
@@ -907,7 +908,7 @@
             const intentos = document.getElementById(`intentos-${idSesion}`).value;
             if (!confirm(`¿Iniciar el quiz con ${intentos} intentos?`)) return;
             try {
-                const respuesta = await fetch(`/api/sessions/${idSesion}/iniciar`, {
+                const respuesta = await fetch(`/api/sesion/${idSesion}/iniciar`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intentos_restantes: parseInt(intentos) })
                 });
                 if (respuesta.ok) {
@@ -924,7 +925,7 @@
         async function finalizarSesionQuiz(idSesion, automatico = false) {
             if (!automatico && !confirm('¿Finalizar el quiz ahora? Los participantes no podrán continuar.')) return;
             try {
-                const respuesta = await fetch(`/api/sessions/${idSesion}/end`, { method: 'POST' });
+                const respuesta = await fetch(`/api/sesion/${idSesion}/finalizar`, { method: 'POST' });
                 if (respuesta.ok) {
                     if (!automatico) alert('✅ Quiz finalizado');
                     delete window.temporizadoresSesion[idSesion];

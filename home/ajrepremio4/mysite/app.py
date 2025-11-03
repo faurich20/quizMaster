@@ -278,8 +278,14 @@ def reenviar_codigo():
 def iniciar_sesion():
     if request.method == 'POST':
         datos = request.json
-        nombre_usuario = datos.get('nombre_usuario')
+        print(f"DEBUG - Datos recibidos en login: {datos}")  # Para debug
+        
+        # Aceptar ambos formatos para compatibilidad
+        nombre_usuario = datos.get('nombre_usuario') or datos.get('usuario')
         contrasena = datos.get('contrasena')
+        
+        if not nombre_usuario or not contrasena:
+            return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
         
         hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
         
@@ -314,8 +320,15 @@ def iniciar_sesion():
 @app.route('/api/auth/iniciar_sesion', methods=['POST'])
 def api_iniciar_sesion():
     datos = request.json
-    nombre_usuario = datos.get('nombre_usuario')
+    print(f"DEBUG - Datos recibidos en API login: {datos}")  # Para debug
+    
+    # Aceptar ambos formatos para compatibilidad
+    nombre_usuario = datos.get('nombre_usuario') or datos.get('usuario')
     contrasena = datos.get('contrasena')
+    
+    if not nombre_usuario or not contrasena:
+        return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
+    
     hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
     conexion = obtener_bd()
     cursor = conexion.cursor(pymysql.cursors.DictCursor)
@@ -840,17 +853,27 @@ def sesiones_activas():
     
     try:
         cursor.execute('''
-            SELECT gs.id as id_sesion, gs.codigo_pin, gs.estado, gs.inicio_en_servidor,
-                q.id as quiz_id, q.titulo, q.modo,
-                COUNT(p.id) as contador_participantes,
-                COALESCE(gs.intentos_restantes, 0) as intentos_restantes
+            SELECT 
+                gs.id as sesion_id, 
+                gs.codigo_pin, 
+                gs.estado, 
+                gs.inicio_en_servidor,
+                gs.intentos_restantes,
+                gs.intentos_permitidos,
+                q.id as quiz_id, 
+                q.titulo, 
+                q.modo,
+                COUNT(p.id) as participant_count
             FROM sesiones_juego gs
             JOIN quizzes q ON gs.quiz_id = q.id
             LEFT JOIN participantes p ON gs.id = p.sesion_id
-            WHERE q.id_profesor = %s AND gs.esta_activa = 1 AND q.modo = 'grupal'
-            GROUP BY gs.id, gs.codigo_pin, gs.estado, gs.inicio_en_servidor, q.id, q.titulo, q.modo, gs.intentos_restantes
+            WHERE q.id_profesor = %s AND gs.esta_activa = 1
+            GROUP BY 
+                gs.id, gs.codigo_pin, gs.estado, gs.inicio_en_servidor, 
+                gs.intentos_restantes, gs.intentos_permitidos, q.id, q.titulo, q.modo
             ORDER BY gs.inicio_en_servidor DESC
-            ''', (session['id_usuario'],))
+        ''', (session['id_usuario'],))
+        
         sesiones = cursor.fetchall()
         return jsonify(sesiones)
     except Exception as e:

@@ -37,8 +37,8 @@
         
         <form id="formularioLogin">
             <div class="grupo-formulario">
-                <label for="usuario">Usuario:</label>
-                <input type="text" id="usuario" name="usuario" required autofocus>
+                <label for="nombre_usuario">Usuario:</label>
+                <input type="text" id="nombre_usuario" name="nombre_usuario" required autofocus>
             </div>
             
             <div class="grupo-formulario">
@@ -59,13 +59,13 @@
     <script>
         document.getElementById('formularioLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const usuario = document.getElementById('usuario').value;
+            const nombre_usuario = document.getElementById('nombre_usuario').value;
             const contrasena = document.getElementById('contrasena').value;
             try {
                 const respuesta = await fetch('/iniciar_sesion', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ usuario, contrasena }) 
+                    body: JSON.stringify({ nombre_usuario, contrasena }) 
                 });
                 const datos = await respuesta.json();
                 if (respuesta.ok) { 
