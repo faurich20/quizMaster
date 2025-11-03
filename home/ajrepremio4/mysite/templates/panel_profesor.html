@@ -201,6 +201,13 @@
         .boton-eliminar {
             background: #f44336;
             color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
 
         .boton-eliminar:hover {
@@ -446,6 +453,56 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        #modalCompartirQuiz .contenido-modal {
+            background: linear-gradient(135deg, #ffffff, #f0f3ff);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+        }
+
+        /* Fila de opción bien alineada: 3 columnas (check | texto | 🗑️) */
+        .opcion {
+            display: grid;
+            grid-template-columns: 28px 1fr 44px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        /* Que NO herede el width:100% global; aquí manda el grid */
+        .grupo-formulario .opcion input[type="text"] {
+            width: 100% !important;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+
+        /* Checkbox más claro y clic sólo sobre él */
+        .grupo-formulario .opcion input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        /* Botón 🗑️ consistente */
+        .opcion .boton-eliminar {
+            min-width: 44px;
+            height: 40px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Contenedor para “Agregar opción” y “Eliminar pregunta”, alineados a la derecha */
+        .opcion-acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -553,6 +610,37 @@
         </div>
     </div>
 
+    <!-- Modal Preguntas del Quiz -->
+    <div class="modal" id="modalPreguntasQuiz">
+        <div class="contenido-modal" style="max-width: 900px;">
+            <div class="encabezado-modal">
+                <h2>Preguntas del Quiz</h2>
+                <button class="boton-cerrar" onclick="cerrarModal('modalPreguntasQuiz')">&times;</button>
+            </div>
+
+            <div id="listaPreguntas"></div>
+
+            <div class="acciones-confirmacion" style="margin-top: 20px;">
+                <button class="boton" onclick="agregarPregunta()">➕ Nueva Pregunta</button>
+                <button class="boton" style="background:#4caf50;" onclick="guardarPreguntas()">💾 Guardar</button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Compartir Quiz -->
+    <div class="modal" id="modalCompartirQuiz">
+        <div class="contenido-modal" style="max-width: 600px; text-align: center; padding: 40px;">
+            <div class="encabezado-modal" style="justify-content: center;">
+                <h2 style="font-size: 2rem;">🎯 ¡Comparte tu Quiz!</h2>
+            </div>
+            <p id="textoCompartir" style="font-size: 1.2rem; margin: 20px 0;"></p>
+            <button class="boton" onclick="cerrarModal('modalCompartirQuiz')">Cerrar</button>
+        </div>
+    </div>
+
+
+
     <!-- Modal Confirmación -->
     <div class="modal" id="modalConfirmacion">
         <div class="contenido-modal">
@@ -561,19 +649,20 @@
                 <p id="mensajeConfirmacion">Esta acción no se puede deshacer.</p>
                 <div class="acciones-confirmacion">
                     <button class="boton-confirmar boton-si" onclick="confirmarAccion()">Sí, continuar</button>
-                    <button class="boton-confirmar boton-no" onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
+                    <button class="boton-confirmar boton-no"
+                        onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script>
         let idQuizActual = null;
         let callbackConfirmacion = null;
         let idUsuarioActual = null;
 
-        function obtenerIdUsuarioActual() { 
-            return idUsuarioActual; 
+        function obtenerIdUsuarioActual() {
+            return idUsuarioActual;
         }
 
         // ✅ CORRECCIÓN CRÍTICA: Usar /api/info_sesion en lugar de /api/usuarios
@@ -581,9 +670,9 @@
             try {
                 const respuesta = await fetch('/api/info_sesion');
                 const datos = await respuesta.json();
-                
+
                 console.log('📊 Datos de sesión recibidos:', datos);
-                
+
                 if (!datos.id_usuario) {
                     console.error('❌ No hay ID de usuario en la sesión');
                     alert('⚠️ Sesión inválida. Por favor inicia sesión nuevamente.');
@@ -601,13 +690,13 @@
                 // ✅ Almacenar datos del usuario
                 idUsuarioActual = datos.id_usuario;
                 document.getElementById('nombreUsuario').textContent = datos.nombre_usuario || 'Profesor';
-                
+
                 console.log('✅ Usuario profesor autenticado:', {
                     id: idUsuarioActual,
                     nombre: datos.nombre_usuario,
                     es_profesor: datos.es_profesor
                 });
-                
+
                 return true;
             } catch (error) {
                 console.error('❌ Error al cargar información del usuario:', error);
@@ -623,7 +712,7 @@
                 const quizzes = await respuesta.json();
                 const contenedor = document.getElementById('contenedorQuizzes');
                 const elementoTitulo = document.getElementById('tituloQuizzes');
-                
+
                 elementoTitulo.textContent = (filtro === 'mios') ? 'Mis Quizzes' : 'Todos los Quizzes';
 
                 if (quizzes.length === 0) {
@@ -667,10 +756,10 @@
                         </div>
                     </div>
                 `).join('') + '</div>';
-                
+
                 actualizarEstadisticas(quizzes);
-            } catch (error) { 
-                console.error('Error cargando quizzes:', error); 
+            } catch (error) {
+                console.error('Error cargando quizzes:', error);
             }
         }
 
@@ -708,21 +797,278 @@
                 document.getElementById('esPublico').checked = quiz.es_publico;
                 alternarEntradaGrupos();
                 document.getElementById('modalQuiz').classList.add('activo');
-            } catch (error) { 
-                alert('Error cargando el quiz'); 
+            } catch (error) {
+                alert('Error cargando el quiz');
             }
         }
 
-        function gestionarPreguntas(idQuiz) { 
-            window.location.href = `/editor_quiz/${idQuiz}`; 
+        let idQuizSeleccionado = null;
+        let quizData = {}; // Cache local de preguntas para operaciones in-place
+        async function gestionarPreguntas(idQuiz) {
+            try {
+                idQuizSeleccionado = idQuiz;
+                document.getElementById('listaPreguntas').innerHTML = '<p style="color:#666;">Cargando preguntas...</p>';
+                document.getElementById('modalPreguntasQuiz').classList.add('activo');
+
+                // Trae quiz con preguntas embebidas (tu endpoint /api/quizzes/<id> ya lo devuelve así)
+                const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}`);
+                if (!resp.ok) throw new Error('No se pudo cargar el quiz');
+                quizData = await resp.json();
+
+                mostrarPreguntas(quizData.preguntas || []);
+            } catch (e) {
+                alert('❌ Error al cargar preguntas');
+                console.error(e);
+            }
         }
 
-        function compartirQuiz(codigoPin) {
-            const url = `${window.location.origin}/jugar`;
-            const texto = `🎯 Únete a mi quiz!\n\nEntra a: ${url}\nPIN: ${codigoPin}`;
-            navigator.clipboard.writeText(texto).then(() => {
-                alert(`✅ Información copiada:\n${texto}`);
+        function mostrarPreguntas(preguntas) {
+            const cont = document.getElementById('listaPreguntas');
+            if (!preguntas || preguntas.length === 0) {
+                cont.innerHTML = `
+                <div class="estado-vacio">
+                <div class="icono-estado-vacio">📝</div>
+                <h3>No hay preguntas aún</h3>
+                <p>Agrega tu primera pregunta</p>
+                </div>`;
+                return;
+            }
+            cont.innerHTML = preguntas.map((pregunta) => {
+                const opcionesHTML = (pregunta.opciones || []).map((opcion) => `
+                <div class="opcion">
+                <input id="opt-check-${pregunta.id}-${opcion.id}" type="checkbox"
+                    ${opcion.es_correcta ? 'checked' : ''}
+                    onchange="marcarCorrecta(${pregunta.id}, ${opcion.id}, this.checked)">
+                <input id="opt-text-${pregunta.id}-${opcion.id}" type="text"
+                    value="${opcion.texto_opcion || ''}"
+                    onchange="actualizarOpcion(${pregunta.id}, ${opcion.id}, this.value)">
+                <button class="boton-eliminar"
+                    onclick="eliminarOpcion(${pregunta.id}, ${opcion.id})">🗑️</button>
+                </div>
+            `).join('');
+
+                return `
+                <div class="tarjeta-quiz" style="border-left:4px solid #667eea; margin-bottom: 15px;">
+                <div class="grupo-formulario">
+                    <label>Texto de la pregunta</label>
+                    <input id="preg-text-${pregunta.id}" type="text"
+                        value="${pregunta.texto_pregunta}"
+                        onchange="actualizarPregunta(${pregunta.id}, this.value)">
+                </div>
+                <div class="grupo-formulario">
+                    <label>Tiempo límite (segundos)</label>
+                    <input id="preg-tiempo-${pregunta.id}" type="number"
+                        value="${pregunta.tiempo_limite || 30}"
+                        onchange="actualizarTiempo(${pregunta.id}, this.value)">
+                </div>
+                <div class="grupo-formulario">
+                    <label>URL de imagen (opcional)</label>
+                    <input id="preg-img-${pregunta.id}" type="text"
+                        value="${pregunta.url_imagen || ''}"
+                        onchange="actualizarImagen(${pregunta.id}, this.value)">
+                </div>
+                <div class="grupo-formulario">
+                    <label>URL de video (opcional)</label>
+                    <input id="preg-video-${pregunta.id}" type="text"
+                        value="${pregunta.url_video || ''}"
+                        onchange="actualizarVideo(${pregunta.id}, this.value)">
+                </div>
+                <div class="grupo-formulario">
+                    <label>Opciones</label>
+                    ${opcionesHTML}
+                    <div class="opcion-acciones">
+                    <button class="boton" onclick="agregarOpcion(${pregunta.id})">➕ Agregar opción</button>
+                    <button class="boton-eliminar" onclick="eliminarPregunta(${pregunta.id})">❌ Eliminar pregunta</button>
+                    </div>
+                </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        async function recargarPreguntas() {
+            const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}`);
+            const data = await resp.json();
+            quizData = data;
+            mostrarPreguntas(quizData.preguntas || []);
+        }
+
+        async function agregarPregunta() {
+            if (!idQuizSeleccionado) { alert('⚠️ No hay quiz seleccionado'); return; }
+            const nueva = {
+                texto_pregunta: "Nueva pregunta",
+                tiempo_limite: 30,
+                posicion: (quizData.preguntas?.length || 0) + 1,
+                opciones: [
+                    { texto_opcion: "Opción A", es_correcta: false },
+                    { texto_opcion: "Opción B", es_correcta: true }
+                ]
+            };
+            const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}/preguntas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nueva)
             });
+            if (resp.ok) await recargarPreguntas();
+            else alert('❌ Error al agregar la pregunta');
+        }
+
+        async function actualizarPregunta(idPregunta, texto) {
+            const resp = await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto_pregunta: texto })
+            });
+            if (!resp.ok) alert('❌ Error al actualizar pregunta');
+        }
+
+        async function actualizarTiempo(idPregunta, tiempo) {
+            const resp = await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tiempo_limite: parseInt(tiempo) })
+            });
+            if (!resp.ok) alert('❌ Error al actualizar tiempo');
+        }
+
+        async function actualizarImagen(idPregunta, url) {
+            const resp = await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url_imagen: url })
+            });
+            if (!resp.ok) alert('❌ Error al actualizar imagen');
+        }
+
+        async function actualizarVideo(idPregunta, url) {
+            const resp = await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url_video: url })
+            });
+            if (!resp.ok) alert('❌ Error al actualizar video');
+        }
+
+        async function agregarOpcion(idPregunta) {
+            const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
+            const nuevasOpciones = (pregunta.opciones || []).concat([{ texto_opcion: "Nueva opción", es_correcta: false }]);
+            await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opciones: nuevasOpciones })
+            });
+            await recargarPreguntas();
+        }
+
+        async function actualizarOpcion(idPregunta, idOpcion, texto) {
+            const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
+            const nuevasOpciones = (pregunta.opciones || []).map(o => o.id === idOpcion ? { ...o, texto_opcion: texto } : o);
+            await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opciones: nuevasOpciones })
+            });
+        }
+
+        async function marcarCorrecta(idPregunta, idOpcion, checked) {
+            const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
+            const nuevasOpciones = (pregunta.opciones || []).map(o => o.id === idOpcion ? { ...o, es_correcta: checked } : o);
+            await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opciones: nuevasOpciones })
+            });
+        }
+
+        async function eliminarOpcion(idPregunta, idOpcion) {
+            const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
+            const nuevasOpciones = (pregunta.opciones || []).filter(o => o.id !== idOpcion);
+            await fetch(`/api/preguntas/${idPregunta}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opciones: nuevasOpciones })
+            });
+            await recargarPreguntas();
+        }
+
+        async function eliminarPregunta(idPregunta) {
+            if (!confirm('¿Seguro que deseas eliminar esta pregunta?')) return;
+            const resp = await fetch(`/api/preguntas/${idPregunta}`, { method: 'DELETE' });
+            if (resp.ok) await recargarPreguntas();
+            else alert('❌ No se pudo eliminar la pregunta');
+        }
+
+        async function guardarPreguntas() {
+            if (!quizData || !quizData.preguntas || quizData.preguntas.length === 0) {
+                alert('No hay preguntas para guardar');
+                return;
+            }
+
+            try {
+                // Recorremos las preguntas que están renderizadas
+                for (const p of quizData.preguntas) {
+                    // 1) Leer valores visibles del DOM (aunque no hayan perdido foco)
+                    const texto_pregunta = document.getElementById(`preg-text-${p.id}`)?.value ?? p.texto_pregunta ?? '';
+                    const tiempo_limite = parseInt(document.getElementById(`preg-tiempo-${p.id}`)?.value ?? p.tiempo_limite ?? 30, 10) || 30;
+                    const url_imagen = document.getElementById(`preg-img-${p.id}`)?.value ?? p.url_imagen ?? null;
+                    const url_video = document.getElementById(`preg-video-${p.id}`)?.value ?? p.url_video ?? null;
+
+                    // 2) Leer opciones visibles del DOM
+                    const opciones_leidas = (p.opciones || []).map(o => {
+                        const texto = document.getElementById(`opt-text-${p.id}-${o.id}`)?.value ?? o.texto_opcion ?? '';
+                        const check = !!document.getElementById(`opt-check-${p.id}-${o.id}`)?.checked;
+                        return { texto_opcion: texto, es_correcta: check };
+                    });
+
+                    // 3) PUT a /api/preguntas/<id>
+                    const resp = await fetch(`/api/preguntas/${p.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            texto_pregunta,
+                            url_imagen,
+                            url_video,
+                            tiempo_limite,
+                            posicion: p.posicion || 0,
+                            opciones: opciones_leidas
+                        })
+                    });
+
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({}));
+                        console.error('Error guardando pregunta', p.id, err);
+                        alert('❌ Error al guardar alguna pregunta. Revisa consola.');
+                        return;
+                    }
+                }
+
+                alert('✅ Preguntas guardadas correctamente');
+                await recargarPreguntas(); // refrescamos lo mostrado
+            } catch (e) {
+                console.error(e);
+                alert('❌ Error de conexión guardando preguntas');
+            }
+        }
+        
+
+        function compartirQuiz(codigoPin) {
+            const urlJuego = `${window.location.origin}/jugar`;
+            // armar el contenido grande del modal
+            const mensajeHTML = `
+                <div style="margin-top: 6px;">
+                <p style="font-size:1.2rem; margin: 8px 0 2px;">Entra a:</p>
+                <p style="font-weight:bold; color:#667eea; font-size:1.5rem; word-break: break-all;">${urlJuego}</p>
+                <p style="margin-top:16px; font-size:1.1rem;">PIN:</p>
+                <p style="font-size:2rem; font-weight:800; letter-spacing:3px; color:#333;">${codigoPin}</p>
+                </div>
+            `;
+            // poner contenido y abrir el modal
+            const cont = document.getElementById('textoCompartir');
+            cont.innerHTML = mensajeHTML;
+            document.getElementById('modalCompartirQuiz').classList.add('activo');
+            // extra: copiar al portapapeles el texto ya formateado
+            const textoPlano = `🎯 Únete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
+            navigator.clipboard.writeText(textoPlano).catch(() => { });
         }
 
         async function duplicarQuiz(idQuiz) {
@@ -730,9 +1076,9 @@
             try {
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
                 const quiz = await respuesta.json();
-                if (!quiz || !quiz.id) { 
-                    alert('No se pudo cargar el quiz original'); 
-                    return; 
+                if (!quiz || !quiz.id) {
+                    alert('No se pudo cargar el quiz original');
+                    return;
                 }
 
                 const nuevoQuiz = {
@@ -743,20 +1089,20 @@
                     tiempo_cuenta_regresiva: quiz.tiempo_cuenta_regresiva,
                     es_publico: false
                 };
-                
+
                 const respuestaCrear = await fetch('/api/quizzes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(nuevoQuiz)
                 });
-                
+
                 const creado = await respuestaCrear.json();
                 // ✅ CORREGIDO: Usar 'id_quiz' (no 'quiz_id')
-                if (!respuestaCrear.ok || !creado.id_quiz) { 
-                    alert('No se pudo crear la copia'); 
-                    return; 
+                if (!respuestaCrear.ok || !creado.id_quiz) {
+                    alert('No se pudo crear la copia');
+                    return;
                 }
-                
+
                 const nuevoIdQuiz = creado.id_quiz;
 
                 const preguntas = quiz.preguntas || [];
@@ -767,9 +1113,9 @@
                         url_video: p.url_video,
                         tiempo_limite: p.tiempo_limite,
                         posicion: p.posicion || 0,
-                        opciones: (p.opciones || []).map(o => ({ 
-                            text: o.texto_opcion,
-                            es_correcta: !!o.es_correcta 
+                        opciones: (p.opciones || []).map(o => ({
+                            texto_opcion: o.texto_opcion,   // ✅ Estándar con la BD y el backend
+                            es_correcta: !!o.es_correcta
                         }))
                     };
                     await fetch(`/api/quizzes/${nuevoIdQuiz}/preguntas`, {
@@ -780,7 +1126,7 @@
                 }
 
                 alert('✅ Quiz duplicado exitosamente con sus preguntas');
-                if (confirm('¿Deseas abrir el editor de preguntas de la copia?')) {
+                if (confirm('¿Deseas abrir el editar de preguntas de la copia?')) {
                     gestionarPreguntas(nuevoIdQuiz);
                 } else {
                     cargarQuizzes();
@@ -808,28 +1154,28 @@
                 } else {
                     alert('❌ Error eliminando el quiz');
                 }
-            } catch (error) { 
-                alert('Error de conexión'); 
+            } catch (error) {
+                alert('Error de conexión');
             }
         }
 
-        function confirmarAccion() { 
-            if (callbackConfirmacion) { 
-                callbackConfirmacion(); 
-                callbackConfirmacion = null; 
-            } 
+        function confirmarAccion() {
+            if (callbackConfirmacion) {
+                callbackConfirmacion();
+                callbackConfirmacion = null;
+            }
         }
 
-        function cerrarModal(idModal) { 
-            document.getElementById(idModal).classList.remove('activo'); 
+        function cerrarModal(idModal) {
+            document.getElementById(idModal).classList.remove('activo');
         }
 
         document.getElementById('formularioQuiz').addEventListener('submit', async function (e) {
             e.preventDefault();
-            if (!confirm('¿Deseas guardar este quiz?')) { 
-                return; 
+            if (!confirm('¿Deseas guardar este quiz?')) {
+                return;
             }
-            
+
             const idQuiz = document.getElementById('idQuiz').value;
             const modo = document.getElementById('modo').value;
             const datosQuiz = {
@@ -840,7 +1186,7 @@
                 tiempo_cuenta_regresiva: parseInt(document.getElementById('tiempoCuentaRegresiva').value),
                 es_publico: document.getElementById('esPublico').checked
             };
-            
+
             try {
                 const url = idQuiz ? `/api/quizzes/${idQuiz}` : '/api/quizzes';
                 const metodo = idQuiz ? 'PUT' : 'POST';
@@ -849,7 +1195,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datosQuiz)
                 });
-                
+
                 const datos = await respuesta.json();
                 if (respuesta.ok) {
                     alert('✅ Quiz guardado exitosamente');
@@ -893,7 +1239,7 @@
                             <div class="titulo-sesion">${sesion.titulo}</div>
                             <div class="estado-sesion ${sesion.estado}">
                                 ${sesion.estado === 'esperando' ? '⏳ Esperando' :
-                                sesion.estado === 'iniciada' ? '✅ Iniciado' : '🏁 Finalizado'}
+                        sesion.estado === 'iniciada' ? '✅ Iniciado' : '🏁 Finalizado'}
                             </div>
                         </div>
                         <div class="info-sesion">
@@ -945,7 +1291,7 @@
         }
 
         window.temporizadoresSesion = window.temporizadoresSesion || {};
-        
+
         function iniciarTemporizadorLocal(idSesion, minutos) {
             const mins = parseInt(minutos, 10);
             if (isNaN(mins) || mins <= 0) return;
@@ -1016,20 +1362,20 @@
         // ✅ INICIALIZACIÓN CORREGIDA
         document.addEventListener('DOMContentLoaded', async function () {
             console.log('🚀 Inicializando Panel de Profesor...');
-            
+
             // ✅ PASO 1: Verificar autenticación
             const autenticado = await cargarInfoUsuario();
-            
+
             if (!autenticado) {
                 console.error('❌ Usuario no autenticado o no es profesor');
                 return;
             }
-            
+
             // ✅ PASO 2: Cargar datos solo si está autenticado
             console.log('✅ Cargando quizzes y sesiones...');
             cargarQuizzes();
             cargarSesionesActivas();
-            
+
             // ✅ PASO 3: Actualizar periódicamente
             setInterval(cargarSesionesActivas, 5000);
         });

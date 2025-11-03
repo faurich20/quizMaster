@@ -520,7 +520,7 @@
 
         const parametrosURL = new URLSearchParams(window.location.search);
         const inicioAutomatico = parametrosURL.get('inicio_automatico');
-        const idSesionURL = parametrosURL.get('sesion_id');
+        const idSesionURL = parametrosURL.get('id_sesion');
         const idParticipanteURL = parametrosURL.get('id_participante');
 
         if (inicioAutomatico === 'true' && idSesionURL && idParticipanteURL) {
@@ -665,11 +665,20 @@
                     });
                     const datos = await respuesta.json();
                     if (respuesta.ok) {
+                        
+                        // ✅ Lee el campo que sí existe y que toda la app espera en snake_case
                         idParticipante = datos.id_participante;
-                        idSesion = datos.sesion_id;
+                        idSesion = datos.id_sesion;
+                        
+                        // Validación por si acaso
+                        if (!idSesion || !idParticipante) {
+                            alert('No se pudo unir a la sesión; faltan parámetros.');
+                            return;
+                        }
 
                         if (datos.quiz.modo === 'grupal') {
-                            window.location.href = `/seleccion_grupo?sesion_id=${idSesion}&id_participante=${idParticipante}`;
+                            // ✅ Construye la URL usando id_sesion (coherente con seleccion_grupo.html y sala_espera.html)
+                            window.location.href = `/seleccion_grupo?id_sesion=${idSesion}&id_participante=${idParticipante}`;
                             return;
                         }
 
@@ -768,9 +777,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        // Claves alineadas con el backend (app.py)
                         id_participante: idParticipante,
-                        pregunta_id: idPregunta,
-                        id: idOpcion,
+                        id_pregunta: idPregunta,
+                        id_opcion: idOpcion,
                         tiempo_respuesta: tiempoUtilizado,
                         puntos_ganados: puntos
                     })

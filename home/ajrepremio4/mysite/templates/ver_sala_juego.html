@@ -1,69 +1,247 @@
 <!-- templates/ver_sala_juego.html -->
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Modo Anfitrión - QuizPlatform</title>
   <style>
     /* Estilos reutilizados de jugar.html para que luzca igual */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-           background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-           min-height:100vh; }
-    .barra-navegacion { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-             color:white; padding:15px 30px; display:flex; justify-content:space-between;
-             align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
-    .barra-navegacion h1 { font-size:1.8em; }
-    .derecha-navegacion { display:flex; align-items:center; gap:20px; }
-    .boton { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-           color:white; border:2px solid white; padding:10px 20px; border-radius:10px;
-           text-decoration:none; font-weight:bold; transition:all .2s ease; }
-    .boton:hover { background:white; color:#667eea; border:2px solid #667eea; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    .contenido-pagina { display:flex; align-items:center; justify-content:center;
-                    padding:20px; min-height:100vh; }
-    .contenedor-juego { background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
-                     max-width:500px; width:100%; padding:40px; text-align:center; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
 
-    .contenedor-pregunta { background:white; border-radius:20px; padding:30px; margin-bottom:20px; }
-    .barra-temporizador { height:8px; background:#e0e0e0; border-radius:10px; overflow:hidden; margin-bottom:20px; }
-    .relleno-temporizador { height:100%; background: linear-gradient(90deg,#4caf50,#ffc107,#f44336); transition:width .1s linear; width:100%; }
-    .numero-pregunta { color:#667eea; font-weight:bold; margin-bottom:15px; }
-    .texto-pregunta { font-size:1.5em; color:#333; margin-bottom:20px; font-weight:500; }
-    .multimedia-pregunta img { max-width:100%; border-radius:10px; margin-bottom:20px; }
+    .barra-navegacion {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
 
-    .cuadricula-respuestas { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; }
-    .boton-respuesta { padding:20px; border:3px solid #e0e0e0; border-radius:15px; background:white;
-                  display:flex; align-items:center; gap:15px; font-size:1em; font-weight:500;
-                  transition:all .3s ease; cursor:default; user-select:none; }
-    .letra-respuesta { width:40px; height:40px; border-radius:50%; background:#667eea; color:white;
-                     display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2em; flex-shrink:0; }
-    .texto-respuesta { flex:1; text-align:left; }
+    .barra-navegacion h1 {
+      font-size: 1.8em;
+    }
+
+    .derecha-navegacion {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .boton {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: 2px solid white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all .2s ease;
+    }
+
+    .boton:hover {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .contenido-pagina {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .contenedor-juego {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .contenedor-pregunta {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .barra-temporizador {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .relleno-temporizador {
+      height: 100%;
+      background: linear-gradient(90deg, #4caf50, #ffc107, #f44336);
+      transition: width .1s linear;
+      width: 100%;
+    }
+
+    .numero-pregunta {
+      color: #667eea;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .texto-pregunta {
+      font-size: 1.5em;
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .multimedia-pregunta img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .cuadricula-respuestas {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .boton-respuesta {
+      padding: 20px;
+      border: 3px solid #e0e0e0;
+      border-radius: 15px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 1em;
+      font-weight: 500;
+      transition: all .3s ease;
+      cursor: default;
+      user-select: none;
+    }
+
+    .letra-respuesta {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #667eea;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      flex-shrink: 0;
+    }
+
+    .texto-respuesta {
+      flex: 1;
+      text-align: left;
+    }
 
     /* marcas visuales para correcto/incorrecto si queremos mostrar (no interactivo) */
-    .boton-respuesta.correcta { border-color:#4caf50; background:#4caf50; color:white; }
-    .boton-respuesta.incorrecta { border-color:#f44336; background:#f44336; color:white; }
+    .boton-respuesta.correcta {
+      border-color: #4caf50;
+      background: #4caf50;
+      color: white;
+    }
 
-    .pantalla-resultados { display:none; text-align:center; }
-    .pantalla-resultados.activa { display:block; }
-    .encabezado-resultados { margin-bottom:30px; }
-    .mostrar-puntuacion { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-                     color:white; padding:30px; border-radius:15px; margin-bottom:30px; }
-    .lista-clasificacion { background:#f8f9fa; border-radius:15px; padding:20px; margin-bottom:20px; }
-    .elemento-clasificacion { display:flex; justify-content:space-between; align-items:center; padding:15px;
-                    background:white; border-radius:10px; margin-bottom:10px; }
-    .posicion-clasificacion { width:40px; height:40px; border-radius:50%; background:#667eea; color:white;
-                       display:flex; align-items:center; justify-content:center; font-weight:bold; }
-    .posicion-clasificacion.primero { background:#ffd700; color:#333; }
-    .posicion-clasificacion.segundo { background:#c0c0c0; color:#333; }
-    .posicion-clasificacion.tercero { background:#cd7f32; color:white; }
+    .boton-respuesta.incorrecta {
+      border-color: #f44336;
+      background: #f44336;
+      color: white;
+    }
+
+    .pantalla-resultados {
+      display: none;
+      text-align: center;
+    }
+
+    .pantalla-resultados.activa {
+      display: block;
+    }
+
+    .encabezado-resultados {
+      margin-bottom: 30px;
+    }
+
+    .mostrar-puntuacion {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+
+    .lista-clasificacion {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .elemento-clasificacion {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .posicion-clasificacion {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #667eea;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .posicion-clasificacion.primero {
+      background: #ffd700;
+      color: #333;
+    }
+
+    .posicion-clasificacion.segundo {
+      background: #c0c0c0;
+      color: #333;
+    }
+
+    .posicion-clasificacion.tercero {
+      background: #cd7f32;
+      color: white;
+    }
 
     @media (max-width:768px) {
-      .cuadricula-respuestas { grid-template-columns:1fr; }
+      .cuadricula-respuestas {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body data-id-sesion="{{ id_sesion }}">
   <div class="barra-navegacion">
     <h1>🎯 QuizPlatform</h1>
@@ -74,12 +252,16 @@
     </div>
   </div>
 
+
+
   <div class="contenido-pagina">
     <div class="contenedor-juego">
       <!-- Vista igual a jugar.html: pantalla de juego (solo visual) -->
       <div id="pantallaJuego" class="pantalla-juego activa">
         <div class="contenedor-pregunta">
-          <div class="barra-temporizador"><div id="rellenoTemporizador" class="relleno-temporizador"></div></div>
+          <div class="barra-temporizador">
+            <div id="rellenoTemporizador" class="relleno-temporizador"></div>
+          </div>
           <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 1</div>
           <div class="texto-pregunta" id="textoPregunta"></div>
           <div class="multimedia-pregunta" id="multimediaPregunta"></div>
@@ -90,12 +272,19 @@
 
       <!-- Resultados -->
       <div id="pantallaResultados" class="pantalla-resultados">
-        <div class="encabezado-resultados"><h2>🎉 ¡Juego Terminado!</h2></div>
-        <div class="mostrar-puntuacion"><h3 id="puntuacionFinal">—</h3><p>Vista del Profesor</p></div>
+        <div class="encabezado-resultados">
+          <h2>🎉 ¡Juego Terminado!</h2>
+        </div>
+        <div class="mostrar-puntuacion">
+          <h3 id="puntuacionFinal">—</h3>
+          <p>Vista del Profesor</p>
+        </div>
         <div class="lista-clasificacion">
           <h3 style="margin-bottom:15px; color:#333;">🏆 Clasificación Final</h3>
           <div id="listaClasificacion"></div>
         </div>
+        <button class="boton" id="btnExportar" onclick="exportarResultados()">📊 Exportar Resultados</button>
+
         <a href="/panel_control" class="boton" style="display:inline-block; margin-top:10px;">Volver al Panel</a>
       </div>
     </div>
@@ -115,7 +304,7 @@
     // Mostrar nombre del profesor en barra de navegación si corresponde (consistente con jugar.html)
     fetch('/api/info_sesion').then(r => r.json()).then(d => {
       if (d.nombre_usuario) document.getElementById('nombreUsuarioAnfitrion').textContent = d.nombre_usuario;
-    }).catch(()=>{});
+    }).catch(() => { });
 
     // 1) Carga inicial: info sesión -> id quiz -> preguntas
     async function cargarSesionYPreguntas() {
@@ -202,6 +391,9 @@
 
         if (indice >= preguntas.length) {
           // ya terminó todo -> mostrar resultados
+          clearInterval(intervalo);
+          clearInterval(intervaloConsulta);
+
           mostrarResultados();
           return;
         }
@@ -404,11 +596,73 @@
       }
     }
 
+    function mostrarResultados() {
+      // Oculta la pantalla de juego y muestra la pantalla de resultados
+      document.getElementById("pantallaJuego").style.display = "none";
+      const pantallaResultados = document.getElementById("pantallaResultados");
+      pantallaResultados.classList.add("activa");
+
+      // Llenar clasificación
+      fetch(`/api/sesion/${idSesion}/estado`)
+        .then(r => r.json())
+        .then(data => {
+          const lista = document.getElementById("listaClasificacion");
+          lista.innerHTML = "";
+
+          (data.participantes || []).forEach((p, i) => {
+            const div = document.createElement("div");
+            div.className = "elemento-clasificacion";
+            div.innerHTML = `
+          <div class="posicion-clasificacion ${i === 0 ? 'primero' : i === 1 ? 'segundo' : i === 2 ? 'tercero' : ''}">${i + 1}</div>
+          <div>${p.nombre_usuario || '—'}</div>
+          <div><strong>${p.puntuacion_total || 0} pts</strong></div>
+        `;
+            lista.appendChild(div);
+          });
+        })
+        .catch(err => console.error("Error cargando clasificación final:", err));
+    }
+
+
+    async function exportarResultados() {
+      try {
+        const resp = await fetch(`/api/sesion/${idSesion}/exportar_resultados`);
+        if (!resp.ok) {
+          // Intenta leer el JSON de error si existe
+          let detalle = 'Error al exportar resultados';
+          try {
+            const err = await resp.json();
+            if (err && err.error) detalle = err.error;
+          } catch (_) { }
+          throw new Error(detalle);
+        }
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `resultados_sesion_${idSesion}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        alert(`❌ No se pudieron exportar los resultados.\n${e.message || ''}`);
+        console.error(e);
+      }
+    }
+
+
+
     // seguridad al cerrar pestaña: limpiar intervalos
     window.addEventListener('beforeunload', () => {
       if (intervalo) clearInterval(intervalo);
       if (intervaloConsulta) clearTimeout(intervaloConsulta);
     });
+
+    // Sobrescribir para unificar la fuente de clasificación (evita duplicados por nombre)
+    try {
+      if (typeof mostrarResultados === 'function') {
+        mostrarResultados = function () { cargarResultadosYMostrar(); };
+      }
+    } catch (e) { /* no-op */ }
 
     // Iniciar todo
     cargarSesionYPreguntas();
@@ -416,4 +670,5 @@
     consultarEstado();
   </script>
 </body>
+
 </html>

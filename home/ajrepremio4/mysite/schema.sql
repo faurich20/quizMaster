@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS participantes (
   nombre_usuario VARCHAR(50) NOT NULL,
   nombre_grupo VARCHAR(50),
   puntuacion_total INT DEFAULT 0,
+  UNIQUE KEY uniq_participante_sesion (sesion_id, nombre_usuario),
   FOREIGN KEY (sesion_id) REFERENCES sesiones_juego(id) ON DELETE CASCADE
 );
 
