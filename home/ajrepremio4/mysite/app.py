@@ -669,21 +669,23 @@ def iniciar_quiz_grupal(id_sesion):
             WHERE gs.id = %s
         ''', (id_sesion,))
         datos_sesion = cursor.fetchone()
+        
         if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
         if datos_sesion['id_profesor'] != session['id_usuario']:
             return jsonify({'error': 'No autorizado'}), 403
 
-        # Leer payload (minutos opcional, intentos opcional)
+        # ✅ Leer 'intentos' del payload (consistente con panel_profesor.html)
         datos = {}
         try:
             datos = request.get_json() or {}
         except:
             datos = {}
 
+        # Frontend envía 'intentos', no 'intentos_restantes'
         intentos = int(datos.get('intentos', 0)) if datos.get('intentos') is not None else 0
 
-        # Actualizar estado a 'iniciada' y registrar intentos
+        # Actualizar estado a 'iniciada'
         cursor.execute('''
             UPDATE sesiones_juego 
             SET estado = 'iniciada',
@@ -694,56 +696,18 @@ def iniciar_quiz_grupal(id_sesion):
         ''', (intentos, intentos, id_sesion))
 
         conexion.commit()
-        return jsonify({'exito': True, 'estado': 'iniciada', 'intentos_permitidos': intentos, 'intentos_restantes': intentos})
+        return jsonify({
+            'exito': True,
+            'estado': 'iniciada',
+            'intentos_permitidos': intentos,
+            'intentos_restantes': intentos
+        })
     except Exception as e:
         conexion.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
         conexion.close()
 
-
-@app.route('/api/sesion/<int:id_sesion>/finalizar', methods=['POST'])
-@requiere_sesion
-@requiere_docente
-def finalizar_quiz_grupal(id_sesion):
-    """Finalizar una sesión de juego grupal (solo profesor)"""
-    conexion = obtener_bd()
-    cursor = conexion.cursor(pymysql.cursors.DictCursor)
-    
-    try:
-        # Verificar que la sesión existe y pertenece a un quiz del profesor
-        cursor.execute('''
-            SELECT gs.*, q.id_profesor 
-            FROM sesiones_juego gs
-            JOIN quizzes q ON gs.quiz_id = q.id
-            WHERE gs.id = %s
-        ''', (id_sesion,))
-        
-        datos_sesion = cursor.fetchone()
-        
-        if not datos_sesion:
-            return jsonify({'error': 'Sesión no encontrada'}), 404
-        
-        if datos_sesion['id_profesor'] != session['id_usuario']:
-            return jsonify({'error': 'No autorizado'}), 403
-        
-        # Actualizar estado a 'finalizada' y desactivar la sesión
-        cursor.execute('''
-            UPDATE sesiones_juego 
-            SET estado = 'finalizada', 
-                esta_activa = 0,
-                fin_en_servidor = NOW()
-            WHERE id = %s
-        ''', (id_sesion,))
-        
-        conexion.commit()
-        
-        return jsonify({'exito': True, 'estado': 'finalizada'})
-    except Exception as e:
-        conexion.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
-        conexion.close()
 
 @app.route('/api/sesion/<int:id_sesion>/consumir_intento', methods=['POST'])
 def consumir_intento(id_sesion):
@@ -922,7 +886,9 @@ def gestionar_quizzes():
         conexion.commit()
         conexion.close()
         
+        # ✅ CORREGIDO: Retornar 'id_quiz' en lugar de 'quiz_id'
         return jsonify({'exito': True, 'id_quiz': id_quiz, 'codigo_pin': codigo_pin})
+
 
 @app.route('/api/quizzes/<int:id_quiz>', methods=['GET', 'PUT', 'DELETE'])
 @requiere_sesion
@@ -1007,52 +973,6 @@ def editor_quiz(id_quiz):
     """Editor de preguntas del quiz"""
     return render_template('editor_quiz.html', id_quiz=id_quiz)
 
-@app.route('/api/quizzes/<int:id_quiz>/preguntas', methods=['POST'])
-@requiere_sesion
-@requiere_docente
-def crear_pregunta(id_quiz):
-    """Crear una nueva pregunta para un quiz"""
-    conexion = obtener_bd()
-    cursor = conexion.cursor(pymysql.cursors.DictCursor)
-    
-    # Verificar que el usuario es el creador del quiz
-    cursor.execute('SELECT id_profesor FROM quizzes WHERE id = %s', (id_quiz,))
-    quiz = cursor.fetchone()
-    
-    if not quiz or quiz['id_profesor'] != session['id_usuario']:
-        conexion.close()
-        return jsonify({'error': 'No autorizado'}), 403
-    
-    datos = request.json
-    
-    try:
-        # Insertar la pregunta
-        cursor.execute('''
-            INSERT INTO preguntas (quiz_id, texto_pregunta, url_imagen, url_video, 
-                                 tiempo_limite, posicion)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (id_quiz, datos.get('texto_pregunta'), datos.get('url_imagen'),
-              datos.get('url_video'), datos.get('tiempo_limite', 30),
-              datos.get('posicion', 0)))
-        
-        id_pregunta = cursor.lastrowid
-        
-        # Insertar las opciones
-        for opcion in datos.get('opciones', []):
-            cursor.execute('''
-                INSERT INTO opciones (pregunta_id, texto_opcion, es_correcta)
-                VALUES (%s, %s, %s)
-            ''', (id_pregunta, opcion.get('texto'), opcion.get('es_correcta', False)))
-        
-        conexion.commit()
-        conexion.close()
-        
-        return jsonify({'exito': True, 'id_pregunta': id_pregunta})
-    
-    except Exception as e:
-        conexion.rollback()
-        conexion.close()
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/preguntas/<int:id_pregunta>', methods=['GET', 'PUT', 'DELETE'])
 @requiere_sesion
@@ -1119,12 +1039,13 @@ def gestionar_pregunta(id_pregunta):
             # Eliminar opciones antiguas
             cursor.execute('DELETE FROM opciones WHERE pregunta_id = %s', (id_pregunta,))
             
-            # Insertar nuevas opciones
+            # ✅ CORREGIDO: Manejar ambos formatos para opciones
             for opcion in datos.get('opciones', []):
+                texto_opcion = opcion.get('texto_opcion') or opcion.get('texto') or opcion.get('text')
                 cursor.execute('''
                     INSERT INTO opciones (pregunta_id, texto_opcion, es_correcta)
                     VALUES (%s, %s, %s)
-                ''', (id_pregunta, opcion.get('texto'), opcion.get('es_correcta', False)))
+                ''', (id_pregunta, texto_opcion, opcion.get('es_correcta', False)))
             
             conexion.commit()
             conexion.close()
@@ -1166,6 +1087,7 @@ def gestionar_pregunta(id_pregunta):
             conexion.rollback()
             conexion.close()
             return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/info_sesion')
 def info_sesion_usuario():
