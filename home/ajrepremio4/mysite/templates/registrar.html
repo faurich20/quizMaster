@@ -65,12 +65,12 @@
             <div class="grupo-formulario">
                 <label>Selecciona tu rol:</label>
                 <div class="selector-rol">
-                    <div class="opcion-rol" onclick="seleccionarRol('estudiante')">
+                    <div class="opcion-rol" onclick="seleccionarRol('estudiante', event)">
                         <input type="radio" name="rol" value="estudiante" id="rolEstudiante">
                         <div class="icono-rol">👨‍🎓</div>
                         <div>Estudiante</div>
                     </div>
-                    <div class="opcion-rol" onclick="seleccionarRol('profesor')">
+                    <div class="opcion-rol" onclick="seleccionarRol('profesor', event)">
                         <input type="radio" name="rol" value="profesor" id="rolProfesor">
                         <div class="icono-rol">👨‍🏫</div>
                         <div>Profesor</div>
@@ -79,8 +79,8 @@
             </div>
             
             <div class="grupo-formulario">
-                <label for="nombreUsuario">Nombre de usuario:</label>
-                <input type="text" id="nombreUsuario" name="nombreUsuario" required>
+                <label for="nombre_usuario">Nombre de usuario:</label>
+                <input type="text" id="nombre_usuario" name="nombre_usuario" required>
                 <div class="mensaje-error" id="errorNombreUsuario"></div>
             </div>
             
@@ -146,12 +146,12 @@
         let rolSeleccionado = null;
         let correoUsuario = '';
         
-        function seleccionarRol(rol) {
+        function seleccionarRol(rol, event) {
             rolSeleccionado = rol;
             document.querySelectorAll('.opcion-rol').forEach(opcion => {
                 opcion.classList.remove('seleccionado');
             });
-            evento.currentTarget.classList.add('seleccionado');
+            event.currentTarget.classList.add('seleccionado');
             document.getElementById('rol' + (rol === 'profesor' ? 'Profesor' : 'Estudiante')).checked = true;
         }
         
@@ -186,7 +186,7 @@
                 return;
             }
             
-            const nombreUsuario = document.getElementById('nombreUsuario').value;
+            const nombre_usuario = document.getElementById('nombre_usuario').value;
             const correo = document.getElementById('correo').value;
             const contrasena = document.getElementById('contrasena').value;
             const confirmarContrasena = document.getElementById('confirmarContrasena').value;
@@ -201,7 +201,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        nombreUsuario,
+                        nombre_usuario,
                         correo,
                         contrasena,
                         es_profesor: rolSeleccionado === 'profesor'
@@ -215,10 +215,13 @@
                     document.getElementById('correoVerificacion').textContent = correo;
                     document.getElementById('modalVerificacion').classList.add('activo');
                 } else {
-                    mostrarAlerta('error', datos.error || 'Error en el registro');
+                    const errorMessage = datos.error || 'Error en el registro';
+                    console.error('Error en el registro:', errorMessage);
+                    mostrarAlerta('error', errorMessage);
                 }
             } catch (error) {
-                mostrarAlerta('error', 'Error de conexión');
+                console.error('Error en la solicitud:', error);
+                mostrarAlerta('error', 'Error de conexión: ' + error.message);
             }
         });
         

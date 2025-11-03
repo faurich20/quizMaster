@@ -4,7 +4,7 @@ import pymysql
 HOST = 'ajrepremio4.mysql.pythonanywhere-services.com'
 USER = 'ajrepremio4'
 PASSWORD = 'unpassword1'
-DB = 'ajrepremio4$quizdb'
+DB = 'ajrepremio4$quiz_bd'
 
 def obtener_conexion(con_dict=False):
     # Retorna una conexión PyMySQL; si con_dict=True usa cursores tipo diccionario
@@ -18,5 +18,5 @@ def obtener_conexion(con_dict=False):
                                 db=DB,
                                 cursorclass=clasecursor)
 
-# Alias con nombre en español para compatibilidad
+# Alias 
 obtener_conexion_db = obtener_conexion

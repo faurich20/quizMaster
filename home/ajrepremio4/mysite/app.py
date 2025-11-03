@@ -130,20 +130,23 @@ def seleccion_grupo():
 def registrar():
     if request.method == 'POST':
         datos = request.json
+        print(f"Datos recibidos: {datos}")  # ← Esto te mostrará exactamente qué está llegando
+        # Estandarizar nombres a snake_case
         nombre_usuario = datos.get('nombre_usuario')
         correo = datos.get('correo')
         contrasena = datos.get('contrasena')
         es_profesor = datos.get('es_profesor', False)
         
-        # Validar contraseña
+        # Validar campos requeridos
+        if not nombre_usuario or not correo or not contrasena:
+            return jsonify({'error': 'Todos los campos son requeridos'}), 400
+        
+        # El resto del código permanece igual...
         valido, mensaje = validar_contrasena(contrasena)
         if not valido:
             return jsonify({'error': mensaje}), 400
         
-        # Hash de contraseña
         hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
-        
-        # Generar código de verificación
         codigo = generar_codigo_verificacion()
         expira = datetime.now() + timedelta(minutes=15)
         
@@ -158,7 +161,6 @@ def registrar():
             ''', (nombre_usuario, correo, hash_contrasena, es_profesor, codigo, expira))
             conexion.commit()
             
-            # Enviar correo de verificación
             if enviar_correo_verificacion(correo, codigo):
                 return jsonify({
                     'exito': True,
@@ -179,18 +181,27 @@ def registrar():
 @app.route('/api/auth/registrar', methods=['POST'])
 def api_registrar():
     datos = request.json
+    # Estandarizar nombres a snake_case
     nombre_usuario = datos.get('nombre_usuario')
     correo = datos.get('correo')
     contrasena = datos.get('contrasena')
     es_profesor = datos.get('es_profesor', False)
+    
+    # Validaciones
+    if not nombre_usuario or not correo or not contrasena:
+        return jsonify({'error': 'Todos los campos son requeridos'}), 400
+    
     valido, mensaje = validar_contrasena(contrasena)
     if not valido:
         return jsonify({'error': mensaje}), 400
+    
     hash_contrasena = hashlib.sha256(contrasena.encode()).hexdigest()
     codigo = generar_codigo_verificacion()
     expira = datetime.now() + timedelta(minutes=15)
+    
     conexion = obtener_bd()
     cursor = conexion.cursor()
+    
     try:
         cursor.execute('''
             INSERT INTO usuarios (nombre_usuario, correo, contrasena, es_profesor, 
@@ -198,6 +209,7 @@ def api_registrar():
             VALUES (%s, %s, %s, %s, %s, %s)
         ''', (nombre_usuario, correo, hash_contrasena, es_profesor, codigo, expira))
         conexion.commit()
+        
         if enviar_correo_verificacion(correo, codigo):
             return jsonify({'exito': True, 'mensaje': 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'})
         else:
