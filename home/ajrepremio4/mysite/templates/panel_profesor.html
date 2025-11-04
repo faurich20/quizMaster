@@ -12,12 +12,10 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
         }
-
         .barra-navegacion {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -27,17 +25,14 @@
             align-items: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         .barra-navegacion h1 {
             font-size: 1.8em;
         }
-
         .derecha-navegacion {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-
         .boton {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -49,36 +44,30 @@
             text-decoration: none;
             transition: all 0.3s ease;
         }
-
         .boton:hover {
             background: white;
             color: #667eea;
             border: 2px solid #667eea;
         }
-
         .boton-principal {
             background: white;
             color: #667eea;
         }
-
         .boton-principal:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
         }
-
         .contenedor {
             max-width: 1400px;
             margin: 0 auto;
             padding: 30px;
         }
-
         .cuadricula-estadisticas {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-
         .tarjeta-estadistica {
             background: white;
             border-radius: 15px;
@@ -88,39 +77,32 @@
             align-items: center;
             gap: 20px;
         }
-
         .icono-estadistica {
             font-size: 3em;
         }
-
         .info-estadistica h3 {
             color: #333;
             font-size: 2em;
             margin-bottom: 5px;
         }
-
         .info-estadistica p {
             color: #666;
         }
-
         .encabezado-seccion {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
         .encabezado-seccion h2 {
             color: #333;
             font-size: 2em;
         }
-
         .cuadricula-quizzes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
-
         .tarjeta-quiz {
             background: white;
             border-radius: 15px;
@@ -129,23 +111,19 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-
         .tarjeta-quiz:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
-
         .tarjeta-quiz h3 {
             color: #333;
             margin-bottom: 10px;
             font-size: 1.5em;
         }
-
         .tarjeta-quiz p {
             color: #666;
             margin-bottom: 15px;
         }
-
         .meta-quiz {
             display: flex;
             justify-content: space-between;
@@ -154,7 +132,6 @@
             font-size: 0.9em;
             color: #999;
         }
-
         .codigo-pin {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -163,13 +140,11 @@
             font-weight: bold;
             letter-spacing: 2px;
         }
-
         .acciones-quiz {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
-
         .boton-pequeno {
             padding: 8px 15px;
             font-size: 0.9em;
@@ -179,25 +154,20 @@
             font-weight: bold;
             transition: all 0.3s ease;
         }
-
         .boton-editar {
             background: #4caf50;
             color: white;
         }
-
         .boton-editar:hover {
             background: #45a049;
         }
-
         .boton-compartir {
             background: #2196f3;
             color: white;
         }
-
         .boton-compartir:hover {
             background: #0d8bf2;
         }
-
         .boton-eliminar {
             background: #f44336;
             color: white;
@@ -209,20 +179,16 @@
             text-decoration: none;
             transition: all 0.3s ease;
         }
-
         .boton-eliminar:hover {
             background: #da190b;
         }
-
         .boton-duplicar {
             background: #ff9800;
             color: white;
         }
-
         .boton-duplicar:hover {
             background: #e68900;
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -235,11 +201,9 @@
             justify-content: center;
             z-index: 1000;
         }
-
         .modal.activo {
             display: flex;
         }
-
         .contenido-modal {
             background: white;
             border-radius: 20px;
@@ -249,18 +213,15 @@
             max-height: 90vh;
             overflow-y: auto;
         }
-
         .encabezado-modal {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
         .encabezado-modal h2 {
             color: #333;
         }
-
         .boton-cerrar {
             background: none;
             border: none;
@@ -268,22 +229,18 @@
             cursor: pointer;
             color: #999;
         }
-
         .boton-cerrar:hover {
             color: #333;
         }
-
         .grupo-formulario {
             margin-bottom: 20px;
         }
-
         .grupo-formulario label {
             display: block;
             color: #333;
             font-weight: bold;
             margin-bottom: 8px;
         }
-
         .grupo-formulario input,
         .grupo-formulario textarea,
         .grupo-formulario select {
@@ -294,63 +251,51 @@
             font-size: 1em;
             font-family: inherit;
         }
-
         .grupo-formulario textarea {
             resize: vertical;
             min-height: 100px;
         }
-
         .grupo-casilla-verificacion {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .grupo-casilla-verificacion input {
             width: auto;
         }
-
         .estado-vacio {
             text-align: center;
             padding: 60px 20px;
         }
-
         .icono-estado-vacio {
             font-size: 5em;
             margin-bottom: 20px;
             opacity: 0.3;
         }
-
         .estado-vacio h3 {
             color: #666;
             margin-bottom: 10px;
         }
-
         .estado-vacio p {
             color: #999;
             margin-bottom: 20px;
         }
-
         .dialogo-confirmacion {
             text-align: center;
         }
-
         .dialogo-confirmacion h3 {
             color: #333;
             margin-bottom: 15px;
         }
-
         .dialogo-confirmacion p {
             color: #666;
             margin-bottom: 30px;
         }
-
         .acciones-confirmacion {
             display: flex;
             gap: 15px;
             justify-content: center;
         }
-
         .boton-confirmar {
             padding: 12px 30px;
             border-radius: 10px;
@@ -359,17 +304,14 @@
             font-weight: bold;
             font-size: 1em;
         }
-
         .boton-si {
             background: #f44336;
             color: white;
         }
-
         .boton-no {
             background: #e0e0e0;
             color: #333;
         }
-
         .tarjeta-sesion {
             background: white;
             border-radius: 15px;
@@ -378,58 +320,48 @@
             margin-bottom: 15px;
             border-left: 5px solid #4caf50;
         }
-
         .tarjeta-sesion.esperando {
             border-left-color: #ff9800;
         }
-
         .tarjeta-sesion.iniciada {
             border-left-color: #4caf50;
         }
-
         .encabezado-sesion {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-
         .titulo-sesion {
             font-size: 1.5em;
             color: #333;
             font-weight: bold;
         }
-
         .estado-sesion {
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.9em;
         }
-
         .estado-sesion.esperando {
             background: #fff3cd;
             color: #856404;
         }
-
         .estado-sesion.iniciada {
             background: #d4edda;
             color: #155724;
         }
-
         .info-sesion {
             display: flex;
             gap: 20px;
             margin-bottom: 15px;
             color: #666;
         }
-
         .info-sesion span {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-
         .boton-iniciar-quiz {
             background: #4caf50;
             color: white;
@@ -441,25 +373,21 @@
             font-size: 1.1em;
             transition: all 0.3s ease;
         }
-
         .boton-iniciar-quiz:hover {
             background: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
         }
-
         .boton-iniciar-quiz:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
         }
-
         #modalCompartirQuiz .contenido-modal {
             background: linear-gradient(135deg, #ffffff, #f0f3ff);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             border-radius: 16px;
         }
-
         /* ✅ CORRECCIÓN: Fila de opción bien alineada: 3 columnas (check | texto | 🗑️) */
         .opcion {
             display: grid;
@@ -468,7 +396,6 @@
             gap: 12px;
             margin-bottom: 10px;
         }
-
         /* ✅ Que NO herede el width:100% global */
         .grupo-formulario .opcion input[type="text"] {
             width: 100% !important;
@@ -478,14 +405,12 @@
             font-size: 0.95rem;
             box-sizing: border-box;
         }
-
         /* ✅ Checkbox más claro */
         .grupo-formulario .opcion input[type="checkbox"] {
             transform: scale(1.2);
             accent-color: #667eea;
             cursor: pointer;
         }
-
         /* ✅ Botón 🗑️ consistente */
         .opcion .boton-eliminar {
             min-width: 44px;
@@ -495,7 +420,6 @@
             align-items: center;
             justify-content: center;
         }
-
         /* ✅ Contenedor para "Agregar opción" y "Eliminar pregunta" */
         .opcion-acciones {
             display: flex;
