@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS quizzes (
   codigo_pin VARCHAR(8) UNIQUE NOT NULL,
   modo VARCHAR(20) DEFAULT 'individual',
   num_grupos INT DEFAULT 0,
-  tiempo_cuenta_regresiva INT DEFAULT 30,
   es_publico BOOLEAN DEFAULT 1,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_profesor) REFERENCES usuarios(id) ON DELETE CASCADE
@@ -91,3 +90,8 @@ CREATE TABLE IF NOT EXISTS respuestas (
   FOREIGN KEY (id_pregunta) REFERENCES preguntas(id) ON DELETE CASCADE,
   FOREIGN KEY (id_opcion) REFERENCES opciones(id) ON DELETE CASCADE
 );
+
+
+-- ALTER TABLE participantes
+--ADD CONSTRAINT uniq_participante_sesion
+--UNIQUE (sesion_id, nombre_usuario);

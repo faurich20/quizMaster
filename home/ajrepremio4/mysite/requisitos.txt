@@ -1,0 +1,3 @@
+pip install Flask flask-mail
+pip install pymysql pyopenssl
+pip install pandas

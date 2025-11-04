@@ -90,16 +90,7 @@
         }
 
         .icono-estadistica {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(102, 126, 234, 0.15);
-            color: #667eea;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1em;
+            font-size: 3em;
         }
 
         .info-estadistica h3 {
@@ -469,7 +460,7 @@
             border-radius: 16px;
         }
 
-        /* Fila de opciÃ³n bien alineada: 3 columnas (check | texto | ðŸ—‘ï¸) */
+        /* Fila de opción bien alineada: 3 columnas (check | texto | 🗑️) */
         .opcion {
             display: grid;
             grid-template-columns: 28px 1fr 44px;
@@ -478,7 +469,7 @@
             margin-bottom: 10px;
         }
 
-        /* Que NO herede el width:100% global; aquÃ­ manda el grid */
+        /* Que NO herede el width:100% global; aquí manda el grid */
         .grupo-formulario .opcion input[type="text"] {
             width: 100% !important;
             padding: 10px;
@@ -488,14 +479,14 @@
             box-sizing: border-box;
         }
 
-        /* Checkbox mÃ¡s claro y clic sÃ³lo sobre Ã©l */
+        /* Checkbox más claro y clic sólo sobre él */
         .grupo-formulario .opcion input[type="checkbox"] {
             transform: scale(1.2);
             accent-color: #667eea;
             cursor: pointer;
         }
 
-        /* BotÃ³n ðŸ—‘ï¸ consistente */
+        /* Botón 🗑️ consistente */
         .opcion .boton-eliminar {
             min-width: 44px;
             height: 40px;
@@ -505,7 +496,7 @@
             justify-content: center;
         }
 
-        /* Contenedor para â€œAgregar opciÃ³nâ€ y â€œEliminar preguntaâ€, alineados a la derecha */
+        /* Contenedor para “Agregar opción” y “Eliminar pregunta”, alineados a la derecha */
         .opcion-acciones {
             display: flex;
             justify-content: flex-end;
@@ -517,42 +508,42 @@
 
 <body>
     <div class="barra-navegacion">
-        <h1>QuizPlatform</h1>
+        <h1>🎯 QuizPlatform</h1>
         <div class="derecha-navegacion">
             <span>Bienvenido, <strong id="nombreUsuario"></strong></span>
             <button class="boton boton-principal" onclick="abrirModalCrear()">+ Crear Quiz</button>
-            <a href="/cerrar_sesion" class="boton">Cerrar SesiÃ³n</a>
+            <a href="/cerrar_sesion" class="boton">Cerrar Sesión</a>
         </div>
     </div>
 
     <div class="contenedor">
         <div class="cuadricula-estadisticas">
             <div class="tarjeta-estadistica">
-                <div class="icono-estadistica">QC</div>
+                <div class="icono-estadistica">📚</div>
                 <div class="info-estadistica">
                     <h3 id="totalQuizzes">0</h3>
                     <p>Quizzes Creados</p>
                 </div>
             </div>
             <div class="tarjeta-estadistica">
-                <div class="icono-estadistica">PJ</div>
+                <div class="icono-estadistica">🎮</div>
                 <div class="info-estadistica">
                     <h3 id="totalGames">0</h3>
                     <p>Partidas Jugadas</p>
                 </div>
             </div>
             <div class="tarjeta-estadistica">
-                <div class="icono-estadistica">PT</div>
+                <div class="icono-estadistica">👥</div>
                 <div class="info-estadistica">
                     <h3 id="totalparticipantes">0</h3>
                     <p>Participantes</p>
                 </div>
             </div>
             <div class="tarjeta-estadistica">
-                <div class="icono-estadistica">QP</div>
+                <div class="icono-estadistica">⭐</div>
                 <div class="info-estadistica">
                     <h3 id="totalPublic">0</h3>
-                    <p>Quizzes PÃºblicos</p>
+                    <p>Quizzes Públicos</p>
                 </div>
             </div>
         </div>
@@ -560,7 +551,7 @@
         <!-- Sesiones Activas (Modo Grupal) -->
         <div id="seccionSesionesActivas" style="display: none; margin-bottom: 30px;">
             <div class="encabezado-seccion">
-                <h2>ðŸŽ® Sesiones Grupales Activas</h2>
+                <h2>🎮 Sesiones Grupales Activas</h2>
             </div>
             <div id="contenedorSesionesActivas"></div>
         </div>
@@ -569,7 +560,7 @@
             <h2 id="tituloQuizzes">Todos los Quizzes</h2>
             <div>
                 <button class="boton" onclick="cargarQuizzes('todos')">Todos</button>
-                <button class="boton" onclick="cargarQuizzes('mios')">MÃ­os</button>
+                <button class="boton" onclick="cargarQuizzes('mios')">Míos</button>
             </div>
         </div>
 
@@ -586,11 +577,11 @@
             <form id="formularioQuiz">
                 <input type="hidden" id="idQuiz">
                 <div class="grupo-formulario">
-                    <label for="titulo">TÃ­tulo del Quiz:</label>
+                    <label for="titulo">Título del Quiz:</label>
                     <input type="text" id="titulo" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label for="descripcion">DescripciÃ³n:</label>
+                    <label for="descripcion">Descripción:</label>
                     <textarea id="descripcion"></textarea>
                 </div>
                 <div class="grupo-formulario">
@@ -601,13 +592,13 @@
                     </select>
                 </div>
                 <div class="grupo-formulario" id="contenedorNumGrupos" style="display: none;">
-                    <label for="numGrupos">NÃºmero de Grupos:</label>
+                    <label for="numGrupos">Número de Grupos:</label>
                     <input type="number" id="numGrupos" min="2" max="20" value="4">
                 </div>
                 <div class="grupo-formulario">
                     <div class="grupo-casilla-verificacion">
                         <input type="checkbox" id="esPublico" checked>
-                        <label for="esPublico">Hacer pÃºblico (otros usuarios pueden usarlo)</label>
+                        <label for="esPublico">Hacer público (otros usuarios pueden usarlo)</label>
                     </div>
                 </div>
                 <button type="submit" class="boton">Guardar Quiz</button>
@@ -626,8 +617,8 @@
             <div id="listaPreguntas"></div>
 
             <div class="acciones-confirmacion" style="margin-top: 20px;">
-                <button class="boton" onclick="agregarPregunta()">âž• Nueva Pregunta</button>
-                <button class="boton" style="background:#4caf50;" onclick="guardarPreguntas()">ðŸ’¾ Guardar</button>
+                <button class="boton" onclick="agregarPregunta()">➕ Nueva Pregunta</button>
+                <button class="boton" style="background:#4caf50;" onclick="guardarPreguntas()">💾 Guardar</button>
 
             </div>
         </div>
@@ -637,7 +628,7 @@
     <div class="modal" id="modalCompartirQuiz">
         <div class="contenido-modal" style="max-width: 600px; text-align: center; padding: 40px;">
             <div class="encabezado-modal" style="justify-content: center;">
-                <h2 style="font-size: 2rem;">ðŸŽ¯ Â¡Comparte tu Quiz!</h2>
+                <h2 style="font-size: 2rem;">🎯 ¡Comparte tu Quiz!</h2>
             </div>
             <p id="textoCompartir" style="font-size: 1.2rem; margin: 20px 0;"></p>
             <button class="boton" onclick="cerrarModal('modalCompartirQuiz')">Cerrar</button>
@@ -646,14 +637,14 @@
 
 
 
-    <!-- Modal ConfirmaciÃ³n -->
+    <!-- Modal Confirmación -->
     <div class="modal" id="modalConfirmacion">
         <div class="contenido-modal">
             <div class="dialogo-confirmacion">
-                <h3 id="tituloConfirmacion">Â¿EstÃ¡s seguro?</h3>
-                <p id="mensajeConfirmacion">Esta acciÃ³n no se puede deshacer.</p>
+                <h3 id="tituloConfirmacion">¿Estás seguro?</h3>
+                <p id="mensajeConfirmacion">Esta acción no se puede deshacer.</p>
                 <div class="acciones-confirmacion">
-                    <button class="boton-confirmar boton-si" onclick="confirmarAccion()">SÃ­, continuar</button>
+                    <button class="boton-confirmar boton-si" onclick="confirmarAccion()">Sí, continuar</button>
                     <button class="boton-confirmar boton-no"
                         onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
                 </div>
@@ -670,33 +661,33 @@
             return idUsuarioActual;
         }
 
-        // âœ… CORRECCIÃ“N CRÃTICA: Usar /api/info_sesion en lugar de /api/usuarios
+        // ✅ CORRECCIÓN CRÍTICA: Usar /api/info_sesion en lugar de /api/usuarios
         async function cargarInfoUsuario() {
             try {
                 const respuesta = await fetch('/api/info_sesion');
                 const datos = await respuesta.json();
 
-                console.log('ðŸ“Š Datos de sesiÃ³n recibidos:', datos);
+                console.log('📊 Datos de sesión recibidos:', datos);
 
                 if (!datos.id_usuario) {
-                    console.error('âŒ No hay ID de usuario en la sesiÃ³n');
-                    alert('âš ï¸ SesiÃ³n invÃ¡lida. Por favor inicia sesiÃ³n nuevamente.');
+                    console.error('❌ No hay ID de usuario en la sesión');
+                    alert('⚠️ Sesión inválida. Por favor inicia sesión nuevamente.');
                     window.location.href = '/iniciar_sesion';
                     return false;
                 }
 
                 if (!datos.es_profesor) {
-                    console.error('âŒ Usuario no es profesor:', datos.es_profesor);
-                    alert('âš ï¸ Acceso denegado. Esta Ã¡rea es solo para profesores.');
+                    console.error('❌ Usuario no es profesor:', datos.es_profesor);
+                    alert('⚠️ Acceso denegado. Esta área es solo para profesores.');
                     window.location.href = '/';
                     return false;
                 }
 
-                // âœ… Almacenar datos del usuario
+                // ✅ Almacenar datos del usuario
                 idUsuarioActual = datos.id_usuario;
                 document.getElementById('nombreUsuario').textContent = datos.nombre_usuario || 'Profesor';
 
-                console.log('âœ… Usuario profesor autenticado:', {
+                console.log('✅ Usuario profesor autenticado:', {
                     id: idUsuarioActual,
                     nombre: datos.nombre_usuario,
                     es_profesor: datos.es_profesor
@@ -704,8 +695,8 @@
 
                 return true;
             } catch (error) {
-                console.error('âŒ Error al cargar informaciÃ³n del usuario:', error);
-                alert('âš ï¸ Error de conexiÃ³n. Por favor recarga la pÃ¡gina.');
+                console.error('❌ Error al cargar información del usuario:', error);
+                alert('⚠️ Error de conexión. Por favor recarga la página.');
                 window.location.href = '/iniciar_sesion';
                 return false;
             }
@@ -721,7 +712,7 @@
                 elementoTitulo.textContent = (filtro === 'mios') ? 'Mis Quizzes' : 'Todos los Quizzes';
 
                 if (quizzes.length === 0) {
-                    contenedor.innerHTML = `<div class="estado-vacio"><div class="icono-estado-vacio">ðŸ“</div><h3>No tienes quizzes aÃºn</h3><p>Crea tu primer quiz para empezar</p><button class="boton" onclick="abrirModalCrear()">Crear Quiz</button></div>`;
+                    contenedor.innerHTML = `<div class="estado-vacio"><div class="icono-estado-vacio">📝</div><h3>No tienes quizzes aún</h3><p>Crea tu primer quiz para empezar</p><button class="boton" onclick="abrirModalCrear()">Crear Quiz</button></div>`;
                     return;
                 }
 
@@ -732,31 +723,30 @@
 
                 if (quizzesFiltrados.length === 0) {
                     const nombreFiltro = filtro === 'mios' ? 'tuyos' : '';
-                    contenedor.innerHTML = `<div class="estado-vacio"><div class="icono-estado-vacio">ðŸ”</div><h3>No hay quizzes ${nombreFiltro}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class="boton" onclick="cargarQuizzes('todos')">Ver Todos</button></div>`;
+                    contenedor.innerHTML = `<div class="estado-vacio"><div class="icono-estado-vacio">🔍</div><h3>No hay quizzes ${nombreFiltro}</h3><p>Intenta con otro filtro o crea un nuevo quiz</p><button class="boton" onclick="cargarQuizzes('todos')">Ver Todos</button></div>`;
                     return;
                 }
 
                 contenedor.innerHTML = '<div class="cuadricula-quizzes">' + quizzesFiltrados.map(quiz => `
                     <div class="tarjeta-quiz">
                         <h3>${quiz.titulo}</h3>
-                        <p>${quiz.descripcion || 'Sin descripciÃ³n'}</p>
+                        <p>${quiz.descripcion || 'Sin descripción'}</p>
                         <div class="meta-quiz">
-                            <span>ðŸŽ® ${quiz.modo === 'grupal' ? 'Grupal' : 'Individual'}</span>
-                            <span>â±ï¸ ${quiz.tiempo_cuenta_regresiva}s</span>
-                            <span>${quiz.es_publico ? 'ðŸŒ PÃºblico' : 'ðŸ”’ Privado'}</span>
+                            <span>🎮 ${quiz.modo === 'grupal' ? 'Grupal' : 'Individual'}</span>
+                            <span>${quiz.es_publico ? '🌐 Público' : '🔒 Privado'}</span>
                         </div>
                         <div class="codigo-pin">PIN: ${quiz.codigo_pin}</div>
                         <div class="acciones-quiz" style="margin-top: 15px;">
                             ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
-                            <button class="boton-pequeno boton-editar" onclick="editarQuiz(${quiz.id})">âœï¸ Editar</button>
-                            <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">ðŸ“ Preguntas</button>
+                            <button class="boton-pequeno boton-editar" onclick="editarQuiz(${quiz.id})">✏️ Editar</button>
+                            <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                             ` : `
-                            <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">ðŸ“ Preguntas</button>
+                            <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                             `}
-                            <button class="boton-pequeno boton-compartir" onclick="compartirQuiz('${quiz.codigo_pin}')">ðŸ”— Compartir</button>
-                            <button class="boton-pequeno boton-duplicar" onclick="duplicarQuiz(${quiz.id})">ðŸ“‹ Duplicar</button>
+                            <button class="boton-pequeno boton-compartir" onclick="compartirQuiz('${quiz.codigo_pin}')">🔗 Compartir</button>
+                            <button class="boton-pequeno boton-duplicar" onclick="duplicarQuiz(${quiz.id})">📋 Duplicar</button>
                             ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
-                            <button class="boton-pequeno boton-eliminar" onclick="confirmarEliminarQuiz(${quiz.id})">ðŸ—‘ï¸ Eliminar</button>
+                            <button class="boton-pequeno boton-eliminar" onclick="confirmarEliminarQuiz(${quiz.id})">🗑️ Eliminar</button>
                             ` : ''}
                         </div>
                     </div>
@@ -814,14 +804,14 @@
                 document.getElementById('listaPreguntas').innerHTML = '<p style="color:#666;">Cargando preguntas...</p>';
                 document.getElementById('modalPreguntasQuiz').classList.add('activo');
 
-                // Trae quiz con preguntas embebidas (tu endpoint /api/quizzes/<id> ya lo devuelve asÃ­)
+                // Trae quiz con preguntas embebidas (tu endpoint /api/quizzes/<id> ya lo devuelve así)
                 const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}`);
                 if (!resp.ok) throw new Error('No se pudo cargar el quiz');
                 quizData = await resp.json();
 
                 mostrarPreguntas(quizData.preguntas || []);
             } catch (e) {
-                alert('âŒ Error al cargar preguntas');
+                alert('❌ Error al cargar preguntas');
                 console.error(e);
             }
         }
@@ -831,8 +821,8 @@
             if (!preguntas || preguntas.length === 0) {
                 cont.innerHTML = `
                 <div class="estado-vacio">
-                <div class="icono-estado-vacio">ðŸ“</div>
-                <h3>No hay preguntas aÃºn</h3>
+                <div class="icono-estado-vacio">📝</div>
+                <h3>No hay preguntas aún</h3>
                 <p>Agrega tu primera pregunta</p>
                 </div>`;
                 return;
@@ -847,7 +837,7 @@
                     value="${opcion.texto_opcion || ''}"
                     onchange="actualizarOpcion(${pregunta.id}, ${opcion.id}, this.value)">
                 <button class="boton-eliminar"
-                    onclick="eliminarOpcion(${pregunta.id}, ${opcion.id})">ðŸ—‘ï¸</button>
+                    onclick="eliminarOpcion(${pregunta.id}, ${opcion.id})">🗑️</button>
                 </div>
             `).join('');
 
@@ -860,7 +850,7 @@
                         onchange="actualizarPregunta(${pregunta.id}, this.value)">
                 </div>
                 <div class="grupo-formulario">
-                    <label>Tiempo lÃ­mite (segundos)</label>
+                    <label>Tiempo límite (segundos)</label>
                     <input id="preg-tiempo-${pregunta.id}" type="number"
                         value="${pregunta.tiempo_limite || 30}"
                         onchange="actualizarTiempo(${pregunta.id}, this.value)">
@@ -881,8 +871,8 @@
                     <label>Opciones</label>
                     ${opcionesHTML}
                     <div class="opcion-acciones">
-                    <button class="boton" onclick="agregarOpcion(${pregunta.id})">âž• Agregar opciÃ³n</button>
-                    <button class="boton-eliminar" onclick="eliminarPregunta(${pregunta.id})">âŒ Eliminar pregunta</button>
+                    <button class="boton" onclick="agregarOpcion(${pregunta.id})">➕ Agregar opción</button>
+                    <button class="boton-eliminar" onclick="eliminarPregunta(${pregunta.id})">❌ Eliminar pregunta</button>
                     </div>
                 </div>
                 </div>
@@ -897,15 +887,42 @@
             mostrarPreguntas(quizData.preguntas || []);
         }
 
+
+        function snapshotCamposPreguntas() {
+            const vals = {};
+            // Inputs de texto y número
+            document.querySelectorAll('#listaPreguntas input[type="text"], #listaPreguntas input[type="number"]').forEach(inp => {
+                vals[inp.id] = inp.value;
+            });
+            // Checkboxes
+            document.querySelectorAll('#listaPreguntas input[type="checkbox"]').forEach(chk => {
+                vals[chk.id] = chk.checked;
+            });
+            return vals;
+        }
+
+        function restoreCamposPreguntas(vals) {
+            if (!vals) return;
+            for (const [id, v] of Object.entries(vals)) {
+                const el = document.getElementById(id);
+                if (!el) continue; // puede ser nuevo / eliminado
+                if (el.type === 'checkbox') el.checked = !!v;
+                else el.value = v;
+            }
+        }
+
+
+
         async function agregarPregunta() {
-            if (!idQuizSeleccionado) { alert('âš ï¸ No hay quiz seleccionado'); return; }
+            if (!idQuizSeleccionado) { alert('⚠️ No hay quiz seleccionado'); return; }
+            const snapshot = snapshotCamposPreguntas();
             const nueva = {
                 texto_pregunta: "Nueva pregunta",
                 tiempo_limite: 30,
                 posicion: (quizData.preguntas?.length || 0) + 1,
                 opciones: [
-                    { texto_opcion: "OpciÃ³n A", es_correcta: false },
-                    { texto_opcion: "OpciÃ³n B", es_correcta: true }
+                    { texto_opcion: "Opción A", es_correcta: false },
+                    { texto_opcion: "Opción B", es_correcta: true }
                 ]
             };
             const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}/preguntas`, {
@@ -913,9 +930,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(nueva)
             });
-            if (resp.ok) await recargarPreguntas();
-            else alert('âŒ Error al agregar la pregunta');
+            if (resp.ok) {
+                await recargarPreguntas();
+                restoreCamposPreguntas(snapshot);
+            } else {
+                alert('❌ Error al agregar la pregunta');
+            }
         }
+
+
 
         async function actualizarPregunta(idPregunta, texto) {
             const resp = await fetch(`/api/preguntas/${idPregunta}`, {
@@ -923,7 +946,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ texto_pregunta: texto })
             });
-            if (!resp.ok) alert('âŒ Error al actualizar pregunta');
+            if (!resp.ok) alert('❌ Error al actualizar pregunta');
         }
 
         async function actualizarTiempo(idPregunta, tiempo) {
@@ -932,7 +955,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tiempo_limite: parseInt(tiempo) })
             });
-            if (!resp.ok) alert('âŒ Error al actualizar tiempo');
+            if (!resp.ok) alert('❌ Error al actualizar tiempo');
         }
 
         async function actualizarImagen(idPregunta, url) {
@@ -941,7 +964,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url_imagen: url })
             });
-            if (!resp.ok) alert('âŒ Error al actualizar imagen');
+            if (!resp.ok) alert('❌ Error al actualizar imagen');
         }
 
         async function actualizarVideo(idPregunta, url) {
@@ -950,19 +973,23 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url_video: url })
             });
-            if (!resp.ok) alert('âŒ Error al actualizar video');
+            if (!resp.ok) alert('❌ Error al actualizar video');
         }
 
         async function agregarOpcion(idPregunta) {
+            const snapshot = snapshotCamposPreguntas(); // ← congelar
             const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
-            const nuevasOpciones = (pregunta.opciones || []).concat([{ texto_opcion: "Nueva opciÃ³n", es_correcta: false }]);
+            const nuevasOpciones = (pregunta.opciones || []).concat([{ texto_opcion: "Nueva opción", es_correcta: false }]);
             await fetch(`/api/preguntas/${idPregunta}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ opciones: nuevasOpciones })
             });
-            await recargarPreguntas();
+            await recargarPreguntas();                 // ← re-render
+            restoreCamposPreguntas(snapshot);          // ← restaurar lo escrito
         }
+
+
 
         async function actualizarOpcion(idPregunta, idOpcion, texto) {
             const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
@@ -984,7 +1011,9 @@
             });
         }
 
+
         async function eliminarOpcion(idPregunta, idOpcion) {
+            const snapshot = snapshotCamposPreguntas();
             const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
             const nuevasOpciones = (pregunta.opciones || []).filter(o => o.id !== idOpcion);
             await fetch(`/api/preguntas/${idPregunta}`, {
@@ -993,14 +1022,22 @@
                 body: JSON.stringify({ opciones: nuevasOpciones })
             });
             await recargarPreguntas();
+            restoreCamposPreguntas(snapshot);
         }
 
+
         async function eliminarPregunta(idPregunta) {
-            if (!confirm('Â¿Seguro que deseas eliminar esta pregunta?')) return;
+            if (!confirm('¿Seguro que deseas eliminar esta pregunta?')) return;
+            const snapshot = snapshotCamposPreguntas();
             const resp = await fetch(`/api/preguntas/${idPregunta}`, { method: 'DELETE' });
-            if (resp.ok) await recargarPreguntas();
-            else alert('âŒ No se pudo eliminar la pregunta');
+            if (resp.ok) {
+                await recargarPreguntas();
+                restoreCamposPreguntas(snapshot);
+            } else {
+                alert('❌ No se pudo eliminar la pregunta');
+            }
         }
+
 
         async function guardarPreguntas() {
             if (!quizData || !quizData.preguntas || quizData.preguntas.length === 0) {
@@ -1009,7 +1046,7 @@
             }
 
             try {
-                // Recorremos las preguntas que estÃ¡n renderizadas
+                // Recorremos las preguntas que están renderizadas
                 for (const p of quizData.preguntas) {
                     // 1) Leer valores visibles del DOM (aunque no hayan perdido foco)
                     const texto_pregunta = document.getElementById(`preg-text-${p.id}`)?.value ?? p.texto_pregunta ?? '';
@@ -1041,19 +1078,19 @@
                     if (!resp.ok) {
                         const err = await resp.json().catch(() => ({}));
                         console.error('Error guardando pregunta', p.id, err);
-                        alert('âŒ Error al guardar alguna pregunta. Revisa consola.');
+                        alert('❌ Error al guardar alguna pregunta. Revisa consola.');
                         return;
                     }
                 }
 
-                alert('âœ… Preguntas guardadas correctamente');
+                alert('✅ Preguntas guardadas correctamente');
                 await recargarPreguntas(); // refrescamos lo mostrado
             } catch (e) {
                 console.error(e);
-                alert('âŒ Error de conexiÃ³n guardando preguntas');
+                alert('❌ Error de conexión guardando preguntas');
             }
         }
-        
+
 
         function compartirQuiz(codigoPin) {
             const urlJuego = `${window.location.origin}/jugar`;
@@ -1071,12 +1108,12 @@
             cont.innerHTML = mensajeHTML;
             document.getElementById('modalCompartirQuiz').classList.add('activo');
             // extra: copiar al portapapeles el texto ya formateado
-            const textoPlano = `ðŸŽ¯ Ãšnete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
+            const textoPlano = `🎯 Únete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
             navigator.clipboard.writeText(textoPlano).catch(() => { });
         }
 
         async function duplicarQuiz(idQuiz) {
-            if (!confirm('Â¿Deseas duplicar este quiz y sus preguntas?')) return;
+            if (!confirm('¿Deseas duplicar este quiz y sus preguntas?')) return;
             try {
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
                 const quiz = await respuesta.json();
@@ -1100,7 +1137,7 @@
                 });
 
                 const creado = await respuestaCrear.json();
-                // âœ… CORREGIDO: Usar 'id_quiz' (no 'quiz_id')
+                // ✅ CORREGIDO: Usar 'id_quiz' (no 'quiz_id')
                 if (!respuestaCrear.ok || !creado.id_quiz) {
                     alert('No se pudo crear la copia');
                     return;
@@ -1117,7 +1154,7 @@
                         tiempo_limite: p.tiempo_limite,
                         posicion: p.posicion || 0,
                         opciones: (p.opciones || []).map(o => ({
-                            texto_opcion: o.texto_opcion,   // âœ… EstÃ¡ndar con la BD y el backend
+                            texto_opcion: o.texto_opcion,   // ✅ Estándar con la BD y el backend
                             es_correcta: !!o.es_correcta
                         }))
                     };
@@ -1128,8 +1165,8 @@
                     });
                 }
 
-                alert('âœ… Quiz duplicado exitosamente con sus preguntas');
-                if (confirm('Â¿Deseas abrir el editar de preguntas de la copia?')) {
+                alert('✅ Quiz duplicado exitosamente con sus preguntas');
+                if (confirm('¿Deseas abrir el editar de preguntas de la copia?')) {
                     gestionarPreguntas(nuevoIdQuiz);
                 } else {
                     cargarQuizzes();
@@ -1141,8 +1178,8 @@
         }
 
         function confirmarEliminarQuiz(idQuiz) {
-            document.getElementById('tituloConfirmacion').textContent = 'Â¿Eliminar Quiz?';
-            document.getElementById('mensajeConfirmacion').textContent = 'Esta acciÃ³n eliminarÃ¡ el quiz y todas sus preguntas. No se puede deshacer.';
+            document.getElementById('tituloConfirmacion').textContent = '¿Eliminar Quiz?';
+            document.getElementById('mensajeConfirmacion').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.';
             callbackConfirmacion = () => eliminarQuiz(idQuiz);
             document.getElementById('modalConfirmacion').classList.add('activo');
         }
@@ -1151,14 +1188,14 @@
             try {
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`, { method: 'DELETE' });
                 if (respuesta.ok) {
-                    alert('âœ… Quiz eliminado');
+                    alert('✅ Quiz eliminado');
                     cerrarModal('modalConfirmacion');
                     cargarQuizzes();
                 } else {
-                    alert('âŒ Error eliminando el quiz');
+                    alert('❌ Error eliminando el quiz');
                 }
             } catch (error) {
-                alert('Error de conexiÃ³n');
+                alert('Error de conexión');
             }
         }
 
@@ -1175,7 +1212,7 @@
 
         document.getElementById('formularioQuiz').addEventListener('submit', async function (e) {
             e.preventDefault();
-            if (!confirm('Â¿Deseas guardar este quiz?')) {
+            if (!confirm('¿Deseas guardar este quiz?')) {
                 return;
             }
 
@@ -1186,7 +1223,6 @@
                 descripcion: document.getElementById('descripcion').value,
                 modo: modo,
                 num_grupos: modo === 'grupal' ? parseInt(document.getElementById('numGrupos').value) : 0,
-                tiempo_cuenta_regresiva: parseInt(document.getElementById('tiempoCuentaRegresiva').value),
                 es_publico: document.getElementById('esPublico').checked
             };
 
@@ -1201,20 +1237,20 @@
 
                 const datos = await respuesta.json();
                 if (respuesta.ok) {
-                    alert('âœ… Quiz guardado exitosamente');
+                    alert('✅ Quiz guardado exitosamente');
                     cerrarModal('modalQuiz');
                     cargarQuizzes();
-                    // âœ… CORREGIDO: Usar 'id_quiz' (no 'quiz_id')
+                    // ✅ CORREGIDO: Usar 'id_quiz' (no 'quiz_id')
                     if (!idQuiz && datos.id_quiz) {
-                        if (confirm('Â¿Deseas agregar preguntas ahora?')) {
+                        if (confirm('¿Deseas agregar preguntas ahora?')) {
                             gestionarPreguntas(datos.id_quiz);
                         }
                     }
                 } else {
-                    alert('âŒ Error guardando el quiz');
+                    alert('❌ Error guardando el quiz');
                 }
             } catch (error) {
-                alert('Error de conexiÃ³n');
+                alert('Error de conexión');
             }
         });
 
@@ -1241,18 +1277,18 @@
                         <div class="encabezado-sesion">
                             <div class="titulo-sesion">${sesion.titulo}</div>
                             <div class="estado-sesion ${sesion.estado}">
-                                ${sesion.estado === 'esperando' ? 'â³ Esperando' :
-                        sesion.estado === 'iniciada' ? 'âœ… Iniciado' : 'ðŸ Finalizado'}
+                                ${sesion.estado === 'esperando' ? '⏳ Esperando' :
+                        sesion.estado === 'iniciada' ? '✅ Iniciado' : '🏁 Finalizado'}
                             </div>
                         </div>
                         <div class="info-sesion">
-                            <span>ðŸ“Œ PIN: <strong>${sesion.codigo_pin}</strong></span>
-                            <span>ðŸ‘¥ Participantes: <strong>${sesion.participant_count}</strong></span>
-                            <span>ðŸ•’ ${new Date(sesion.inicio_en_servidor).toLocaleString()}</span>
+                            <span>📌 PIN: <strong>${sesion.codigo_pin}</strong></span>
+                            <span>👥 Participantes: <strong>${sesion.participant_count}</strong></span>
+                            <span>🕒 ${new Date(sesion.inicio_en_servidor).toLocaleString()}</span>
                         </div>
                         ${sesion.estado === 'iniciada' ? `
                             <div style="background: #fff3cd; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; color: #856404; text-align: center;">
-                                <span id="temporizador-${sesion.sesion_id}">â³ Queda: --:--</span>
+                                <span id="temporizador-${sesion.sesion_id}">⏳ Queda: --:--</span>
                             </div>
                         ` : ''}
 
@@ -1261,24 +1297,24 @@
                                 <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
                                 <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes || 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
                                 <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})" style="margin-left:6px;">
-                                    ðŸš€ INICIAR QUIZ
+                                    🚀 INICIAR QUIZ
                                 </button>
                             </div>
                         ` : sesion.estado === 'iniciada' ? `
                             <div style="display: flex; gap: 10px;">
-                                <p style="color: #4caf50; font-weight: bold; flex: 1;">âœ… Quiz en progreso</p>
+                                <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>
                             </div>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px;">
                                 <button class="boton-iniciar-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
                                     onclick="window.open('/ver_sala_juego/${sesion.sesion_id}', '_blank')">
-                                    ðŸ‘ï¸ Ver como anfitriÃ³n
+                                    👁️ Ver como anfitrión
                                 </button>
                                 <button class="boton-iniciar-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finalizarSesionQuiz(${sesion.sesion_id})">
-                                    â›” Finalizar Ahora
+                                    ⛔ Finalizar Ahora
                                 </button>
                             </div>
                         ` : `
-                            <p style="color: #999; font-weight: bold;">ðŸ Quiz finalizado</p>
+                            <p style="color: #999; font-weight: bold;">🏁 Quiz finalizado</p>
                         `}
                     </div>
                 `).join('');
@@ -1307,13 +1343,13 @@
             if (!elemento) return;
             const fin = window.temporizadoresSesion[idSesion];
             if (!fin) {
-                elemento.textContent = 'â³ Queda: --:--';
+                elemento.textContent = '⏳ Queda: --:--';
                 return;
             }
             const restante = Math.max(0, fin - Date.now());
             const mm = String(Math.floor(restante / 60000)).padStart(2, '0');
             const ss = String(Math.floor((restante % 60000) / 1000)).padStart(2, '0');
-            elemento.textContent = `â³ Queda: ${mm}:${ss}`;
+            elemento.textContent = `⏳ Queda: ${mm}:${ss}`;
             if (restante === 0) {
                 finalizarSesionQuiz(idSesion, true);
             }
@@ -1327,59 +1363,59 @@
 
         async function iniciarSesionQuiz(idSesion) {
             const intentos = document.getElementById(`intentos-${idSesion}`).value;
-            if (!confirm(`Â¿Iniciar el quiz con ${intentos} intentos?`)) return;
+            if (!confirm(`¿Iniciar el quiz con ${intentos} intentos?`)) return;
             try {
-                // âœ… CORREGIDO: Enviar 'intentos' (no 'intentos_restantes')
+                // ✅ CORREGIDO: Enviar 'intentos' (no 'intentos_restantes')
                 const respuesta = await fetch(`/api/sesion/${idSesion}/iniciar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ intentos: parseInt(intentos) })
                 });
                 if (respuesta.ok) {
-                    alert('âœ… Quiz iniciado');
+                    alert('✅ Quiz iniciado');
                     cargarSesionesActivas();
                 } else {
-                    alert('âŒ Error iniciando el quiz');
+                    alert('❌ Error iniciando el quiz');
                 }
             } catch (error) {
-                alert('Error de conexiÃ³n');
+                alert('Error de conexión');
             }
         }
 
         async function finalizarSesionQuiz(idSesion, automatico = false) {
-            if (!automatico && !confirm('Â¿Finalizar el quiz ahora? Los participantes no podrÃ¡n continuar.')) return;
+            if (!automatico && !confirm('¿Finalizar el quiz ahora? Los participantes no podrán continuar.')) return;
             try {
                 const respuesta = await fetch(`/api/sesion/${idSesion}/finalizar`, { method: 'POST' });
                 if (respuesta.ok) {
-                    if (!automatico) alert('âœ… Quiz finalizado');
+                    if (!automatico) alert('✅ Quiz finalizado');
                     delete window.temporizadoresSesion[idSesion];
                     cargarSesionesActivas();
                 } else {
-                    alert('âŒ Error finalizando el quiz');
+                    alert('❌ Error finalizando el quiz');
                 }
             } catch (error) {
-                alert('Error de conexiÃ³n');
+                alert('Error de conexión');
             }
         }
 
-        // âœ… INICIALIZACIÃ“N CORREGIDA
+        // ✅ INICIALIZACIÓN CORREGIDA
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log('ðŸš€ Inicializando Panel de Profesor...');
+            console.log('🚀 Inicializando Panel de Profesor...');
 
-            // âœ… PASO 1: Verificar autenticaciÃ³n
+            // ✅ PASO 1: Verificar autenticación
             const autenticado = await cargarInfoUsuario();
 
             if (!autenticado) {
-                console.error('âŒ Usuario no autenticado o no es profesor');
+                console.error('❌ Usuario no autenticado o no es profesor');
                 return;
             }
 
-            // âœ… PASO 2: Cargar datos solo si estÃ¡ autenticado
-            console.log('âœ… Cargando quizzes y sesiones...');
+            // ✅ PASO 2: Cargar datos solo si está autenticado
+            console.log('✅ Cargando quizzes y sesiones...');
             cargarQuizzes();
             cargarSesionesActivas();
 
-            // âœ… PASO 3: Actualizar periÃ³dicamente
+            // ✅ PASO 3: Actualizar periódicamente
             setInterval(cargarSesionesActivas, 5000);
         });
     </script>

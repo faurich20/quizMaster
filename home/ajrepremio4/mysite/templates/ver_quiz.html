@@ -93,7 +93,9 @@
             document.getElementById('codigoPin').textContent = quiz.codigo_pin || '—';
             document.getElementById('totalPreguntas').textContent = `${(quiz.preguntas || []).length} Preguntas`;
             document.getElementById('modoQuiz').textContent = quiz.modo === 'grupal' ? 'Modo Grupal' : 'Modo Individual';
-            document.getElementById('tiempoQuiz').textContent = `${quiz.tiempo_cuenta_regresiva || 30} segundos por pregunta`;
+            // Eliminado el tiempo por pregunta a nivel de quiz; cada pregunta define su propio tiempo
+            const tieneTiempos = Array.isArray(quiz.preguntas) && quiz.preguntas.every(p => !!p.tiempo_limite);
+            document.getElementById('tiempoQuiz').textContent = tieneTiempos ? 'Tiempo por pregunta definido' : 'Tiempo por pregunta variable';
             document.getElementById('privacidadQuiz').textContent = quiz.es_publico ? 'Público' : 'Privado';
             document.getElementById('iconoPrivacidad').textContent = quiz.es_publico ? '🌐' : '🔒';
 

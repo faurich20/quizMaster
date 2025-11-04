@@ -611,6 +611,7 @@ def info_sesion(id_sesion):
             'codigo_pin': datos_sesion['codigo_pin'],
             'estado': datos_sesion['estado'],
             'inicio_en_servidor': datos_sesion.get('inicio_en_servidor'),
+            'expira_temporizador': datos_sesion.get('expira_temporizador'),
             'intentos_permitidos': datos_sesion.get('intentos_permitidos', 0),
             'intentos_restantes': datos_sesion.get('intentos_restantes', 0),
             'quiz': {
@@ -618,8 +619,7 @@ def info_sesion(id_sesion):
                 'titulo': datos_sesion['titulo'],
                 'descripcion': datos_sesion['descripcion'],
                 'modo': datos_sesion['modo'],
-                'num_grupos': datos_sesion.get('num_grupos', 0),
-                'tiempo_cuenta_regresiva': datos_sesion['tiempo_cuenta_regresiva']
+                'num_grupos': datos_sesion.get('num_grupos', 0)
             },
             'participantes': participantes
         })
@@ -693,6 +693,33 @@ def iniciar_quiz_grupal(id_sesion):
 
         # Frontend envía 'intentos', no 'intentos_restantes'
         intentos = int(datos.get('intentos', 0)) if datos.get('intentos') is not None else 0
+        # Duracion (minutos) opcional desde frontend
+        minutos = None
+        for clave in ('duracion_minutos', 'duracion', 'minutos'):
+            if datos.get(clave) is not None:
+                try:
+                    minutos = int(datos.get(clave))
+                except Exception:
+                    minutos = None
+                break
+
+        # Calcular expiración del temporizador (suma de tiempos por pregunta)
+        cursor.execute('''
+            SELECT COUNT(*) AS cnt, COALESCE(SUM(tiempo_limite), 0) AS total
+            FROM preguntas
+            WHERE quiz_id = %s
+        ''', (datos_sesion['quiz_id'],))
+        fila_t = cursor.fetchone() or {}
+        cnt = fila_t.get('cnt', 0) or 0
+        total = fila_t.get('total', 0) or 0
+        if total and int(total) > 0:
+            duracion_seg = int(total)
+        else:
+            # Respaldo sin columna de quiz: 30s por pregunta
+            duracion_seg = int((cnt or 1) * 30)
+        # Si el profesor indicó duracion manual en minutos, sobrescribir
+        if minutos and minutos > 0:
+            duracion_seg = minutos * 60
 
         # Actualizar estado a 'iniciada'
         cursor.execute('''
@@ -700,16 +727,18 @@ def iniciar_quiz_grupal(id_sesion):
             SET estado = 'iniciada',
                 intentos_permitidos = %s,
                 intentos_restantes = %s,
-                inicio_en_servidor = NOW()
+                inicio_en_servidor = NOW(),
+                expira_temporizador = DATE_ADD(NOW(), INTERVAL %s SECOND)
             WHERE id = %s
-        ''', (intentos, intentos, id_sesion))
+        ''', (intentos, intentos, duracion_seg, id_sesion))
 
         conexion.commit()
         return jsonify({
             'exito': True,
             'estado': 'iniciada',
             'intentos_permitidos': intentos,
-            'intentos_restantes': intentos
+            'intentos_restantes': intentos,
+            'expira_en_seg': duracion_seg
         })
     except Exception as e:
         conexion.rollback()
@@ -869,6 +898,7 @@ def sesiones_activas():
                 gs.codigo_pin, 
                 gs.estado, 
                 gs.inicio_en_servidor,
+                gs.expira_temporizador,
                 gs.intentos_restantes,
                 gs.intentos_permitidos,
                 q.id as quiz_id, 
@@ -880,7 +910,7 @@ def sesiones_activas():
             LEFT JOIN participantes p ON gs.id = p.sesion_id
             WHERE q.id_profesor = %s AND gs.esta_activa = 1
             GROUP BY 
-                gs.id, gs.codigo_pin, gs.estado, gs.inicio_en_servidor, 
+                gs.id, gs.codigo_pin, gs.estado, gs.inicio_en_servidor, gs.expira_temporizador,
                 gs.intentos_restantes, gs.intentos_permitidos, q.id, q.titulo, q.modo
             ORDER BY gs.inicio_en_servidor DESC
         ''', (session['id_usuario'],))
@@ -923,11 +953,11 @@ def gestionar_quizzes():
         
         cursor.execute('''
             INSERT INTO quizzes (id_profesor, titulo, descripcion, modo, num_grupos,
-                               tiempo_cuenta_regresiva, es_publico, codigo_pin)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                               es_publico, codigo_pin)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         ''', (session['id_usuario'], datos.get('titulo'), datos.get('descripcion'),
               datos.get('modo', 'individual'), datos.get('num_grupos', 0),
-              datos.get('tiempo_cuenta_regresiva', 30), datos.get('es_publico', True), codigo_pin))
+              datos.get('es_publico', True), codigo_pin))
         
         id_quiz = cursor.lastrowid
         conexion.commit()
@@ -988,12 +1018,20 @@ def gestionar_quiz(id_quiz):
         datos = request.json
         cursor.execute('''
             UPDATE quizzes 
-            SET titulo = %s, descripcion = %s, modo = %s, num_grupos = %s,
-                tiempo_cuenta_regresiva = %s, es_publico = %s
+            SET titulo = %s,
+                descripcion = %s,
+                modo = %s,
+                num_grupos = %s,
+                es_publico = %s
             WHERE id = %s
-        ''', (datos.get('titulo'), datos.get('descripcion'), datos.get('modo'),
-              datos.get('num_grupos', 0), datos.get('tiempo_cuenta_regresiva'), 
-              datos.get('es_publico'), id_quiz))
+        ''', (
+            datos.get('titulo'),
+            datos.get('descripcion'),
+            datos.get('modo'),
+            datos.get('num_grupos', 0),
+            datos.get('es_publico'),
+            id_quiz
+        ))
         
         conexion.commit()
         conexion.close()
@@ -1285,3 +1323,4 @@ def _listar_rutas():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
