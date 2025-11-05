@@ -953,7 +953,7 @@
             // ✅ CARGAR SESIONES ACTIVAS PARA ESTE QUIZ
             await cargarSesionesActivasEnModal(idQuiz);
             
-            // ✅ INICIAR POLLING SOLO PARA ESTE QUIZ
+            // ✅ INICIAR POLLING SOLO PARA ESTE QUIZ (AUMENTADO A 5 SEGUNDOS)
             if (intervaloSesionesActivas) {
                 clearInterval(intervaloSesionesActivas);
             }
@@ -961,11 +961,11 @@
                 if (document.getElementById('modalProyectarQuiz').classList.contains('activo')) {
                     cargarSesionesActivasEnModal(idQuiz);
                 }
-            }, 3000);
+            }, 5000); // ✅ CAMBIADO DE 3 A 5 SEGUNDOS PARA REDUCIR RECARGAS
         }
 
         // ============================================================
-        // ✅ CARGAR SESIONES ACTIVAS DENTRO DEL MODAL (SIN REGENERAR HTML COMPLETO)
+        // ✅ CARGAR SESIONES ACTIVAS DENTRO DEL MODAL (CORREGIDO COMPLETO)
         // ============================================================
         async function cargarSesionesActivasEnModal(idQuiz) {
             try {
@@ -996,11 +996,23 @@
 
                 if (necesitaRegeneracion) {
                     contenedor.innerHTML = sesiones.map(sesion => {
-                        // ✅ GUARDAR TIMESTAMP DE EXPIRACIÓN
+                        // ✅ GUARDAR TIMESTAMP DE EXPIRACIÓN CORRECTAMENTE
                         if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
-                            // Convertir datetime MySQL a timestamp
-                            const expiraDate = new Date(sesion.expira_temporizador.replace(' ', 'T'));
-                            window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
+                            try {
+                                // Convertir datetime MySQL a timestamp JavaScript
+                                // Formato: "2025-11-05 08:42:22" -> "2025-11-05T08:42:22"
+                                const expiraStr = sesion.expira_temporizador.replace(' ', 'T');
+                                const expiraDate = new Date(expiraStr);
+                                
+                                if (!isNaN(expiraDate.getTime())) {
+                                    window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
+                                    console.log('✅ Temporizador configurado para sesión', sesion.sesion_id, ':', new Date(expiraDate).toLocaleString());
+                                } else {
+                                    console.error('❌ Fecha inválida para sesión', sesion.sesion_id, ':', sesion.expira_temporizador);
+                                }
+                            } catch (e) {
+                                console.error('❌ Error procesando expira_temporizador:', e, sesion.expira_temporizador);
+                            }
                         }
 
                         return `
@@ -1056,17 +1068,32 @@
                         `;
                     }).join('');
                 } else {
-                    // ✅ SOLO ACTUALIZAR CONTADORES DE PARTICIPANTES (SIN REGENERAR HTML)
+                    // ✅ SOLO ACTUALIZAR CONTADORES Y MANTENER TEMPORIZADORES
                     sesiones.forEach(sesion => {
                         const countElement = document.getElementById(`count-${sesion.sesion_id}`);
                         if (countElement) {
                             countElement.textContent = sesion.participant_count;
                         }
                         
-                        // ✅ ACTUALIZAR TIMESTAMP SI CAMBIÓ
+                        // ✅ RESTAURAR O ACTUALIZAR TIMESTAMP SI EXISTE
                         if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
-                            const expiraDate = new Date(sesion.expira_temporizador.replace(' ', 'T'));
-                            window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
+                            // Solo actualizar si NO existe o es diferente
+                            try {
+                                const expiraStr = sesion.expira_temporizador.replace(' ', 'T');
+                                const expiraDate = new Date(expiraStr);
+                                const nuevoTimestamp = expiraDate.getTime();
+                                
+                                if (!isNaN(nuevoTimestamp)) {
+                                    // Solo actualizar si no existe o cambió significativamente (>5 segundos de diferencia)
+                                    const actual = window.temporizadoresSesion[sesion.sesion_id];
+                                    if (!actual || Math.abs(actual - nuevoTimestamp) > 5000) {
+                                        window.temporizadoresSesion[sesion.sesion_id] = nuevoTimestamp;
+                                        console.log('🔄 Temporizador actualizado para sesión', sesion.sesion_id);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('❌ Error actualizando temporizador:', e);
+                            }
                         }
                     });
                 }

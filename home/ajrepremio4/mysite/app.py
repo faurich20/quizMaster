@@ -582,7 +582,6 @@ def info_sesion(id_sesion):
     cursor = conexion.cursor(pymysql.cursors.DictCursor)
     
     try:
-        # Obtener información de la sesión
         cursor.execute('''
             SELECT gs.*, q.* 
             FROM sesiones_juego gs
@@ -595,7 +594,14 @@ def info_sesion(id_sesion):
         if not datos_sesion:
             return jsonify({'error': 'Sesión no encontrada'}), 404
         
-        # Obtener participantes
+        # ✅ CONVERTIR expira_temporizador a ISO string
+        expira_temp = None
+        if datos_sesion.get('expira_temporizador'):
+            try:
+                expira_temp = datos_sesion['expira_temporizador'].isoformat() if hasattr(datos_sesion['expira_temporizador'], 'isoformat') else str(datos_sesion['expira_temporizador'])
+            except:
+                expira_temp = str(datos_sesion.get('expira_temporizador'))
+        
         cursor.execute('''
             SELECT id, nombre_usuario, nombre_grupo, puntuacion_total
             FROM participantes
@@ -610,7 +616,7 @@ def info_sesion(id_sesion):
             'codigo_pin': datos_sesion['codigo_pin'],
             'estado': datos_sesion['estado'],
             'inicio_en_servidor': datos_sesion.get('inicio_en_servidor'),
-            'expira_temporizador': datos_sesion.get('expira_temporizador'),
+            'expira_temporizador': expira_temp,  # ✅ Formato ISO
             'intentos_permitidos': datos_sesion.get('intentos_permitidos', 0),
             'intentos_restantes': datos_sesion.get('intentos_restantes', 0),
             'quiz': {
