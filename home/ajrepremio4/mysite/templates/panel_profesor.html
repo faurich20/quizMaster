@@ -1,4 +1,4 @@
-<!-- templates/panel_profesor.html CORREGIDO -->
+<!-- templates/panel_profesor.html CORREGIDO COMPLETO -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -234,6 +234,7 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .modal.activo {
@@ -370,10 +371,11 @@
             color: #333;
         }
 
+        /* ✅ NUEVOS ESTILOS PARA SESIONES ACTIVAS DENTRO DEL MODAL */
         .tarjeta-sesion {
             background: white;
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 15px;
             border-left: 5px solid #4caf50;
@@ -395,16 +397,16 @@
         }
 
         .titulo-sesion {
-            font-size: 1.5em;
+            font-size: 1.3em;
             color: #333;
             font-weight: bold;
         }
 
         .estado-sesion {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
         .estado-sesion.esperando {
@@ -419,9 +421,11 @@
 
         .info-sesion {
             display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 12px;
             color: #666;
+            font-size: 0.9em;
+            flex-wrap: wrap;
         }
 
         .info-sesion span {
@@ -430,15 +434,45 @@
             gap: 5px;
         }
 
+        /* ✅ CONTENEDOR DE PARTICIPANTES EN TIEMPO REAL */
+        .contenedor-participantes-tiempo-real {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .contenedor-participantes-tiempo-real h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .lista-participantes-tiempo-real {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .participante-chip {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
         .boton-iniciar-quiz {
             background: #4caf50;
             color: white;
-            padding: 12px 30px;
+            padding: 10px 25px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1em;
             transition: all 0.3s ease;
         }
 
@@ -454,13 +488,40 @@
             transform: none;
         }
 
+        /* ✅ ESTILO MEJORADO DEL MODAL PROYECTAR */
         #modalProyectarQuiz .contenido-modal {
+            max-width: 900px;
             background: linear-gradient(135deg, #ffffff, #f0f3ff);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             border-radius: 16px;
         }
 
-        /* ✅ CORRECCIÓN: Fila de opción bien alineada: 3 columnas (check | texto | 🗑️) */
+        .info-pin-compartir {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .info-pin-compartir h3 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .info-pin-compartir p {
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+
+        .info-pin-compartir .pin-grande {
+            font-size: 2.5em;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin: 15px 0;
+        }
+
         .opcion {
             display: grid;
             grid-template-columns: 28px 1fr 44px;
@@ -469,7 +530,6 @@
             margin-bottom: 10px;
         }
 
-        /* ✅ Que NO herede el width:100% global */
         .grupo-formulario .opcion input[type="text"] {
             width: 100% !important;
             padding: 10px;
@@ -479,14 +539,12 @@
             box-sizing: border-box;
         }
 
-        /* ✅ Checkbox más claro */
         .grupo-formulario .opcion input[type="checkbox"] {
             transform: scale(1.2);
             accent-color: #667eea;
             cursor: pointer;
         }
 
-        /* ✅ Botón 🗑️ consistente */
         .opcion .boton-eliminar {
             min-width: 44px;
             height: 40px;
@@ -496,7 +554,6 @@
             justify-content: center;
         }
 
-        /* ✅ Contenedor para "Agregar opción" y "Eliminar pregunta" */
         .opcion-acciones {
             display: flex;
             justify-content: flex-end;
@@ -504,7 +561,6 @@
             margin-top: 10px;
         }
 
-        /* Estilos adicionales para el modal de importación */
         #modalImportarPreguntas .contenido-modal {
             max-height: 90vh;
             overflow-y: auto;
@@ -582,14 +638,6 @@
             </div>
         </div>
 
-        <!-- Sesiones Activas (Modo Grupal) -->
-        <div id="seccionSesionesActivas" style="display: none; margin-bottom: 30px;">
-            <div class="encabezado-seccion">
-                <h2>🎮 Sesiones Grupales Activas</h2>
-            </div>
-            <div id="contenedorSesionesActivas"></div>
-        </div>
-
         <div class="encabezado-seccion">
             <h2 id="tituloQuizzes">Todos los Quizzes</h2>
             <div>
@@ -652,15 +700,14 @@
 
             <div class="acciones-confirmacion" style="margin-top: 20px; gap: 10px;">
                 <button class="boton" onclick="agregarPregunta()">➕ Nueva Pregunta</button>
-                <button class="boton" style="background:#ff9800;" onclick="abrirImportarPreguntas()">📥
-                    Importar</button>
+                <button class="boton" style="background:#ff9800;" onclick="abrirImportarPreguntas()">📥 Importar</button>
                 <button class="boton" style="background:#2196f3;" onclick="descargarPlantilla()">📄 Plantilla</button>
                 <button class="boton" style="background:#4caf50;" onclick="guardarPreguntas()">💾 Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- Nuevo Modal para Importar Preguntas -->
+    <!-- Modal Importar Preguntas -->
     <div class="modal" id="modalImportarPreguntas">
         <div class="contenido-modal" style="max-width: 600px;">
             <div class="encabezado-modal">
@@ -709,14 +756,29 @@
         </div>
     </div>
 
-    <!-- Modal proyectar Quiz -->
+    <!-- ✅ MODAL PROYECTAR QUIZ MEJORADO -->
     <div class="modal" id="modalProyectarQuiz">
-        <div class="contenido-modal" style="max-width: 600px; text-align: center; padding: 40px;">
-            <div class="encabezado-modal" style="justify-content: center;">
-                <h2 style="font-size: 2rem;">🎯 ¡Comparte tu Quiz!</h2>
+        <div class="contenido-modal">
+            <div class="encabezado-modal">
+                <h2>🎯 Proyectar Quiz</h2>
+                <button class="boton-cerrar" onclick="cerrarModal('modalProyectarQuiz')">&times;</button>
             </div>
-            <p id="textoProyectar" style="font-size: 1.2rem; margin: 20px 0;"></p>
-            <button class="boton" onclick="cerrarModal('modalProyectarQuiz')">Cerrar</button>
+
+            <!-- Información del PIN -->
+            <div class="info-pin-compartir">
+                <h3>¡Comparte tu Quiz!</h3>
+                <p>Entra a:</p>
+                <p style="font-weight: bold; font-size: 1.2em;" id="urlJugar"></p>
+                <p style="margin-top: 15px;">PIN:</p>
+                <p class="pin-grande" id="pinProyectar"></p>
+            </div>
+
+            <!-- ✅ CONTENEDOR DE SESIONES ACTIVAS DENTRO DEL MODAL -->
+            <div id="contenedorSesionesActivas"></div>
+
+            <button class="boton" onclick="cerrarModal('modalProyectarQuiz')" style="width: 100%; margin-top: 20px;">
+                Cerrar
+            </button>
         </div>
     </div>
 
@@ -728,8 +790,7 @@
                 <p id="mensajeConfirmacion">Esta acción no se puede deshacer.</p>
                 <div class="acciones-confirmacion">
                     <button class="boton-confirmar boton-si" onclick="confirmarAccion()">Sí, continuar</button>
-                    <button class="boton-confirmar boton-no"
-                        onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
+                    <button class="boton-confirmar boton-no" onclick="cerrarModal('modalConfirmacion')">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -739,11 +800,13 @@
         let idQuizActual = null;
         let callbackConfirmacion = null;
         let idUsuarioActual = null;
+        let intervaloSesionesActivas = null;
+        let quizActualProyectado = null; // Quiz que se está proyectando
+        window.temporizadoresSesion = {};
 
-        function obtenerIdUsuarioActual() {
-            return idUsuarioActual;
-        }
-
+        // ============================================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================================
         async function cargarInfoUsuario() {
             try {
                 const respuesta = await fetch('/api/info_sesion');
@@ -773,6 +836,9 @@
             }
         }
 
+        // ============================================================
+        // FUNCIONES DE QUIZZES
+        // ============================================================
         async function cargarQuizzes(filtro = 'todos') {
             try {
                 const respuesta = await fetch('/api/quizzes');
@@ -789,7 +855,7 @@
 
                 let quizzesFiltrados = quizzes;
                 if (filtro === 'mios') {
-                    quizzesFiltrados = quizzes.filter(q => q.id_profesor == obtenerIdUsuarioActual());
+                    quizzesFiltrados = quizzes.filter(q => q.id_profesor == idUsuarioActual);
                 }
 
                 if (quizzesFiltrados.length === 0) {
@@ -808,15 +874,15 @@
                         </div>
                         <div class="codigo-pin">PIN: ${quiz.codigo_pin}</div>
                         <div class="acciones-quiz" style="margin-top: 15px;">
-                            ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
+                            ${quiz.id_profesor == idUsuarioActual ? `
                             <button class="boton-pequeno boton-editar" onclick="editarQuiz(${quiz.id})">✏️ Editar</button>
                             <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                             ` : `
                             <button class="boton-pequeno boton-editar" onclick="gestionarPreguntas(${quiz.id})">📝 Preguntas</button>
                             `}
-                            <button class="boton-pequeno boton-proyectar" onclick="proyectarQuiz('${quiz.codigo_pin}')">🔗 Proyectar</button>
+                            <button class="boton-pequeno boton-proyectar" onclick="proyectarQuiz('${quiz.codigo_pin}', ${quiz.id})">🔗 Proyectar</button>
                             <button class="boton-pequeno boton-duplicar" onclick="duplicarQuiz(${quiz.id})">📋 Duplicar</button>
-                            ${quiz.id_profesor == obtenerIdUsuarioActual() ? `
+                            ${quiz.id_profesor == idUsuarioActual ? `
                             <button class="boton-pequeno boton-eliminar" onclick="confirmarEliminarQuiz(${quiz.id})">🗑️ Eliminar</button>
                             ` : ''}
                         </div>
@@ -830,7 +896,7 @@
         }
 
         function actualizarEstadisticas(quizzes) {
-            const misQuizzes = quizzes.filter(q => q.id_profesor == obtenerIdUsuarioActual());
+            const misQuizzes = quizzes.filter(q => q.id_profesor == idUsuarioActual);
             document.getElementById('totalQuizzes').textContent = misQuizzes.length;
             document.getElementById('totalPublic').textContent = quizzes.filter(q => q.es_publico).length;
         }
@@ -867,10 +933,339 @@
             }
         }
 
+        // ============================================================
+        // ✅ FUNCIÓN PROYECTAR QUIZ MEJORADA
+        // ============================================================
+        async function proyectarQuiz(codigoPin, idQuiz) {
+            quizActualProyectado = idQuiz;
+            const urlJuego = `${window.location.origin}/jugar`;
+            
+            document.getElementById('urlJugar').textContent = urlJuego;
+            document.getElementById('pinProyectar').textContent = codigoPin;
+            
+            // Abrir modal
+            document.getElementById('modalProyectarQuiz').classList.add('activo');
+            
+            // Copiar al portapapeles
+            const textoPlano = `🎯 Únete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
+            navigator.clipboard.writeText(textoPlano).catch(() => {});
+            
+            // ✅ CARGAR SESIONES ACTIVAS PARA ESTE QUIZ
+            await cargarSesionesActivasEnModal(idQuiz);
+            
+            // ✅ INICIAR POLLING SOLO PARA ESTE QUIZ
+            if (intervaloSesionesActivas) {
+                clearInterval(intervaloSesionesActivas);
+            }
+            intervaloSesionesActivas = setInterval(() => {
+                if (document.getElementById('modalProyectarQuiz').classList.contains('activo')) {
+                    cargarSesionesActivasEnModal(idQuiz);
+                }
+            }, 3000);
+        }
+
+        // ============================================================
+        // ✅ CARGAR SESIONES ACTIVAS DENTRO DEL MODAL (SIN REGENERAR HTML COMPLETO)
+        // ============================================================
+        async function cargarSesionesActivasEnModal(idQuiz) {
+            try {
+                const respuesta = await fetch('/api/sesiones_activas');
+                const todasLasSesiones = await respuesta.json();
+                
+                // Filtrar solo sesiones del quiz actual
+                const sesiones = todasLasSesiones.filter(s => s.quiz_id == idQuiz);
+                
+                const contenedor = document.getElementById('contenedorSesionesActivas');
+                
+                if (sesiones.length === 0) {
+                    contenedor.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #666; background: #f8f9fa; border-radius: 10px; margin-top: 20px;">
+                            <p style="font-size: 1.1em;">⏳ Esperando participantes...</p>
+                            <p style="font-size: 0.9em; margin-top: 5px;">Los participantes aparecerán aquí cuando se unan</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const totalParticipantes = sesiones.reduce((acum, s) => acum + (s.participant_count || 0), 0);
+                document.getElementById('totalparticipantes').textContent = totalParticipantes;
+
+                // ✅ SOLO REGENERAR SI NO EXISTE O CAMBIÓ EL NÚMERO DE SESIONES
+                const sesionesExistentes = contenedor.querySelectorAll('.tarjeta-sesion');
+                const necesitaRegeneracion = sesionesExistentes.length !== sesiones.length;
+
+                if (necesitaRegeneracion) {
+                    contenedor.innerHTML = sesiones.map(sesion => {
+                        // ✅ GUARDAR TIMESTAMP DE EXPIRACIÓN
+                        if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
+                            // Convertir datetime MySQL a timestamp
+                            const expiraDate = new Date(sesion.expira_temporizador.replace(' ', 'T'));
+                            window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
+                        }
+
+                        return `
+                            <div class="tarjeta-sesion ${sesion.estado}" data-sesion-id="${sesion.sesion_id}">
+                                <div class="encabezado-sesion">
+                                    <div class="titulo-sesion">${sesion.titulo}</div>
+                                    <div class="estado-sesion ${sesion.estado}">
+                                        ${sesion.estado === 'esperando' ? '⏳ Esperando' :
+                                          sesion.estado === 'iniciada' ? '✅ Iniciado' : '🏁 Finalizado'}
+                                    </div>
+                                </div>
+                                <div class="info-sesion">
+                                    <span>📌 PIN: <strong>${sesion.codigo_pin}</strong></span>
+                                    <span>👥 Participantes: <strong id="count-${sesion.sesion_id}">${sesion.participant_count}</strong></span>
+                                    <span>🕒 ${new Date(sesion.inicio_en_servidor).toLocaleString()}</span>
+                                </div>
+                                
+                                ${sesion.estado === 'iniciada' ? `
+                                    <div style="background: #fff3cd; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; color: #856404; text-align: center;">
+                                        <span id="temporizador-${sesion.sesion_id}">⏳ Queda: --:--</span>
+                                    </div>
+                                ` : ''}
+
+                                ${sesion.estado === 'esperando' ? `
+                                    <div style="margin:12px 0; display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap: wrap;">
+                                        <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700;">Intentos:</label>
+                                        <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes || 0}" 
+                                            style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                                        <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})">
+                                            🚀 INICIAR QUIZ
+                                        </button>
+                                    </div>
+                                ` : sesion.estado === 'iniciada' ? `
+                                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                        <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px;">
+                                        <button class="boton-iniciar-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
+                                            onclick="window.open('/ver_sala_juego/${sesion.sesion_id}', '_blank')">
+                                            👁️ Ver como anfitrión
+                                        </button>
+                                        <button class="boton-iniciar-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" 
+                                            onclick="finalizarSesionQuiz(${sesion.sesion_id})">
+                                            ⛔ Finalizar Ahora
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <p style="color: #999; font-weight: bold;">🏁 Quiz finalizado</p>
+                                `}
+
+                                <div id="participantes-sesion-${sesion.sesion_id}"></div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    // ✅ SOLO ACTUALIZAR CONTADORES DE PARTICIPANTES (SIN REGENERAR HTML)
+                    sesiones.forEach(sesion => {
+                        const countElement = document.getElementById(`count-${sesion.sesion_id}`);
+                        if (countElement) {
+                            countElement.textContent = sesion.participant_count;
+                        }
+                        
+                        // ✅ ACTUALIZAR TIMESTAMP SI CAMBIÓ
+                        if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
+                            const expiraDate = new Date(sesion.expira_temporizador.replace(' ', 'T'));
+                            window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
+                        }
+                    });
+                }
+
+                // ✅ CARGAR PARTICIPANTES EN TIEMPO REAL PARA CADA SESIÓN
+                sesiones.forEach(sesion => {
+                    cargarParticipantesEnTiempoReal(sesion.sesion_id);
+                });
+
+            } catch (error) {
+                console.error('Error cargando sesiones activas:', error);
+            }
+        }
+
+        // ============================================================
+        // ✅ CARGAR PARTICIPANTES EN TIEMPO REAL
+        // ============================================================
+        async function cargarParticipantesEnTiempoReal(idSesion) {
+            try {
+                const respuesta = await fetch(`/api/sesion/${idSesion}/estado`);
+                const datos = await respuesta.json();
+                
+                const contenedor = document.getElementById(`participantes-sesion-${idSesion}`);
+                if (!contenedor) return;
+                
+                const participantes = datos.participantes || [];
+                
+                if (participantes.length === 0) {
+                    contenedor.innerHTML = '';
+                    return;
+                }
+
+                contenedor.innerHTML = `
+                    <div class="contenedor-participantes-tiempo-real">
+                        <h4>👥 Participantes conectados (${participantes.length}):</h4>
+                        <div class="lista-participantes-tiempo-real">
+                            ${participantes.map(p => `
+                                <div class="participante-chip">
+                                    ${p.nombre_usuario}${p.nombre_grupo ? ` - ${p.nombre_grupo}` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error cargando participantes:', error);
+            }
+        }
+
+        // ============================================================
+        // ✅ ACTUALIZAR VISUALIZACIÓN DEL TEMPORIZADOR (CORREGIDO)
+        // ============================================================
+        function actualizarVisualizacionTemporizador(idSesion) {
+            const elemento = document.getElementById(`temporizador-${idSesion}`);
+            if (!elemento) return;
+            
+            const expira = window.temporizadoresSesion[idSesion];
+            if (!expira) {
+                elemento.textContent = '⏳ Queda: --:--';
+                return;
+            }
+            
+            const ahora = new Date().getTime();
+            const restante = Math.max(0, expira - ahora);
+            
+            // ✅ VALIDAR QUE EL TIEMPO RESTANTE SEA RAZONABLE
+            if (restante > 86400000) { // Más de 24 horas = error de conversión
+                console.error('Tiempo restante inválido:', restante, 'para sesión', idSesion);
+                elemento.textContent = '⏳ Queda: --:--';
+                return;
+            }
+            
+            const minutos = Math.floor(restante / 60000);
+            const segundos = Math.floor((restante % 60000) / 1000);
+            
+            elemento.textContent = `⏳ Queda: ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+            
+            // ✅ SOLO FINALIZAR SI REALMENTE LLEGÓ A 0
+            if (restante === 0) {
+                console.log('⏰ Tiempo agotado para sesión', idSesion);
+                finalizarSesionQuiz(idSesion, true);
+                delete window.temporizadoresSesion[idSesion];
+            }
+        }
+
+        // ✅ ACTUALIZAR TEMPORIZADORES CADA SEGUNDO
+        setInterval(() => {
+            Object.keys(window.temporizadoresSesion).forEach(idSesion => {
+                actualizarVisualizacionTemporizador(idSesion);
+            });
+        }, 1000);
+
+        // ============================================================
+        // ✅ INICIAR SESIÓN DE QUIZ CON PROMPT PARA TIEMPO (CORREGIDO)
+        // ============================================================
+        async function iniciarSesionQuiz(idSesion) {
+            const inputIntentos = document.getElementById(`intentos-${idSesion}`);
+            const intentos = parseInt(inputIntentos?.value || 0);
+            
+            // ✅ PEDIR TIEMPO CON PROMPT
+            const tiempoMinutos = prompt('¿Cuántos minutos durará el quiz?\n(Dejar vacío para usar el tiempo de cada pregunta)', '');
+            
+            let duracionMinutos = null;
+            if (tiempoMinutos !== null && tiempoMinutos.trim() !== '') {
+                duracionMinutos = parseInt(tiempoMinutos);
+                if (isNaN(duracionMinutos) || duracionMinutos <= 0) {
+                    alert('⚠️ Por favor ingresa un número válido de minutos');
+                    return;
+                }
+            }
+            
+            const mensajeConfirmacion = duracionMinutos 
+                ? `¿Iniciar el quiz con ${intentos} intentos y ${duracionMinutos} minutos?`
+                : `¿Iniciar el quiz con ${intentos} intentos (tiempo: suma de cada pregunta)?`;
+            
+            if (!confirm(mensajeConfirmacion)) {
+                return;
+            }
+            
+            try {
+                const payload = { intentos: intentos };
+                if (duracionMinutos !== null) {
+                    payload.duracion_minutos = duracionMinutos;
+                }
+                
+                console.log('📤 Enviando:', payload);
+                
+                const respuesta = await fetch(`/api/sesion/${idSesion}/iniciar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (respuesta.ok) {
+                    const datos = await respuesta.json();
+                    console.log('✅ Respuesta servidor:', datos);
+                    
+                    alert('✅ Quiz iniciado');
+                    
+                    // ✅ CALCULAR TIEMPO DE EXPIRACIÓN CORRECTAMENTE
+                    if (datos.expira_en_seg && datos.expira_en_seg > 0) {
+                        const ahora = new Date().getTime();
+                        const expirationTimestamp = ahora + (datos.expira_en_seg * 1000);
+                        window.temporizadoresSesion[idSesion] = expirationTimestamp;
+                        
+                        console.log('⏰ Temporizador configurado:', {
+                            ahora: new Date(ahora).toLocaleString(),
+                            expira: new Date(expirationTimestamp).toLocaleString(),
+                            segundos_restantes: datos.expira_en_seg
+                        });
+                    } else {
+                        console.warn('⚠️ No se recibió expira_en_seg del servidor');
+                    }
+                    
+                    // Recargar sesiones (forzar regeneración completa)
+                    if (quizActualProyectado) {
+                        // Forzar regeneración limpiando el contenedor
+                        document.getElementById('contenedorSesionesActivas').innerHTML = '';
+                        await cargarSesionesActivasEnModal(quizActualProyectado);
+                    }
+                } else {
+                    const error = await respuesta.json();
+                    alert('❌ Error: ' + (error.error || 'No se pudo iniciar el quiz'));
+                }
+            } catch (error) {
+                console.error('Error iniciando quiz:', error);
+                alert('Error de conexión');
+            }
+        }
+
+        // ============================================================
+        // FINALIZAR SESIÓN DE QUIZ
+        // ============================================================
+        async function finalizarSesionQuiz(idSesion, automatico = false) {
+            if (!automatico && !confirm('¿Finalizar el quiz ahora? Los participantes no podrán continuar.')) return;
+            
+            try {
+                const respuesta = await fetch(`/api/sesion/${idSesion}/finalizar`, { method: 'POST' });
+                if (respuesta.ok) {
+                    if (!automatico) alert('✅ Quiz finalizado');
+                    delete window.temporizadoresSesion[idSesion];
+                    
+                    if (quizActualProyectado) {
+                        cargarSesionesActivasEnModal(quizActualProyectado);
+                    }
+                } else {
+                    alert('❌ Error finalizando el quiz');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        }
+
+        // ============================================================
+        // GESTIÓN DE PREGUNTAS
+        // ============================================================
         let idQuizSeleccionado = null;
         let quizData = {};
 
-        // ✅ SOLUCIÓN PRINCIPAL: Capturar valores del DOM antes de recargar
         function capturarValoresActuales() {
             const valores = {};
             document.querySelectorAll('#listaPreguntas input, #listaPreguntas textarea').forEach(input => {
@@ -885,7 +1280,6 @@
             return valores;
         }
 
-        // ✅ Restaurar valores después de recargar HTML
         function restaurarValoresCapturados(valores) {
             Object.keys(valores).forEach(id => {
                 const input = document.getElementById(id);
@@ -975,15 +1369,11 @@
         }
 
         async function recargarPreguntas() {
-            // ✅ SOLUCIÓN: Capturar valores antes de recargar
             const valoresGuardados = capturarValoresActuales();
-
             const resp = await fetch(`/api/quizzes/${idQuizSeleccionado}`);
             const data = await resp.json();
             quizData = data;
             mostrarPreguntas(quizData.preguntas || []);
-
-            // ✅ Restaurar valores después de recargar
             setTimeout(() => restaurarValoresCapturados(valoresGuardados), 50);
         }
 
@@ -993,7 +1383,6 @@
                 return;
             }
 
-            // ✅ CORRECCIÓN: Capturar valores DEL DOM (no de quizData)
             const valoresGuardados = capturarValoresActuales();
 
             const nueva = {
@@ -1014,7 +1403,6 @@
 
             if (resp.ok) {
                 await recargarPreguntas();
-                // ✅ Restaurar valores DESPUÉS de que el DOM se actualice
                 setTimeout(() => restaurarValoresCapturados(valoresGuardados), 100);
             } else {
                 alert('❌ Error al agregar la pregunta');
@@ -1022,14 +1410,10 @@
         }
 
         async function agregarOpcion(idPregunta) {
-            // ✅ CORRECCIÓN CRÍTICA: Leer valores ACTUALES del DOM antes de hacer cambios
             const valoresGuardados = capturarValoresActuales();
-
-            // Actualizar quizData con los valores del DOM PRIMERO
             const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
             if (!pregunta) return;
 
-            // ✅ Leer valores actuales de las opciones existentes desde el DOM
             const opcionesActualizadas = (pregunta.opciones || []).map(o => {
                 const inputTexto = document.getElementById(`opt-text-${idPregunta}-${o.id}`);
                 const inputCheck = document.getElementById(`opt-check-${idPregunta}-${o.id}`);
@@ -1040,7 +1424,6 @@
                 };
             });
 
-            // Agregar la nueva opción
             const nuevasOpciones = opcionesActualizadas.concat([{
                 texto_opcion: "Nueva opción",
                 es_correcta: false
@@ -1053,20 +1436,16 @@
             });
 
             await recargarPreguntas();
-            // ✅ Restaurar con timeout mayor para asegurar render completo
             setTimeout(() => restaurarValoresCapturados(valoresGuardados), 100);
         }
 
         async function eliminarOpcion(idPregunta, idOpcion) {
-            // ✅ CORRECCIÓN CRÍTICA: Capturar valores DEL DOM antes de eliminar
             const valoresGuardados = capturarValoresActuales();
-
             const pregunta = quizData.preguntas.find(p => p.id === idPregunta);
             if (!pregunta) return;
 
-            // ✅ Leer valores actuales de TODAS las opciones desde el DOM
             const opcionesActualizadas = (pregunta.opciones || [])
-                .filter(o => o.id !== idOpcion) // Eliminar la opción seleccionada
+                .filter(o => o.id !== idOpcion)
                 .map(o => {
                     const inputTexto = document.getElementById(`opt-text-${idPregunta}-${o.id}`);
                     const inputCheck = document.getElementById(`opt-check-${idPregunta}-${o.id}`);
@@ -1084,28 +1463,22 @@
             });
 
             await recargarPreguntas();
-            // ✅ Restaurar valores después de recargar
             setTimeout(() => restaurarValoresCapturados(valoresGuardados), 100);
         }
 
         async function eliminarPregunta(idPregunta) {
             if (!confirm('¿Seguro que deseas eliminar esta pregunta?')) return;
-
-            // ✅ CORRECCIÓN: Capturar valores del DOM antes de eliminar
             const valoresGuardados = capturarValoresActuales();
-
             const resp = await fetch(`/api/preguntas/${idPregunta}`, { method: 'DELETE' });
 
             if (resp.ok) {
                 await recargarPreguntas();
-                // ✅ Restaurar valores de las preguntas restantes
                 setTimeout(() => restaurarValoresCapturados(valoresGuardados), 100);
             } else {
                 alert('❌ No se pudo eliminar la pregunta');
             }
         }
 
-        // ✅ FUNCIÓN CORREGIDA: Guardar y cerrar modal
         async function guardarPreguntas() {
             if (!quizData || !quizData.preguntas || quizData.preguntas.length === 0) {
                 alert('No hay preguntas para guardar');
@@ -1113,22 +1486,18 @@
             }
 
             try {
-                // Recorremos las preguntas que están renderizadas
                 for (const p of quizData.preguntas) {
-                    // 1) Leer valores visibles del DOM
                     const texto_pregunta = document.getElementById(`preg-text-${p.id}`)?.value ?? p.texto_pregunta ?? '';
                     const tiempo_limite = parseInt(document.getElementById(`preg-tiempo-${p.id}`)?.value ?? p.tiempo_limite ?? 30, 10) || 30;
                     const url_imagen = document.getElementById(`preg-img-${p.id}`)?.value ?? p.url_imagen ?? null;
                     const url_video = document.getElementById(`preg-video-${p.id}`)?.value ?? p.url_video ?? null;
 
-                    // 2) Leer opciones visibles del DOM
                     const opciones_leidas = (p.opciones || []).map(o => {
                         const texto = document.getElementById(`opt-text-${p.id}-${o.id}`)?.value ?? o.texto_opcion ?? '';
                         const check = !!document.getElementById(`opt-check-${p.id}-${o.id}`)?.checked;
                         return { texto_opcion: texto, es_correcta: check };
                     });
 
-                    // 3) PUT a /api/preguntas/<id>
                     const resp = await fetch(`/api/preguntas/${p.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -1151,11 +1520,7 @@
                 }
 
                 alert('✅ Preguntas guardadas correctamente');
-
-                // ✅ CERRAR EL MODAL después de guardar
                 cerrarModal('modalPreguntasQuiz');
-
-                // Recargar la lista de quizzes para reflejar cambios
                 await cargarQuizzes();
 
             } catch (e) {
@@ -1164,24 +1529,9 @@
             }
         }
 
-        function proyectarQuiz(codigoPin) {
-            const urlJuego = `${window.location.origin}/jugar`;
-            const mensajeHTML = `
-                <div style="margin-top: 6px;">
-                <p style="font-size:1.2rem; margin: 8px 0 2px;">Entra a:</p>
-                <p style="font-weight:bold; color:#667eea; font-size:1.5rem; word-break: break-all;">${urlJuego}</p>
-                <p style="margin-top:16px; font-size:1.1rem;">PIN:</p>
-                <p style="font-size:2rem; font-weight:800; letter-spacing:3px; color:#333;">${codigoPin}</p>
-                </div>
-            `;
-            const cont = document.getElementById('textoProyectar');
-            cont.innerHTML = mensajeHTML;
-            document.getElementById('modalProyectarQuiz').classList.add('activo');
-
-            const textoPlano = `🎯 Únete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
-            navigator.clipboard.writeText(textoPlano).catch(() => { });
-        }
-
+        // ============================================================
+        // DUPLICAR QUIZ
+        // ============================================================
         async function duplicarQuiz(idQuiz) {
             if (!confirm('¿Deseas duplicar este quiz y sus preguntas?')) return;
             try {
@@ -1246,6 +1596,9 @@
             }
         }
 
+        // ============================================================
+        // ELIMINAR QUIZ
+        // ============================================================
         function confirmarEliminarQuiz(idQuiz) {
             document.getElementById('tituloConfirmacion').textContent = '¿Eliminar Quiz?';
             document.getElementById('mensajeConfirmacion').textContent = 'Esta acción eliminará el quiz y todas sus preguntas. No se puede deshacer.';
@@ -1275,10 +1628,25 @@
             }
         }
 
+        // ============================================================
+        // CERRAR MODAL
+        // ============================================================
         function cerrarModal(idModal) {
             document.getElementById(idModal).classList.remove('activo');
+            
+            // ✅ DETENER POLLING AL CERRAR MODAL DE PROYECTAR
+            if (idModal === 'modalProyectarQuiz') {
+                if (intervaloSesionesActivas) {
+                    clearInterval(intervaloSesionesActivas);
+                    intervaloSesionesActivas = null;
+                }
+                quizActualProyectado = null;
+            }
         }
 
+        // ============================================================
+        // FORMULARIO CREAR/EDITAR QUIZ
+        // ============================================================
         document.getElementById('formularioQuiz').addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!confirm('¿Deseas guardar este quiz?')) {
@@ -1322,226 +1690,28 @@
             }
         });
 
-        // ✅ Variable global para controlar el polling
-        let intervaloSesionesActivas = null;
-        let ultimoConteoSesiones = 0;
-
-        // ✅ Función mejorada que solo hace polling cuando hay sesiones
-        async function cargarSesionesActivas() {
-            try {
-                const respuesta = await fetch('/api/sesiones_activas');
-                const sesiones = await respuesta.json();
-
-                const seccion = document.getElementById('seccionSesionesActivas');
-                const contenedor = document.getElementById('contenedorSesionesActivas');
-
-                // 🔹 Si NO hay sesiones activas
-                if (sesiones.length === 0) {
-                    seccion.style.display = 'none';
-                    document.getElementById('totalparticipantes').textContent = 0;
-                    ultimoConteoSesiones = 0;
-
-                    // 🔹 DETENER polling si no hay sesiones
-                    if (intervaloSesionesActivas) {
-                        console.log('⏸️ No hay sesiones activas. Deteniendo polling.');
-                        clearInterval(intervaloSesionesActivas);
-                        intervaloSesionesActivas = null;
-                    }
-                    return;
-                }
-
-                // 🔹 Si HAY sesiones activas
-                ultimoConteoSesiones = sesiones.length;
-
-                // 🔹 INICIAR polling si no estaba activo
-                if (!intervaloSesionesActivas) {
-                    console.log('▶️ Sesiones activas detectadas. Iniciando polling cada 5s.');
-                    intervaloSesionesActivas = setInterval(cargarSesionesActivas, 5000);
-                }
-
-                const totalParticipantes = sesiones.reduce((acum, s) => acum + (s.participant_count || 0), 0);
-                document.getElementById('totalparticipantes').textContent = totalParticipantes;
-
-                seccion.style.display = 'block';
-                contenedor.innerHTML = sesiones.map(sesion => `
-            <div class="tarjeta-sesion ${sesion.estado}">
-                <div class="encabezado-sesion">
-                    <div class="titulo-sesion">${sesion.titulo}</div>
-                    <div class="estado-sesion ${sesion.estado}">
-                        ${sesion.estado === 'esperando' ? '⏳ Esperando' :
-                        sesion.estado === 'iniciada' ? '✅ Iniciado' : '🏁 Finalizado'}
-                    </div>
-                </div>
-                <div class="info-sesion">
-                    <span>📌 PIN: <strong>${sesion.codigo_pin}</strong></span>
-                    <span>👥 Participantes: <strong>${sesion.participant_count}</strong></span>
-                    <span>🕒 ${new Date(sesion.inicio_en_servidor).toLocaleString()}</span>
-                </div>
-                ${sesion.estado === 'iniciada' ? `
-                    <div style="background: #fff3cd; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; color: #856404; text-align: center;">
-                        <span id="temporizador-${sesion.sesion_id}">⏳ Queda: --:--</span>
-                    </div>
-                ` : ''}
-
-                ${sesion.estado === 'esperando' ? `
-                    <div style="margin:8px 0; display:flex; gap:8px; align-items:center; justify-content:center;">
-                        <label for="intentos-${sesion.sesion_id}" style="color:#333; font-weight:700; margin-right:8px;">Intentos:</label>
-                        <input id="intentos-${sesion.sesion_id}" type="number" min="0" value="${sesion.intentos_restantes || 0}" style="width:80px; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                        <button class="boton-iniciar-quiz" onclick="iniciarSesionQuiz(${sesion.sesion_id})" style="margin-left:6px;">
-                            🚀 INICIAR QUIZ
-                        </button>
-                    </div>
-                ` : sesion.estado === 'iniciada' ? `
-                    <div style="display: flex; gap: 10px;">
-                        <p style="color: #4caf50; font-weight: bold; flex: 1;">✅ Quiz en progreso</p>
-                    </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px;">
-                        <button class="boton-iniciar-quiz" style="background: #6c63ff; width: auto; padding: 8px 20px; font-size: 0.9em;"
-                            onclick="window.open('/ver_sala_juego/${sesion.sesion_id}', '_blank')">
-                            👁️ Ver como anfitrión
-                        </button>
-                        <button class="boton-iniciar-quiz" style="background: #f44336; width: auto; padding: 8px 20px; font-size: 0.9em;" onclick="finalizarSesionQuiz(${sesion.sesion_id})">
-                            ⛔ Finalizar Ahora
-                        </button>
-                    </div>
-                ` : `
-                    <p style="color: #999; font-weight: bold;">🏁 Quiz finalizado</p>
-                `}
-            </div>
-        `).join('');
-
-                sesiones.forEach(s => {
-                    if (s.estado === 'iniciada' && window.temporizadoresSesion && window.temporizadoresSesion[s.sesion_id]) {
-                        actualizarVisualizacionTemporizador(s.sesion_id);
-                    }
-                });
-            } catch (error) {
-                console.error('Error cargando sesiones activas:', error);
-            }
-        }
-
-        // ✅ INICIALIZACIÓN MEJORADA
-        document.addEventListener('DOMContentLoaded', async function () {
-            console.log('🚀 Inicializando Panel de Profesor...');
-
-            // ✅ PASO 1: Verificar autenticación
-            const autenticado = await cargarInfoUsuario();
-
-            if (!autenticado) {
-                console.error('❌ Usuario no autenticado o no es profesor');
-                return;
-            }
-
-            // ✅ PASO 2: Cargar datos solo si está autenticado
-            console.log('✅ Cargando quizzes y sesiones...');
-            cargarQuizzes();
-            cargarSesionesActivas(); // Solo carga inicial, el polling se activa automáticamente si hay sesiones
-
-            // ✅ PASO 3: Polling manual cada 30s para verificar si hay nuevas sesiones
-            // (más espaciado porque solo verifica si apareció algo nuevo)
-            setInterval(async () => {
-                // Solo verificar si NO hay polling activo
-                if (!intervaloSesionesActivas) {
-                    const resp = await fetch('/api/sesiones_activas');
-                    const sesiones = await resp.json();
-                    if (sesiones.length > 0) {
-                        console.log('🔔 Nueva sesión detectada. Activando polling...');
-                        cargarSesionesActivas();
-                    }
-                }
-            }, 30000); // Cada 30 segundos solo para detectar nuevas sesiones
-        });
-
-        window.temporizadoresSesion = window.temporizadoresSesion || {};
-
-        function actualizarVisualizacionTemporizador(idSesion) {
-            const elemento = document.getElementById(`temporizador-${idSesion}`);
-            if (!elemento) return;
-            const fin = window.temporizadoresSesion[idSesion];
-            if (!fin) {
-                elemento.textContent = '⏳ Queda: --:--';
-                return;
-            }
-            const restante = Math.max(0, fin - Date.now());
-            const mm = String(Math.floor(restante / 60000)).padStart(2, '0');
-            const ss = String(Math.floor((restante % 60000) / 1000)).padStart(2, '0');
-            elemento.textContent = `⏳ Queda: ${mm}:${ss}`;
-            if (restante === 0) {
-                finalizarSesionQuiz(idSesion, true);
-            }
-        }
-
-        setInterval(() => {
-            Object.keys(window.temporizadoresSesion).forEach(idSesion => {
-                actualizarVisualizacionTemporizador(idSesion);
-            });
-        }, 1000);
-
-        async function iniciarSesionQuiz(idSesion) {
-            const intentos = document.getElementById(`intentos-${idSesion}`).value;
-            if (!confirm(`¿Iniciar el quiz con ${intentos} intentos?`)) return;
-            try {
-                const respuesta = await fetch(`/api/sesion/${idSesion}/iniciar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ intentos: parseInt(intentos) })
-                });
-                if (respuesta.ok) {
-                    alert('✅ Quiz iniciado');
-                    cargarSesionesActivas();
-                } else {
-                    alert('❌ Error iniciando el quiz');
-                }
-            } catch (error) {
-                alert('Error de conexión');
-            }
-        }
-
-        async function finalizarSesionQuiz(idSesion, automatico = false) {
-            if (!automatico && !confirm('¿Finalizar el quiz ahora? Los participantes no podrán continuar.')) return;
-            try {
-                const respuesta = await fetch(`/api/sesion/${idSesion}/finalizar`, { method: 'POST' });
-                if (respuesta.ok) {
-                    if (!automatico) alert('✅ Quiz finalizado');
-                    delete window.temporizadoresSesion[idSesion];
-                    cargarSesionesActivas();
-                } else {
-                    alert('❌ Error finalizando el quiz');
-                }
-            } catch (error) {
-                alert('Error de conexión');
-            }
-        }
-
-
-        /**
-         * Abre el modal de importación de preguntas
-         */
+        // ============================================================
+        // IMPORTAR PREGUNTAS
+        // ============================================================
         function abrirImportarPreguntas() {
             if (!idQuizSeleccionado) {
                 alert('⚠️ No hay quiz seleccionado');
                 return;
             }
 
-            // Limpiar el input de archivo
             const inputArchivo = document.getElementById('archivoExcelPreguntas');
             if (inputArchivo) {
                 inputArchivo.value = '';
             }
 
-            // Ocultar resultado anterior
             const divResultado = document.getElementById('resultadoImportacion');
             if (divResultado) {
                 divResultado.style.display = 'none';
             }
 
-            // Abrir modal
             document.getElementById('modalImportarPreguntas').classList.add('activo');
         }
 
-        /**
-         * Descarga la plantilla Excel de ejemplo
-         */
         async function descargarPlantilla() {
             try {
                 const respuesta = await fetch('/api/plantilla_excel');
@@ -1567,9 +1737,6 @@
             }
         }
 
-        /**
-         * Procesa la importación del archivo Excel
-         */
         async function procesarImportacion() {
             const inputArchivo = document.getElementById('archivoExcelPreguntas');
             const divResultado = document.getElementById('resultadoImportacion');
@@ -1582,34 +1749,29 @@
 
             const archivo = inputArchivo.files[0];
 
-            // Validar extensión
             if (!archivo.name.endsWith('.xlsx') && !archivo.name.endsWith('.xls')) {
                 alert('⚠️ Solo se permiten archivos Excel (.xlsx o .xls)');
                 return;
             }
 
-            // Crear FormData
             const formData = new FormData();
             formData.append('archivo', archivo);
 
             try {
-                // Mostrar indicador de carga
                 divMensaje.innerHTML = '<p style="text-align: center;">⏳ Procesando archivo, por favor espera...</p>';
                 divMensaje.style.background = '#fff3cd';
                 divMensaje.style.color = '#856404';
                 divResultado.style.display = 'block';
 
-                // Enviar archivo al servidor
                 const respuesta = await fetch(`/api/quizzes/${idQuizSeleccionado}/importar_preguntas`, {
                     method: 'POST',
                     body: formData,
-                    credentials: 'include'   // ← envía la cookie de sesión
+                    credentials: 'include'
                 });
 
                 const datos = await respuesta.json();
 
                 if (respuesta.ok) {
-                    // Éxito
                     let mensajeHTML = `<h3 style="color: #155724;">✅ ${datos.mensaje}</h3>`;
 
                     if (datos.errores && datos.errores.length > 0) {
@@ -1627,7 +1789,6 @@
                     divMensaje.style.color = '#155724';
                     divMensaje.style.border = '1px solid #c3e6cb';
 
-                    // Recargar preguntas después de 2 segundos
                     setTimeout(async () => {
                         await recargarPreguntas();
                         cerrarModal('modalImportarPreguntas');
@@ -1635,7 +1796,6 @@
                     }, 2000);
 
                 } else {
-                    // Error
                     divMensaje.innerHTML = `<h3 style="color: #721c24;">❌ Error</h3><p>${datos.error}</p>`;
                     divMensaje.style.background = '#f8d7da';
                     divMensaje.style.color = '#721c24';
@@ -1652,6 +1812,22 @@
             }
         }
 
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function () {
+            console.log('🚀 Inicializando Panel de Profesor...');
+
+            const autenticado = await cargarInfoUsuario();
+
+            if (!autenticado) {
+                console.error('❌ Usuario no autenticado o no es profesor');
+                return;
+            }
+
+            console.log('✅ Cargando quizzes...');
+            cargarQuizzes();
+        });
     </script>
 </body>
 

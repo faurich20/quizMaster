@@ -1,19 +1,18 @@
 # app.py
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
+from db import obtener_conexion as obtener_conexion_db
 from flask_mail import Mail, Message
 import io
 import pymysql
-import hashlib
-import secrets
-import string
+import hashlib, secrets
+import string, json
 import re
 from datetime import datetime, timedelta
 from functools import wraps
-import json
-from db import obtener_conexion as obtener_conexion_db
 import pandas as pd
 
 app = Flask(__name__)
+
 app.secret_key = secrets.token_hex(32)
 
 # Configuración de correo 
