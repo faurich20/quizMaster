@@ -1315,6 +1315,215 @@ def cerrar_sesion():
     session.clear()
     return redirect(url_for('inicio'))
 
+# Agregar este endpoint después del endpoint de exportar_resultados en app.py
+
+@app.route('/api/quizzes/<int:id_quiz>/importar_preguntas', methods=['POST'])
+@requiere_sesion
+@requiere_docente
+def importar_preguntas(id_quiz):
+    """
+    Importa preguntas desde un archivo Excel para un quiz específico.
+    Solo el profesor dueño del quiz puede importar.
+    
+    Formato esperado del Excel:
+    Columna A: texto_pregunta
+    Columna B: tiempo_limite (segundos, default 30)
+    Columna C: url_imagen (opcional)
+    Columna D: url_video (opcional)
+    Columna E: opcion_1_texto
+    Columna F: opcion_1_correcta (SI/NO)
+    Columna G: opcion_2_texto
+    Columna H: opcion_2_correcta (SI/NO)
+    ...hasta opcion_4
+    """
+    # 1) Verificar que el quiz existe y pertenece al profesor
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
+    
+    cursor.execute('SELECT id_profesor FROM quizzes WHERE id = %s', (id_quiz,))
+    quiz = cursor.fetchone()
+    
+    if not quiz:
+        conexion.close()
+        return jsonify({'error': 'Quiz no encontrado'}), 404
+    
+    if quiz['id_profesor'] != session.get('id_usuario'):
+        conexion.close()
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    # 2) Verificar que se envió un archivo
+    if 'archivo' not in request.files:
+        conexion.close()
+        return jsonify({'error': 'No se envió ningún archivo'}), 400
+    
+    archivo = request.files['archivo']
+    
+    if archivo.filename == '':
+        conexion.close()
+        return jsonify({'error': 'Nombre de archivo vacío'}), 400
+    
+    if not archivo.filename.endswith(('.xlsx', '.xls')):
+        conexion.close()
+        return jsonify({'error': 'Solo se permiten archivos Excel (.xlsx, .xls)'}), 400
+    
+    try:
+        # 3) Leer el archivo Excel
+        df = pd.read_excel(archivo, engine='openpyxl')
+        
+        # Validar que tenga las columnas mínimas requeridas
+        columnas_requeridas = ['texto_pregunta', 'opcion_1_texto', 'opcion_1_correcta']
+        for col in columnas_requeridas:
+            if col not in df.columns:
+                conexion.close()
+                return jsonify({
+                    'error': f'Falta la columna requerida: {col}. Revisa el formato del archivo.'
+                }), 400
+        
+        # 4) Procesar cada fila del Excel
+        preguntas_importadas = 0
+        errores = []
+        
+        for indice, fila in df.iterrows():
+            try:
+                # Extraer datos de la pregunta
+                texto_pregunta = str(fila.get('texto_pregunta', '')).strip()
+                if not texto_pregunta or texto_pregunta == 'nan':
+                    continue  # Saltar filas vacías
+                
+                tiempo_limite = int(fila.get('tiempo_limite', 30))
+                url_imagen = str(fila.get('url_imagen', '')).strip()
+                url_imagen = url_imagen if url_imagen and url_imagen != 'nan' else None
+                url_video = str(fila.get('url_video', '')).strip()
+                url_video = url_video if url_video and url_video != 'nan' else None
+                posicion = indice + 1
+                
+                # Insertar la pregunta
+                cursor.execute('''
+                    INSERT INTO preguntas (quiz_id, texto_pregunta, url_imagen, url_video, 
+                                          tiempo_limite, posicion)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                ''', (id_quiz, texto_pregunta, url_imagen, url_video, tiempo_limite, posicion))
+                
+                id_pregunta = cursor.lastrowid
+                
+                # Procesar opciones (hasta 6 opciones)
+                opciones_insertadas = 0
+                for num_opcion in range(1, 7):
+                    col_texto = f'opcion_{num_opcion}_texto'
+                    col_correcta = f'opcion_{num_opcion}_correcta'
+                    
+                    if col_texto not in df.columns:
+                        break
+                    
+                    texto_opcion = str(fila.get(col_texto, '')).strip()
+                    if not texto_opcion or texto_opcion == 'nan':
+                        continue
+                    
+                    es_correcta_str = str(fila.get(col_correcta, 'NO')).strip().upper()
+                    es_correcta = es_correcta_str in ['SI', 'SÍ', 'YES', 'TRUE', '1', 'VERDADERO']
+                    
+                    cursor.execute('''
+                        INSERT INTO opciones (pregunta_id, texto_opcion, es_correcta)
+                        VALUES (%s, %s, %s)
+                    ''', (id_pregunta, texto_opcion, es_correcta))
+                    
+                    opciones_insertadas += 1
+                
+                if opciones_insertadas < 2:
+                    errores.append(f'Fila {indice + 2}: Pregunta "{texto_pregunta[:30]}..." necesita al menos 2 opciones')
+                    # Eliminar pregunta sin suficientes opciones
+                    cursor.execute('DELETE FROM preguntas WHERE id = %s', (id_pregunta,))
+                else:
+                    preguntas_importadas += 1
+                    
+            except Exception as e:
+                errores.append(f'Fila {indice + 2}: {str(e)}')
+                continue
+        
+        conexion.commit()
+        conexion.close()
+        
+        # 5) Retornar resultado
+        mensaje = f'✅ {preguntas_importadas} pregunta(s) importada(s) exitosamente'
+        if errores:
+            mensaje += f'. {len(errores)} error(es) encontrado(s).'
+        
+        return jsonify({
+            'exito': True,
+            'mensaje': mensaje,
+            'preguntas_importadas': preguntas_importadas,
+            'errores': errores[:5]  # Máximo 5 errores para no saturar
+        }), 200
+        
+    except Exception as e:
+        conexion.rollback()
+        conexion.close()
+        return jsonify({'error': f'Error procesando archivo: {str(e)}'}), 500
+
+
+@app.route('/api/plantilla_excel')
+def descargar_plantilla_excel():
+    """
+    Genera y descarga una plantilla Excel de ejemplo para importar preguntas.
+    """
+    # Crear DataFrame de ejemplo
+    datos_ejemplo = {
+        'texto_pregunta': [
+            '¿Cuál es la capital de Francia?',
+            '¿Cuánto es 2 + 2?'
+        ],
+        'tiempo_limite': [30, 20],
+        'url_imagen': ['', ''],
+        'url_video': ['', ''],
+        'opcion_1_texto': ['París', '3'],
+        'opcion_1_correcta': ['SI', 'NO'],
+        'opcion_2_texto': ['Londres', '4'],
+        'opcion_2_correcta': ['NO', 'SI'],
+        'opcion_3_texto': ['Berlín', '5'],
+        'opcion_3_correcta': ['NO', 'NO'],
+        'opcion_4_texto': ['Madrid', '6'],
+        'opcion_4_correcta': ['NO', 'NO']
+    }
+    
+    df = pd.DataFrame(datos_ejemplo)
+    
+    # Crear archivo Excel en memoria
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Preguntas')
+        
+        # Agregar una hoja de instrucciones
+        instrucciones = pd.DataFrame({
+            'INSTRUCCIONES': [
+                '1. Llena la columna "texto_pregunta" con el texto de cada pregunta',
+                '2. Define el "tiempo_limite" en segundos (default: 30)',
+                '3. Opcional: Agrega URLs de imágenes o videos',
+                '4. Define al menos 2 opciones por pregunta (máximo 6)',
+                '5. Marca con "SI" las opciones correctas, "NO" las incorrectas',
+                '6. Puedes agregar más filas para más preguntas',
+                '7. Elimina esta hoja de instrucciones antes de importar',
+                '',
+                'FORMATO DE COLUMNAS:',
+                '- texto_pregunta: Texto de la pregunta',
+                '- tiempo_limite: Número (segundos)',
+                '- url_imagen: URL completa (opcional)',
+                '- url_video: URL completa (opcional)',
+                '- opcion_X_texto: Texto de la opción',
+                '- opcion_X_correcta: SI o NO'
+            ]
+        })
+        instrucciones.to_excel(writer, index=False, sheet_name='Instrucciones')
+    
+    output.seek(0)
+    
+    return send_file(
+        output,
+        download_name='plantilla_preguntas.xlsx',
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 # Ruta de diagnóstico para listar rutas activas
 @app.route('/__rutas')
 def _listar_rutas():
