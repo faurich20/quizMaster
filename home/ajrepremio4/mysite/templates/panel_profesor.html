@@ -371,7 +371,6 @@
             color: #333;
         }
 
-        /* ✅ NUEVOS ESTILOS PARA SESIONES ACTIVAS DENTRO DEL MODAL */
         .tarjeta-sesion {
             background: white;
             border-radius: 15px;
@@ -434,7 +433,6 @@
             gap: 5px;
         }
 
-        /* ✅ CONTENEDOR DE PARTICIPANTES EN TIEMPO REAL */
         .contenedor-participantes-tiempo-real {
             background: #f8f9fa;
             border-radius: 10px;
@@ -488,7 +486,6 @@
             transform: none;
         }
 
-        /* ✅ ESTILO MEJORADO DEL MODAL PROYECTAR */
         #modalProyectarQuiz .contenido-modal {
             max-width: 900px;
             background: linear-gradient(135deg, #ffffff, #f0f3ff);
@@ -756,7 +753,7 @@
         </div>
     </div>
 
-    <!-- ✅ MODAL PROYECTAR QUIZ MEJORADO -->
+    <!-- Modal Proyectar Quiz -->
     <div class="modal" id="modalProyectarQuiz">
         <div class="contenido-modal">
             <div class="encabezado-modal">
@@ -764,7 +761,6 @@
                 <button class="boton-cerrar" onclick="cerrarModal('modalProyectarQuiz')">&times;</button>
             </div>
 
-            <!-- Información del PIN -->
             <div class="info-pin-compartir">
                 <h3>¡Comparte tu Quiz!</h3>
                 <p>Entra a:</p>
@@ -773,7 +769,6 @@
                 <p class="pin-grande" id="pinProyectar"></p>
             </div>
 
-            <!-- ✅ CONTENEDOR DE SESIONES ACTIVAS DENTRO DEL MODAL -->
             <div id="contenedorSesionesActivas"></div>
 
             <button class="boton" onclick="cerrarModal('modalProyectarQuiz')" style="width: 100%; margin-top: 20px;">
@@ -801,8 +796,50 @@
         let callbackConfirmacion = null;
         let idUsuarioActual = null;
         let intervaloSesionesActivas = null;
-        let quizActualProyectado = null; // Quiz que se está proyectando
+        let quizActualProyectado = null;
         window.temporizadoresSesion = {};
+
+        // ============================================================
+        // ✅ PERSISTENCIA EN LOCALSTORAGE
+        // ============================================================
+        function guardarTemporizadores() {
+            try {
+                localStorage.setItem('temporizadores_sesion', JSON.stringify(window.temporizadoresSesion));
+                console.log('💾 Temporizadores guardados en localStorage');
+            } catch (e) {
+                console.error('Error guardando temporizadores:', e);
+            }
+        }
+
+        function restaurarTemporizadores() {
+            try {
+                const guardado = localStorage.getItem('temporizadores_sesion');
+                if (guardado) {
+                    const datos = JSON.parse(guardado);
+                    // Filtrar timestamps obsoletos (más de 2 horas en el pasado)
+                    const ahora = Date.now();
+                    Object.keys(datos).forEach(key => {
+                        if (datos[key] > ahora - (2 * 60 * 60 * 1000)) {
+                            window.temporizadoresSesion[key] = datos[key];
+                        }
+                    });
+                    console.log('✅ Temporizadores restaurados desde localStorage:', window.temporizadoresSesion);
+                }
+            } catch (e) {
+                console.error('Error restaurando temporizadores:', e);
+                window.temporizadoresSesion = {};
+            }
+        }
+
+        // Restaurar al cargar la página
+        restaurarTemporizadores();
+
+        // Guardar cada vez que cambie (cada 3 segundos)
+        setInterval(() => {
+            if (Object.keys(window.temporizadoresSesion).length > 0) {
+                guardarTemporizadores();
+            }
+        }, 3000);
 
         // ============================================================
         // FUNCIONES DE AUTENTICACIÓN
@@ -934,26 +971,26 @@
         }
 
         // ============================================================
-        // ✅ FUNCIÓN PROYECTAR QUIZ MEJORADA
+        // ✅ FUNCIÓN PROYECTAR QUIZ MEJORADA CON RESTAURACIÓN
         // ============================================================
         async function proyectarQuiz(codigoPin, idQuiz) {
+            restaurarTemporizadores(); // ✅ RESTAURAR ANTES DE ABRIR MODAL
+            
             quizActualProyectado = idQuiz;
             const urlJuego = `${window.location.origin}/jugar`;
             
             document.getElementById('urlJugar').textContent = urlJuego;
             document.getElementById('pinProyectar').textContent = codigoPin;
             
-            // Abrir modal
             document.getElementById('modalProyectarQuiz').classList.add('activo');
             
-            // Copiar al portapapeles
             const textoPlano = `🎯 Únete a mi quiz!\n\nEntra a: ${urlJuego}\nPIN: ${codigoPin}`;
             navigator.clipboard.writeText(textoPlano).catch(() => {});
             
-            // ✅ CARGAR SESIONES ACTIVAS PARA ESTE QUIZ
+            // ✅ CARGAR SESIONES ACTIVAS INMEDIATAMENTE
             await cargarSesionesActivasEnModal(idQuiz);
             
-            // ✅ INICIAR POLLING SOLO PARA ESTE QUIZ (AUMENTADO A 5 SEGUNDOS)
+            // ✅ INICIAR POLLING
             if (intervaloSesionesActivas) {
                 clearInterval(intervaloSesionesActivas);
             }
@@ -961,18 +998,17 @@
                 if (document.getElementById('modalProyectarQuiz').classList.contains('activo')) {
                     cargarSesionesActivasEnModal(idQuiz);
                 }
-            }, 5000); // ✅ CAMBIADO DE 3 A 5 SEGUNDOS PARA REDUCIR RECARGAS
+            }, 5000);
         }
 
         // ============================================================
-        // ✅ CARGAR SESIONES ACTIVAS DENTRO DEL MODAL (CORREGIDO COMPLETO)
+        // ✅ CARGAR SESIONES ACTIVAS CON RESTAURACIÓN COMPLETA
         // ============================================================
         async function cargarSesionesActivasEnModal(idQuiz) {
             try {
                 const respuesta = await fetch('/api/sesiones_activas');
                 const todasLasSesiones = await respuesta.json();
                 
-                // Filtrar solo sesiones del quiz actual
                 const sesiones = todasLasSesiones.filter(s => s.quiz_id == idQuiz);
                 
                 const contenedor = document.getElementById('contenedorSesionesActivas');
@@ -990,31 +1026,33 @@
                 const totalParticipantes = sesiones.reduce((acum, s) => acum + (s.participant_count || 0), 0);
                 document.getElementById('totalparticipantes').textContent = totalParticipantes;
 
-                // ✅ SOLO REGENERAR SI NO EXISTE O CAMBIÓ EL NÚMERO DE SESIONES
+                // ✅ RESTAURAR TIMESTAMPS DESDE EL SERVIDOR SIEMPRE
+                sesiones.forEach(sesion => {
+                    if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
+                        try {
+                            const expiraStr = sesion.expira_temporizador.replace(' ', 'T');
+                            const expiraDate = new Date(expiraStr);
+                            
+                            if (!isNaN(expiraDate.getTime())) {
+                                const nuevoTimestamp = expiraDate.getTime();
+                                
+                                // ✅ FORZAR ACTUALIZACIÓN SIEMPRE
+                                window.temporizadoresSesion[sesion.sesion_id] = nuevoTimestamp;
+                                console.log('✅ Temporizador configurado/restaurado:', sesion.sesion_id, new Date(nuevoTimestamp).toLocaleString());
+                            } else {
+                                console.error('❌ Fecha inválida:', sesion.expira_temporizador);
+                            }
+                        } catch (e) {
+                            console.error('❌ Error procesando expira_temporizador:', e);
+                        }
+                    }
+                });
+
                 const sesionesExistentes = contenedor.querySelectorAll('.tarjeta-sesion');
                 const necesitaRegeneracion = sesionesExistentes.length !== sesiones.length;
 
                 if (necesitaRegeneracion) {
                     contenedor.innerHTML = sesiones.map(sesion => {
-                        // ✅ GUARDAR TIMESTAMP DE EXPIRACIÓN CORRECTAMENTE
-                        if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
-                            try {
-                                // Convertir datetime MySQL a timestamp JavaScript
-                                // Formato: "2025-11-05 08:42:22" -> "2025-11-05T08:42:22"
-                                const expiraStr = sesion.expira_temporizador.replace(' ', 'T');
-                                const expiraDate = new Date(expiraStr);
-                                
-                                if (!isNaN(expiraDate.getTime())) {
-                                    window.temporizadoresSesion[sesion.sesion_id] = expiraDate.getTime();
-                                    console.log('✅ Temporizador configurado para sesión', sesion.sesion_id, ':', new Date(expiraDate).toLocaleString());
-                                } else {
-                                    console.error('❌ Fecha inválida para sesión', sesion.sesion_id, ':', sesion.expira_temporizador);
-                                }
-                            } catch (e) {
-                                console.error('❌ Error procesando expira_temporizador:', e, sesion.expira_temporizador);
-                            }
-                        }
-
                         return `
                             <div class="tarjeta-sesion ${sesion.estado}" data-sesion-id="${sesion.sesion_id}">
                                 <div class="encabezado-sesion">
@@ -1068,37 +1106,22 @@
                         `;
                     }).join('');
                 } else {
-                    // ✅ SOLO ACTUALIZAR CONTADORES Y MANTENER TEMPORIZADORES
+                    // ✅ ACTUALIZAR CONTADORES
                     sesiones.forEach(sesion => {
                         const countElement = document.getElementById(`count-${sesion.sesion_id}`);
                         if (countElement) {
                             countElement.textContent = sesion.participant_count;
                         }
-                        
-                        // ✅ RESTAURAR O ACTUALIZAR TIMESTAMP SI EXISTE
-                        if (sesion.estado === 'iniciada' && sesion.expira_temporizador) {
-                            // Solo actualizar si NO existe o es diferente
-                            try {
-                                const expiraStr = sesion.expira_temporizador.replace(' ', 'T');
-                                const expiraDate = new Date(expiraStr);
-                                const nuevoTimestamp = expiraDate.getTime();
-                                
-                                if (!isNaN(nuevoTimestamp)) {
-                                    // Solo actualizar si no existe o cambió significativamente (>5 segundos de diferencia)
-                                    const actual = window.temporizadoresSesion[sesion.sesion_id];
-                                    if (!actual || Math.abs(actual - nuevoTimestamp) > 5000) {
-                                        window.temporizadoresSesion[sesion.sesion_id] = nuevoTimestamp;
-                                        console.log('🔄 Temporizador actualizado para sesión', sesion.sesion_id);
-                                    }
-                                }
-                            } catch (e) {
-                                console.error('❌ Error actualizando temporizador:', e);
-                            }
-                        }
                     });
                 }
 
-                // ✅ CARGAR PARTICIPANTES EN TIEMPO REAL PARA CADA SESIÓN
+                // ✅ FORZAR ACTUALIZACIÓN VISUAL INMEDIATA DE TODOS LOS TEMPORIZADORES
+                sesiones.forEach(sesion => {
+                    if (sesion.estado === 'iniciada') {
+                        actualizarVisualizacionTemporizador(sesion.sesion_id);
+                    }
+                });
+
                 sesiones.forEach(sesion => {
                     cargarParticipantesEnTiempoReal(sesion.sesion_id);
                 });
@@ -1144,7 +1167,7 @@
         }
 
         // ============================================================
-        // ✅ ACTUALIZAR VISUALIZACIÓN DEL TEMPORIZADOR (CORREGIDO)
+        // ✅ ACTUALIZAR VISUALIZACIÓN DEL TEMPORIZADOR
         // ============================================================
         function actualizarVisualizacionTemporizador(idSesion) {
             const elemento = document.getElementById(`temporizador-${idSesion}`);
@@ -1156,11 +1179,11 @@
                 return;
             }
             
-            const ahora = new Date().getTime();
+            const ahora = Date.now();
             const restante = Math.max(0, expira - ahora);
             
             // ✅ VALIDAR QUE EL TIEMPO RESTANTE SEA RAZONABLE
-            if (restante > 86400000) { // Más de 24 horas = error de conversión
+            if (restante > 86400000) {
                 console.error('Tiempo restante inválido:', restante, 'para sesión', idSesion);
                 elemento.textContent = '⏳ Queda: --:--';
                 return;
@@ -1171,11 +1194,11 @@
             
             elemento.textContent = `⏳ Queda: ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
             
-            // ✅ SOLO FINALIZAR SI REALMENTE LLEGÓ A 0
             if (restante === 0) {
                 console.log('⏰ Tiempo agotado para sesión', idSesion);
                 finalizarSesionQuiz(idSesion, true);
                 delete window.temporizadoresSesion[idSesion];
+                guardarTemporizadores();
             }
         }
 
@@ -1187,13 +1210,12 @@
         }, 1000);
 
         // ============================================================
-        // ✅ INICIAR SESIÓN DE QUIZ CON PROMPT PARA TIEMPO (CORREGIDO)
+        // ✅ INICIAR SESIÓN DE QUIZ
         // ============================================================
         async function iniciarSesionQuiz(idSesion) {
             const inputIntentos = document.getElementById(`intentos-${idSesion}`);
             const intentos = parseInt(inputIntentos?.value || 0);
             
-            // ✅ PEDIR TIEMPO CON PROMPT
             const tiempoMinutos = prompt('¿Cuántos minutos durará el quiz?\n(Dejar vacío para usar el tiempo de cada pregunta)', '');
             
             let duracionMinutos = null;
@@ -1233,24 +1255,21 @@
                     
                     alert('✅ Quiz iniciado');
                     
-                    // ✅ CALCULAR TIEMPO DE EXPIRACIÓN CORRECTAMENTE
+                    // ✅ CALCULAR TIEMPO DE EXPIRACIÓN
                     if (datos.expira_en_seg && datos.expira_en_seg > 0) {
-                        const ahora = new Date().getTime();
+                        const ahora = Date.now();
                         const expirationTimestamp = ahora + (datos.expira_en_seg * 1000);
                         window.temporizadoresSesion[idSesion] = expirationTimestamp;
+                        guardarTemporizadores();
                         
                         console.log('⏰ Temporizador configurado:', {
                             ahora: new Date(ahora).toLocaleString(),
                             expira: new Date(expirationTimestamp).toLocaleString(),
                             segundos_restantes: datos.expira_en_seg
                         });
-                    } else {
-                        console.warn('⚠️ No se recibió expira_en_seg del servidor');
                     }
                     
-                    // Recargar sesiones (forzar regeneración completa)
                     if (quizActualProyectado) {
-                        // Forzar regeneración limpiando el contenedor
                         document.getElementById('contenedorSesionesActivas').innerHTML = '';
                         await cargarSesionesActivasEnModal(quizActualProyectado);
                     }
@@ -1275,6 +1294,7 @@
                 if (respuesta.ok) {
                     if (!automatico) alert('✅ Quiz finalizado');
                     delete window.temporizadoresSesion[idSesion];
+                    guardarTemporizadores();
                     
                     if (quizActualProyectado) {
                         cargarSesionesActivasEnModal(quizActualProyectado);
@@ -1661,7 +1681,6 @@
         function cerrarModal(idModal) {
             document.getElementById(idModal).classList.remove('activo');
             
-            // ✅ DETENER POLLING AL CERRAR MODAL DE PROYECTAR
             if (idModal === 'modalProyectarQuiz') {
                 if (intervaloSesionesActivas) {
                     clearInterval(intervaloSesionesActivas);
