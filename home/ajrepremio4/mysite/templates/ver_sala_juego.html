@@ -1,4 +1,4 @@
-<!-- templates/ver_sala_juego.html SIMPLIFICADO -->
+<!-- templates/ver_sala_juego.html SINCRONIZADO -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -81,19 +81,37 @@
       margin-bottom: 20px;
     }
 
-    .barra-temporizador {
-      height: 8px;
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
+    /* ✅ NUEVO: Display de tiempo numérico */
+    .display-tiempo {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
       margin-bottom: 20px;
+      text-align: center;
     }
 
-    .relleno-temporizador {
-      height: 100%;
-      background: linear-gradient(90deg, #4caf50, #ffc107, #f44336);
-      transition: width .1s linear;
-      width: 100%;
+    .display-tiempo .tiempo-numero {
+      font-size: 3em;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 3px;
+    }
+
+    .display-tiempo .tiempo-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+
+    .display-tiempo.critico {
+      background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     .numero-pregunta {
@@ -230,6 +248,10 @@
       .cuadricula-respuestas {
         grid-template-columns: 1fr;
       }
+      
+      .display-tiempo .tiempo-numero {
+        font-size: 2.5em;
+      }
     }
   </style>
 </head>
@@ -248,9 +270,12 @@
     <div class="contenedor-juego">
       <div id="pantallaJuego" class="pantalla-juego activa">
         <div class="contenedor-pregunta">
-          <div class="barra-temporizador">
-            <div id="rellenoTemporizador" class="relleno-temporizador"></div>
+          <!-- ✅ NUEVO: Display de tiempo numérico -->
+          <div class="display-tiempo" id="displayTiempo">
+            <div class="tiempo-numero" id="tiempoNumero">00:00</div>
+            <div class="tiempo-label">Tiempo restante</div>
           </div>
+          
           <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 1</div>
           <div class="texto-pregunta" id="textoPregunta"></div>
           <div class="multimedia-pregunta" id="multimediaPregunta"></div>
@@ -280,9 +305,10 @@
     const idSesion = document.body.dataset.idSesion;
     let preguntas = [];
     let preguntaActual = 0;
-    let intervalo = null;
+    let intervaloTemporizador = null;
     let intervaloConsulta = null;
     let expiraTemporizador = null; // ✅ TIMESTAMP de expiración del quiz completo
+    let tiemposAcumuladosPreguntas = []; // ✅ Array con tiempo acumulado hasta cada pregunta
 
     fetch('/api/info_sesion').then(r => r.json()).then(d => {
       if (d.nombre_usuario) document.getElementById('nombreUsuarioAnfitrion').textContent = d.nombre_usuario;
@@ -345,10 +371,47 @@
         }
         const quiz = await respuesta.json();
         preguntas = quiz.preguntas || [];
+        
+        // ✅ Calcular tiempos acumulados
+        calcularTiemposAcumulados();
       } catch (e) {
         console.error('Error cargarPreguntas:', e);
         preguntas = [];
       }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Calcular tiempos acumulados
+    function calcularTiemposAcumulados() {
+      tiemposAcumuladosPreguntas = [];
+      let acumulado = 0;
+      preguntas.forEach(pregunta => {
+        tiemposAcumuladosPreguntas.push(acumulado);
+        acumulado += parseInt(pregunta.tiempo_limite) || 30;
+      });
+    }
+
+    // ✅ NUEVA FUNCIÓN: Calcular tiempo restante sincronizado
+    function calcularTiempoRestante(indicePregunta) {
+      if (!expiraTemporizador || !tiemposAcumuladosPreguntas.length) {
+        // Fallback: usar tiempo_limite de la pregunta
+        const pregunta = preguntas[indicePregunta];
+        return parseInt(pregunta?.tiempo_limite) || 30;
+      }
+
+      const ahora = Date.now();
+      const tiempoRestanteTotal = Math.max(0, Math.floor((expiraTemporizador - ahora) / 1000));
+      
+      // Calcular tiempo transcurrido desde el inicio del quiz
+      const tiempoTotalQuiz = tiemposAcumuladosPreguntas[tiemposAcumuladosPreguntas.length - 1] + 
+                               (parseInt(preguntas[preguntas.length - 1]?.tiempo_limite) || 30);
+      const tiempoTranscurrido = tiempoTotalQuiz - tiempoRestanteTotal;
+      
+      // Calcular tiempo restante para esta pregunta específica
+      const tiempoInicioPregunta = tiemposAcumuladosPreguntas[indicePregunta];
+      const tiempoLimitePregunta = parseInt(preguntas[indicePregunta]?.tiempo_limite) || 30;
+      const tiempoTranscurridoEnPregunta = Math.max(0, tiempoTranscurrido - tiempoInicioPregunta);
+      
+      return Math.max(0, tiempoLimitePregunta - tiempoTranscurridoEnPregunta);
     }
 
     // ✅ CALCULAR PREGUNTA ACTUAL DESDE expira_temporizador
@@ -389,11 +452,10 @@
         return;
       }
 
-      const segundosEnPregunta = tiempoTranscurrido - tiempoAcumulado;
-      mostrarPregunta(indice, true, segundosEnPregunta);
+      mostrarPregunta(indice, true);
     }
 
-    function mostrarPregunta(indice, iniciarAuto = true, segundosEnPregunta = 0) {
+    function mostrarPregunta(indice, iniciarAuto = true) {
       if (!preguntas || preguntas.length === 0) {
         document.getElementById('numeroPregunta').textContent = 'Sin preguntas';
         document.getElementById('textoPregunta').textContent = 'Este quiz no tiene preguntas.';
@@ -421,40 +483,55 @@
       `).join('');
 
       if (iniciarAuto) {
-        const tiempoLimite = parseInt(p.tiempo_limite || 30);
-        const restante = Math.max(0, tiempoLimite - segundosEnPregunta);
-        iniciarTemporizador(restante, tiempoLimite);
+        iniciarTemporizadorSincronizado(indice);
       } else {
-        document.getElementById('rellenoTemporizador').style.width = '100%';
+        actualizarDisplayTiempo(parseInt(p.tiempo_limite) || 30);
       }
     }
 
-    function iniciarTemporizador(segundosRestantes, limiteOriginal) {
-      if (intervalo) {
-        clearInterval(intervalo);
-        intervalo = null;
+    // ✅ NUEVA FUNCIÓN: Temporizador sincronizado
+    function iniciarTemporizadorSincronizado(indicePregunta) {
+      if (intervaloTemporizador) {
+        clearInterval(intervaloTemporizador);
+        intervaloTemporizador = null;
       }
 
-      const relleno = document.getElementById('rellenoTemporizador');
+      // Calcular tiempo restante inicial
+      let tiempoRestante = calcularTiempoRestante(indicePregunta);
       
-      if (segundosRestantes <= 0) {
-        setTimeout(() => mostrarPregunta(preguntaActual + 1, true, 0), 300);
-        return;
-      }
-
-      let tiempoRestante = segundosRestantes;
-      relleno.style.width = `${(tiempoRestante / limiteOriginal) * 100}%`;
-
-      intervalo = setInterval(() => {
-        tiempoRestante--;
-        relleno.style.width = `${Math.max(0, (tiempoRestante / limiteOriginal) * 100)}%`;
-
+      // Actualizar display inmediatamente
+      actualizarDisplayTiempo(tiempoRestante);
+      
+      // Actualizar cada segundo
+      intervaloTemporizador = setInterval(() => {
+        tiempoRestante = calcularTiempoRestante(indicePregunta);
+        actualizarDisplayTiempo(tiempoRestante);
+        
+        // Si el tiempo se agotó, avanzar a la siguiente pregunta
         if (tiempoRestante <= 0) {
-          clearInterval(intervalo);
-          intervalo = null;
-          setTimeout(() => mostrarPregunta(preguntaActual + 1, true, 0), 800);
+          clearInterval(intervaloTemporizador);
+          intervaloTemporizador = null;
+          setTimeout(() => mostrarPregunta(preguntaActual + 1, true), 800);
         }
       }, 1000);
+    }
+
+    // ✅ NUEVA FUNCIÓN: Actualizar display de tiempo
+    function actualizarDisplayTiempo(segundos) {
+      const s = Math.max(0, Math.floor(segundos || 0));
+      const minutos = Math.floor(s / 60);
+      const segs = s % 60;
+      const displayTiempo = document.getElementById('displayTiempo');
+      const tiempoNumero = document.getElementById('tiempoNumero');
+      
+      tiempoNumero.textContent = `${String(minutos).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+      
+      // Cambiar color cuando quedan menos de 10 segundos
+      if (s <= 10) {
+        displayTiempo.classList.add('critico');
+      } else {
+        displayTiempo.classList.remove('critico');
+      }
     }
 
     async function consultarEstado() {
@@ -464,7 +541,7 @@
         const s = await respuesta.json();
 
         if (!s.activa || s.estado === 'finalizada') {
-          if (intervalo) clearInterval(intervalo);
+          if (intervaloTemporizador) clearInterval(intervaloTemporizador);
           await mostrarResultados();
           return;
         }
@@ -478,6 +555,7 @@
               const expiraDate = new Date(expiraStr);
               if (!isNaN(expiraDate.getTime())) {
                 expiraTemporizador = expiraDate.getTime();
+                await cargarPreguntas(datosInfo.quiz.id);
                 iniciarDesdeExpiracion();
               }
             }
@@ -497,9 +575,9 @@
         clearTimeout(intervaloConsulta);
         intervaloConsulta = null;
       }
-      if (intervalo) {
-        clearInterval(intervalo);
-        intervalo = null;
+      if (intervaloTemporizador) {
+        clearInterval(intervaloTemporizador);
+        intervaloTemporizador = null;
       }
 
       document.getElementById('pantallaJuego').style.display = 'none';
@@ -552,7 +630,7 @@
     }
 
     window.addEventListener('beforeunload', () => {
-      if (intervalo) clearInterval(intervalo);
+      if (intervaloTemporizador) clearInterval(intervaloTemporizador);
       if (intervaloConsulta) clearTimeout(intervaloConsulta);
     });
 

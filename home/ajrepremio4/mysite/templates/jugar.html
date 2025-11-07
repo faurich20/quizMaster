@@ -1,4 +1,4 @@
-<!-- templates/jugar.html -->
+<!-- templates/jugar.html - VERSIÓN CON TEMPORIZADOR SINCRONIZADO -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -237,18 +237,37 @@
             margin-bottom: 20px;
         }
 
-        .barra-tiempo {
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
+        /* ✅ NUEVO: Mostrar tiempo en formato numérico grande */
+        .display-tiempo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
             margin-bottom: 20px;
+            text-align: center;
         }
 
-        .relleno-tiempo {
-            height: 100%;
-            background: linear-gradient(90deg, #4caf50, #ffc107, #f44336);
-            transition: width 0.1s linear;
+        .display-tiempo .tiempo-numero {
+            font-size: 3em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+
+        .display-tiempo .tiempo-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .display-tiempo.critico {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .numero-pregunta {
@@ -443,6 +462,10 @@
             .cuadricula-respuestas {
                 grid-template-columns: 1fr;
             }
+            
+            .display-tiempo .tiempo-numero {
+                font-size: 2.5em;
+            }
         }
     </style>
 </head>
@@ -478,11 +501,15 @@
                 </form>
                 <a href="/" class="btn-secundario" id="btnVolverInicio">← Volver a Inicio</a>
             </div>
+            
             <div id="pantallaJuego" class="pantalla-juego">
                 <div class="contenedor-pregunta">
-                    <div class="barra-tiempo">
-                        <div class="relleno-tiempo" id="rellenoTiempo"></div>
+                    <!-- ✅ NUEVO: Display de tiempo numérico -->
+                    <div class="display-tiempo" id="displayTiempo">
+                        <div class="tiempo-numero" id="tiempoNumero">00:00</div>
+                        <div class="tiempo-label">Tiempo restante</div>
                     </div>
+                    
                     <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 10</div>
                     <div class="texto-pregunta" id="textoPregunta"></div>
                     <div class="media-pregunta" id="mediaPregunta"></div>
@@ -490,6 +517,7 @@
                 <div class="cuadricula-respuestas" id="cuadriculaRespuestas"></div>
                 <a href="/" class="btn-secundario" id="btnVolverInicioJuego">← Volver a Inicio</a>
             </div>
+            
             <div id="pantallaResultados" class="pantalla-resultados">
                 <div class="encabezado-resultados">
                     <h2>🎉 ¡Juego Terminado!</h2>
@@ -513,10 +541,14 @@
         let idParticipante = null;
         let idSesion = null;
         let puntuacion = 0;
-        let intervaloReloj = null;
+        let intervaloTemporizador = null;
         let nombreUsuarioLogueado = null;
         let intervaloVerificacionSesion = null;
         let tiempoInicioPregunta = null;
+        
+        // ✅ NUEVO: Variables para sincronización con servidor
+        let expiraTemporizadorQuiz = null; // Timestamp de expiración del quiz completo
+        let tiemposAcumuladosPreguntas = []; // Array con tiempo acumulado hasta cada pregunta
 
         const parametrosURL = new URLSearchParams(window.location.search);
         const inicioAutomatico = parametrosURL.get('inicio_automatico');
@@ -534,8 +566,26 @@
             fetch(`/api/sesion/${idSesion}/info`)
                 .then(respuesta => respuesta.json())
                 .then(datos => {
+                    // ✅ Guardar expira_temporizador
+                    if (datos.expira_temporizador) {
+                        try {
+                            const expiraStr = datos.expira_temporizador.replace(' ', 'T');
+                            const expiraDate = new Date(expiraStr);
+                            if (!isNaN(expiraDate.getTime())) {
+                                expiraTemporizadorQuiz = expiraDate.getTime();
+                                console.log('✅ Expiración quiz:', new Date(expiraTemporizadorQuiz).toLocaleString());
+                            }
+                        } catch (e) {
+                            console.error('Error procesando expira_temporizador:', e);
+                        }
+                    }
+                    
                     cargarPreguntas(datos.quiz.id).then(() => {
-                        verificarProgreso();
+                        if (expiraTemporizadorQuiz) {
+                            iniciarDesdeExpiracion();
+                        } else {
+                            verificarProgreso();
+                        }
                     });
                 })
                 .catch(error => {
@@ -591,7 +641,7 @@
 
                     if (!datos.activa || datos.estado === 'finalizada') {
                         clearInterval(intervaloVerificacionSesion);
-                        clearInterval(intervaloReloj);
+                        if (intervaloTemporizador) clearInterval(intervaloTemporizador);
                         mostrarResultados();
                         alert('Tiempo agotado o cancelado. Juego finalizado.');
                     }
@@ -603,7 +653,7 @@
 
         window.addEventListener('beforeunload', () => {
             if (intervaloVerificacionSesion) clearInterval(intervaloVerificacionSesion);
-            if (intervaloReloj) clearInterval(intervaloReloj);
+            if (intervaloTemporizador) clearInterval(intervaloTemporizador);
         });
 
         function inicializarInterfazUsuario() {
@@ -665,19 +715,28 @@
                     });
                     const datos = await respuesta.json();
                     if (respuesta.ok) {
-                        
-                        // ✅ Lee el campo que sí existe y que toda la app espera en snake_case
                         idParticipante = datos.id_participante;
                         idSesion = datos.id_sesion;
                         
-                        // Validación por si acaso
                         if (!idSesion || !idParticipante) {
                             alert('No se pudo unir a la sesión; faltan parámetros.');
                             return;
                         }
 
+                        // ✅ Guardar expira_temporizador si está disponible
+                        if (datos.expira_temporizador) {
+                            try {
+                                const expiraStr = datos.expira_temporizador.replace(' ', 'T');
+                                const expiraDate = new Date(expiraStr);
+                                if (!isNaN(expiraDate.getTime())) {
+                                    expiraTemporizadorQuiz = expiraDate.getTime();
+                                }
+                            } catch (e) {
+                                console.error('Error procesando expira_temporizador:', e);
+                            }
+                        }
+
                         if (datos.quiz.modo === 'grupal') {
-                            // ✅ Construye la URL usando id_sesion (coherente con seleccion_grupo.html y sala_espera.html)
                             window.location.href = `/seleccion_grupo?id_sesion=${idSesion}&id_participante=${idParticipante}`;
                             return;
                         }
@@ -701,9 +760,46 @@
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
                 const quiz = await respuesta.json();
                 preguntas = quiz.preguntas || [];
+                
+                // ✅ Calcular tiempos acumulados para cada pregunta
+                calcularTiemposAcumulados();
             } catch (error) {
                 console.error('Error cargando preguntas:', error);
             }
+        }
+
+        // ✅ NUEVA FUNCIÓN: Calcular tiempos acumulados
+        function calcularTiemposAcumulados() {
+            tiemposAcumuladosPreguntas = [];
+            let acumulado = 0;
+            preguntas.forEach(pregunta => {
+                tiemposAcumuladosPreguntas.push(acumulado);
+                acumulado += parseInt(pregunta.tiempo_limite) || 30;
+            });
+        }
+
+        // ✅ NUEVA FUNCIÓN: Calcular tiempo restante sincronizado
+        function calcularTiempoRestante(indicePregunta) {
+            if (!expiraTemporizadorQuiz || !tiemposAcumuladosPreguntas.length) {
+                // Fallback: usar tiempo_limite de la pregunta
+                const pregunta = preguntas[indicePregunta];
+                return parseInt(pregunta?.tiempo_limite) || 30;
+            }
+
+            const ahora = Date.now();
+            const tiempoRestanteTotal = Math.max(0, Math.floor((expiraTemporizadorQuiz - ahora) / 1000));
+            
+            // Calcular tiempo transcurrido desde el inicio del quiz
+            const tiempoTotalQuiz = tiemposAcumuladosPreguntas[tiemposAcumuladosPreguntas.length - 1] + 
+                                     (parseInt(preguntas[preguntas.length - 1]?.tiempo_limite) || 30);
+            const tiempoTranscurrido = tiempoTotalQuiz - tiempoRestanteTotal;
+            
+            // Calcular tiempo restante para esta pregunta específica
+            const tiempoInicioPregunta = tiemposAcumuladosPreguntas[indicePregunta];
+            const tiempoLimitePregunta = parseInt(preguntas[indicePregunta]?.tiempo_limite) || 30;
+            const tiempoTranscurridoEnPregunta = Math.max(0, tiempoTranscurrido - tiempoInicioPregunta);
+            
+            return Math.max(0, tiempoLimitePregunta - tiempoTranscurridoEnPregunta);
         }
 
         function mostrarPregunta(indice) { 
@@ -713,35 +809,51 @@
             } 
             preguntaActual = indice; 
             const pregunta = preguntas[indice]; 
+            
             document.getElementById('numeroPregunta').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
             document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta; 
+            
             const media = document.getElementById('mediaPregunta'); 
             media.innerHTML = pregunta.url_imagen ? `<img src="${pregunta.url_imagen}" alt="Imagen de la pregunta">` : '';
+            
             const cuadriculaRespuestas = document.getElementById('cuadriculaRespuestas'); 
             cuadriculaRespuestas.innerHTML = pregunta.opciones.map((opcion, i) => 
                 `<button class="btn-respuesta" onclick="seleccionarRespuesta(${i}, ${pregunta.id}, ${opcion.id})">
-            <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div> 
-            <div class="texto-respuesta">${opcion.texto_opcion}</div> 
-        </button>` 
+                    <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div> 
+                    <div class="texto-respuesta">${opcion.texto_opcion}</div> 
+                </button>` 
             ).join(''); 
-            iniciarReloj(pregunta.tiempo_limite); 
-        } 
+            
+            // ✅ Iniciar temporizador sincronizado
+            iniciarTemporizadorSincronizado(indice);
+        }
 
-        function iniciarReloj(segundos) {
-            let tiempoRestante = segundos;
+        // ✅ NUEVA FUNCIÓN: Temporizador sincronizado con servidor
+        function iniciarTemporizadorSincronizado(indicePregunta) {
+            if (intervaloTemporizador) {
+                clearInterval(intervaloTemporizador);
+                intervaloTemporizador = null;
+            }
+
             tiempoInicioPregunta = Date.now();
-            const relleno = document.getElementById('rellenoTiempo');
-            relleno.style.width = '100%';
-
-            if (intervaloReloj) clearInterval(intervaloReloj);
-
-            intervaloReloj = setInterval(() => {
-                tiempoRestante--;
-                const porcentaje = (tiempoRestante / segundos) * 100;
-                relleno.style.width = porcentaje + '%';
-
+            const displayTiempo = document.getElementById('displayTiempo');
+            const tiempoNumero = document.getElementById('tiempoNumero');
+            
+            // Calcular tiempo restante inicial
+            let tiempoRestante = calcularTiempoRestante(indicePregunta);
+            
+            // Actualizar display inmediatamente
+            actualizarDisplayTiempo(tiempoRestante);
+            
+            // Actualizar cada segundo
+            intervaloTemporizador = setInterval(() => {
+                tiempoRestante = calcularTiempoRestante(indicePregunta);
+                actualizarDisplayTiempo(tiempoRestante);
+                
+                // Si el tiempo se agotó, avanzar a la siguiente pregunta
                 if (tiempoRestante <= 0) {
-                    clearInterval(intervaloReloj);
+                    clearInterval(intervaloTemporizador);
+                    intervaloTemporizador = null;
                     setTimeout(() => {
                         mostrarPregunta(preguntaActual + 1);
                     }, 1000);
@@ -749,13 +861,34 @@
             }, 1000);
         }
 
+        // ✅ NUEVA FUNCIÓN: Actualizar display de tiempo
+        function actualizarDisplayTiempo(segundos) {
+            const minutos = Math.floor(segundos / 60);
+            const segs = segundos % 60;
+            const displayTiempo = document.getElementById('displayTiempo');
+            const tiempoNumero = document.getElementById('tiempoNumero');
+            
+            tiempoNumero.textContent = `${String(minutos).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+            
+            // Cambiar color cuando quedan menos de 10 segundos
+            if (segundos <= 10) {
+                displayTiempo.classList.add('critico');
+            } else {
+                displayTiempo.classList.remove('critico');
+            }
+        }
+
         async function seleccionarRespuesta(indiceOpcion, idPregunta, idOpcion) {
-            if (intervaloReloj) clearInterval(intervaloReloj);
+            if (intervaloTemporizador) {
+                clearInterval(intervaloTemporizador);
+                intervaloTemporizador = null;
+            }
 
             const pregunta = preguntas[preguntaActual];
             const opcionSeleccionada = pregunta.opciones[indiceOpcion];
             const esCorrecta = opcionSeleccionada.es_correcta;
 
+            // Calcular tiempo utilizado desde que se mostró la pregunta
             const tiempoTranscurrido = (Date.now() - tiempoInicioPregunta) / 1000;
             const tiempoUtilizado = Math.min(tiempoTranscurrido, pregunta.tiempo_limite);
 
@@ -777,7 +910,6 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        // Claves alineadas con el backend (app.py)
                         id_participante: idParticipante,
                         id_pregunta: idPregunta,
                         id_opcion: idOpcion,
@@ -796,6 +928,7 @@
 
         async function mostrarResultados() {
             if (intervaloVerificacionSesion) clearInterval(intervaloVerificacionSesion);
+            if (intervaloTemporizador) clearInterval(intervaloTemporizador);
 
             document.getElementById('pantallaJuego').classList.remove('activa');
             document.getElementById('pantallaResultados').classList.add('activa');
@@ -810,10 +943,10 @@
                     const clase = indice === 0 ? 'primero' : indice === 1 ? 'segundo' : indice === 2 ? 'tercero' : '';
                     const medalla = indice === 0 ? '🥇' : indice === 1 ? '🥈' : indice === 2 ? '🥉' : '';
                     return `<div class="item-clasificacion">
-                <div class="posicion-clasificacion ${clase}">${medalla || (indice + 1)}</div>
-                <div class="nombre-clasificacion">${participante.nombre_usuario}</div>
-                <div class="puntuacion-clasificacion">${participante.puntuacion_total} pts</div>
-            </div>`;
+                        <div class="posicion-clasificacion ${clase}">${medalla || (indice + 1)}</div>
+                        <div class="nombre-clasificacion">${participante.nombre_usuario}</div>
+                        <div class="puntuacion-clasificacion">${participante.puntuacion_total} pts</div>
+                    </div>`;
                 }).join('');
 
                 const encabezadoResultados = document.querySelector('.encabezado-resultados');
@@ -878,18 +1011,35 @@
 
                 preguntaActual = 0;
                 puntuacion = 0;
-                if (intervaloReloj) {
-                    clearInterval(intervaloReloj);
-                    intervaloReloj = null;
+                if (intervaloTemporizador) {
+                    clearInterval(intervaloTemporizador);
+                    intervaloTemporizador = null;
+                }
+
+                // ✅ Recargar expira_temporizador actualizado
+                const respuestaSesion = await fetch(`/api/sesion/${idSesion}/info`);
+                const informacionSesion = await respuestaSesion.json();
+                if (informacionSesion.expira_temporizador) {
+                    try {
+                        const expiraStr = informacionSesion.expira_temporizador.replace(' ', 'T');
+                        const expiraDate = new Date(expiraStr);
+                        if (!isNaN(expiraDate.getTime())) {
+                            expiraTemporizadorQuiz = expiraDate.getTime();
+                        }
+                    } catch (e) {
+                        console.error('Error procesando expira_temporizador:', e);
+                    }
                 }
 
                 const elementoUnirse = document.getElementById('pantallaUnirse');
-                if (elementoUnirse) { elementoUnirse.style.display = 'none'; elementoUnirse.classList.remove('activa'); }
+                if (elementoUnirse) { 
+                    elementoUnirse.style.display = 'none'; 
+                    elementoUnirse.classList.remove('activa'); 
+                }
                 document.getElementById('pantallaResultados').classList.remove('activa');
                 document.getElementById('pantallaJuego').classList.add('activa');
 
                 mostrarPregunta(0);
-
                 iniciarVerificacionSesion();
             } catch (error) {
                 console.error('Error reiniciando quiz:', error);
