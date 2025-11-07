@@ -518,16 +518,15 @@
 
     // ✅ NUEVA FUNCIÓN: Actualizar display de tiempo
     function actualizarDisplayTiempo(segundos) {
-      const s = Math.max(0, Math.floor(segundos || 0));
-      const minutos = Math.floor(s / 60);
-      const segs = s % 60;
+      const minutos = Math.floor(segundos / 60);
+      const segs = segundos % 60;
       const displayTiempo = document.getElementById('displayTiempo');
       const tiempoNumero = document.getElementById('tiempoNumero');
       
       tiempoNumero.textContent = `${String(minutos).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
       
       // Cambiar color cuando quedan menos de 10 segundos
-      if (s <= 10) {
+      if (segundos <= 10) {
         displayTiempo.classList.add('critico');
       } else {
         displayTiempo.classList.remove('critico');

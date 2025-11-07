@@ -266,8 +266,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .numero-pregunta {
@@ -462,7 +469,7 @@
             .cuadricula-respuestas {
                 grid-template-columns: 1fr;
             }
-            
+
             .display-tiempo .tiempo-numero {
                 font-size: 2.5em;
             }
@@ -501,7 +508,7 @@
                 </form>
                 <a href="/" class="btn-secundario" id="btnVolverInicio">← Volver a Inicio</a>
             </div>
-            
+
             <div id="pantallaJuego" class="pantalla-juego">
                 <div class="contenedor-pregunta">
                     <!-- ✅ NUEVO: Display de tiempo numérico -->
@@ -509,7 +516,7 @@
                         <div class="tiempo-numero" id="tiempoNumero">00:00</div>
                         <div class="tiempo-label">Tiempo restante</div>
                     </div>
-                    
+
                     <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 10</div>
                     <div class="texto-pregunta" id="textoPregunta"></div>
                     <div class="media-pregunta" id="mediaPregunta"></div>
@@ -517,7 +524,7 @@
                 <div class="cuadricula-respuestas" id="cuadriculaRespuestas"></div>
                 <a href="/" class="btn-secundario" id="btnVolverInicioJuego">← Volver a Inicio</a>
             </div>
-            
+
             <div id="pantallaResultados" class="pantalla-resultados">
                 <div class="encabezado-resultados">
                     <h2>🎉 ¡Juego Terminado!</h2>
@@ -530,7 +537,8 @@
                     <h3 style="margin-bottom: 15px; color: #333;">🏆 Ranking Final</h3>
                     <div id="listaClasificacion"></div>
                 </div>
-                <a href="/" class="btn-secundario" id="btnVolverInicioResultados" style="margin-top: 15px;">← Volver a Inicio</a>
+                <a href="/" class="btn-secundario" id="btnVolverInicioResultados" style="margin-top: 15px;">← Volver a
+                    Inicio</a>
             </div>
         </div>
     </div>
@@ -545,7 +553,7 @@
         let nombreUsuarioLogueado = null;
         let intervaloVerificacionSesion = null;
         let tiempoInicioPregunta = null;
-        
+
         // ✅ NUEVO: Variables para sincronización con servidor
         let expiraTemporizadorQuiz = null; // Timestamp de expiración del quiz completo
         let tiemposAcumuladosPreguntas = []; // Array con tiempo acumulado hasta cada pregunta
@@ -579,13 +587,9 @@
                             console.error('Error procesando expira_temporizador:', e);
                         }
                     }
-                    
-                    cargarPreguntas(datos.quiz.id).then(() => {
-                        if (expiraTemporizadorQuiz) {
-                            iniciarDesdeExpiracion();
-                        } else {
-                            verificarProgreso();
-                        }
+
+                    cargarPreguntas(datos.quiz.id).then(() => {                     
+                        verificarProgreso();
                     });
                 })
                 .catch(error => {
@@ -596,6 +600,7 @@
 
         async function verificarProgreso() {
             if (!idParticipante) return;
+
 
             try {
                 const respuesta = await fetch(`/api/participante/${idParticipante}/progreso`);
@@ -615,6 +620,11 @@
                         mostrarResultados();
                     } else {
                         document.getElementById('pantallaJuego').classList.add('activa');
+
+                        if (datos.estado !== 'iniciada') {
+                            window.location.href = `/sala_espera?id_sesion=${idSesion}&id_participante=${idParticipante}`;
+                            return;
+                        }
                         mostrarPregunta(0);
                         iniciarVerificacionSesion();
                     }
@@ -665,9 +675,9 @@
                         document.getElementById('nombreUsuarioNav').textContent = datos.nombre_usuario;
                         document.getElementById('barraNavegacion').classList.add('mostrar');
                         const botonesVolver = ['btnVolverInicio', 'btnVolverInicioJuego', 'btnVolverInicioResultados'];
-                        botonesVolver.forEach(id => { 
-                            const elemento = document.getElementById(id); 
-                            if (elemento) elemento.classList.remove('mostrar'); 
+                        botonesVolver.forEach(id => {
+                            const elemento = document.getElementById(id);
+                            if (elemento) elemento.classList.remove('mostrar');
                         });
                         const grupo = document.getElementById('grupoUsuario');
                         if (grupo) grupo.style.display = 'none';
@@ -717,7 +727,7 @@
                     if (respuesta.ok) {
                         idParticipante = datos.id_participante;
                         idSesion = datos.id_sesion;
-                        
+
                         if (!idSesion || !idParticipante) {
                             alert('No se pudo unir a la sesión; faltan parámetros.');
                             return;
@@ -760,7 +770,7 @@
                 const respuesta = await fetch(`/api/quizzes/${idQuiz}`);
                 const quiz = await respuesta.json();
                 preguntas = quiz.preguntas || [];
-                
+
                 // ✅ Calcular tiempos acumulados para cada pregunta
                 calcularTiemposAcumulados();
             } catch (error) {
@@ -788,42 +798,42 @@
 
             const ahora = Date.now();
             const tiempoRestanteTotal = Math.max(0, Math.floor((expiraTemporizadorQuiz - ahora) / 1000));
-            
+
             // Calcular tiempo transcurrido desde el inicio del quiz
-            const tiempoTotalQuiz = tiemposAcumuladosPreguntas[tiemposAcumuladosPreguntas.length - 1] + 
-                                     (parseInt(preguntas[preguntas.length - 1]?.tiempo_limite) || 30);
+            const tiempoTotalQuiz = tiemposAcumuladosPreguntas[tiemposAcumuladosPreguntas.length - 1] +
+                (parseInt(preguntas[preguntas.length - 1]?.tiempo_limite) || 30);
             const tiempoTranscurrido = tiempoTotalQuiz - tiempoRestanteTotal;
-            
+
             // Calcular tiempo restante para esta pregunta específica
             const tiempoInicioPregunta = tiemposAcumuladosPreguntas[indicePregunta];
             const tiempoLimitePregunta = parseInt(preguntas[indicePregunta]?.tiempo_limite) || 30;
             const tiempoTranscurridoEnPregunta = Math.max(0, tiempoTranscurrido - tiempoInicioPregunta);
-            
+
             return Math.max(0, tiempoLimitePregunta - tiempoTranscurridoEnPregunta);
         }
 
-        function mostrarPregunta(indice) { 
-            if (indice >= preguntas.length) { 
-                mostrarResultados(); 
-                return; 
-            } 
-            preguntaActual = indice; 
-            const pregunta = preguntas[indice]; 
-            
+        function mostrarPregunta(indice) {
+            if (indice >= preguntas.length) {
+                mostrarResultados();
+                return;
+            }
+            preguntaActual = indice;
+            const pregunta = preguntas[indice];
+
             document.getElementById('numeroPregunta').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
-            document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta; 
-            
-            const media = document.getElementById('mediaPregunta'); 
+            document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta;
+
+            const media = document.getElementById('mediaPregunta');
             media.innerHTML = pregunta.url_imagen ? `<img src="${pregunta.url_imagen}" alt="Imagen de la pregunta">` : '';
-            
-            const cuadriculaRespuestas = document.getElementById('cuadriculaRespuestas'); 
-            cuadriculaRespuestas.innerHTML = pregunta.opciones.map((opcion, i) => 
+
+            const cuadriculaRespuestas = document.getElementById('cuadriculaRespuestas');
+            cuadriculaRespuestas.innerHTML = pregunta.opciones.map((opcion, i) =>
                 `<button class="btn-respuesta" onclick="seleccionarRespuesta(${i}, ${pregunta.id}, ${opcion.id})">
                     <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div> 
                     <div class="texto-respuesta">${opcion.texto_opcion}</div> 
-                </button>` 
-            ).join(''); 
-            
+                </button>`
+            ).join('');
+
             // ✅ Iniciar temporizador sincronizado
             iniciarTemporizadorSincronizado(indice);
         }
@@ -838,18 +848,18 @@
             tiempoInicioPregunta = Date.now();
             const displayTiempo = document.getElementById('displayTiempo');
             const tiempoNumero = document.getElementById('tiempoNumero');
-            
+
             // Calcular tiempo restante inicial
             let tiempoRestante = calcularTiempoRestante(indicePregunta);
-            
+
             // Actualizar display inmediatamente
             actualizarDisplayTiempo(tiempoRestante);
-            
+
             // Actualizar cada segundo
             intervaloTemporizador = setInterval(() => {
                 tiempoRestante = calcularTiempoRestante(indicePregunta);
                 actualizarDisplayTiempo(tiempoRestante);
-                
+
                 // Si el tiempo se agotó, avanzar a la siguiente pregunta
                 if (tiempoRestante <= 0) {
                     clearInterval(intervaloTemporizador);
@@ -867,9 +877,9 @@
             const segs = segundos % 60;
             const displayTiempo = document.getElementById('displayTiempo');
             const tiempoNumero = document.getElementById('tiempoNumero');
-            
+
             tiempoNumero.textContent = `${String(minutos).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-            
+
             // Cambiar color cuando quedan menos de 10 segundos
             if (segundos <= 10) {
                 displayTiempo.classList.add('critico');
@@ -1032,9 +1042,9 @@
                 }
 
                 const elementoUnirse = document.getElementById('pantallaUnirse');
-                if (elementoUnirse) { 
-                    elementoUnirse.style.display = 'none'; 
-                    elementoUnirse.classList.remove('activa'); 
+                if (elementoUnirse) {
+                    elementoUnirse.style.display = 'none';
+                    elementoUnirse.classList.remove('activa');
                 }
                 document.getElementById('pantallaResultados').classList.remove('activa');
                 document.getElementById('pantallaJuego').classList.add('activa');
