@@ -519,6 +519,8 @@
 
                     <div class="numero-pregunta" id="numeroPregunta">Pregunta 1 de 10</div>
                     <div class="texto-pregunta" id="textoPregunta"></div>
+                    <p id="tiempoPregunta" style="font-size: 22px; font-weight: 600; margin-top: 4px;">
+                        ⏱ Tiempo pregunta: --</p>
                     <div class="media-pregunta" id="mediaPregunta"></div>
                 </div>
                 <div class="cuadricula-respuestas" id="cuadriculaRespuestas"></div>
@@ -588,7 +590,7 @@
                         }
                     }
 
-                    cargarPreguntas(datos.quiz.id).then(() => {                     
+                    cargarPreguntas(datos.quiz.id).then(() => {
                         verificarProgreso();
                     });
                 })
@@ -812,31 +814,111 @@
             return Math.max(0, tiempoLimitePregunta - tiempoTranscurridoEnPregunta);
         }
 
-        function mostrarPregunta(indice) {
+        async function mostrarPregunta(indice) {
             if (indice >= preguntas.length) {
-                mostrarResultados();
-                return;
+                return mostrarResultados();
             }
+
             preguntaActual = indice;
             const pregunta = preguntas[indice];
 
-            document.getElementById('numeroPregunta').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
-            document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta;
+            // 1) Abrir/recuperar T2 en servidor
+            let expiraT2 = null;
+            try {
+                // Primero intentamos leer si existe
+                const check = await fetch(`/api/pregunta/${pregunta.id}/tiempo?participante_id=${idParticipante}&sesion_id=${idSesion}`);
+                const existe = await check.json();
 
+                if (existe && existe.existe) {
+                    expiraT2 = new Date(existe.expira_en.replace(' ', 'T')).getTime();
+                } else {
+                    // Si no existe, lo creamos ahora mismo
+                    const resp = await fetch(`/api/pregunta/${pregunta.id}/abrir`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_participante: idParticipante, id_sesion: idSesion })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || 'No se pudo abrir la pregunta');
+                    expiraT2 = new Date(data.expira_en.replace(' ', 'T')).getTime();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('No se pudo sincronizar el tiempo de esta pregunta.');
+                return mostrarResultados();
+            }
+
+            // 2) Pintar en la UI
+            document.getElementById('numeroPregunta').textContent =
+                `Pregunta ${indice + 1} de ${preguntas.length}  —  ${pregunta.tiempo_limite || 30}s`;
+            document.getElementById('textoPregunta').textContent = pregunta.texto_pregunta || '';
             const media = document.getElementById('mediaPregunta');
-            media.innerHTML = pregunta.url_imagen ? `<img src="${pregunta.url_imagen}" alt="Imagen de la pregunta">` : '';
+            media.innerHTML = '';
+            if (pregunta.url_imagen) media.innerHTML += `<img src="${pregunta.url_imagen}" alt="" style="max-width:100%;border-radius:12px;margin:10px 0;">`;
+            if (pregunta.url_video) media.innerHTML += `<p>📹 <a href="${pregunta.url_video}" target="_blank">Ver video</a></p>`;
 
-            const cuadriculaRespuestas = document.getElementById('cuadriculaRespuestas');
-            cuadriculaRespuestas.innerHTML = pregunta.opciones.map((opcion, i) =>
-                `<button class="btn-respuesta" onclick="seleccionarRespuesta(${i}, ${pregunta.id}, ${opcion.id})">
-                    <div class="letra-respuesta">${String.fromCharCode(65 + i)}</div> 
-                    <div class="texto-respuesta">${opcion.texto_opcion}</div> 
-                </button>`
-            ).join('');
+            const cont = document.getElementById('cuadriculaRespuestas');
+            cont.innerHTML = (pregunta.opciones || []).map((op, i) => `
+        <button class="btn-respuesta" onclick="seleccionarRespuesta(${i}, ${pregunta.id}, ${op.id})">${op.texto_opcion}</button>
+    `).join('');
 
-            // ✅ Iniciar temporizador sincronizado
-            iniciarTemporizadorSincronizado(indice);
+            // 3) Iniciar temporizador usando expiraT2 y capar por T1 si aplica
+            if (intervaloTemporizador) clearInterval(intervaloTemporizador);
+            tiempoInicioPregunta = Date.now();
+
+            function tick() {
+                const ahora = Date.now();
+
+                // ⏱ Tiempo por pregunta (T2)
+                const secsPregunta = Math.max(0, Math.floor((expiraT2 - ahora) / 1000));
+
+                // ⏲️ Tiempo global del quiz (T1), si existe
+                let secsQuiz = null;
+                if (expiraTemporizadorQuiz) {
+                    secsQuiz = Math.max(0, Math.floor((expiraTemporizadorQuiz - ahora) / 1000));
+                }
+
+                // ---- Pintar TIEMPO POR PREGUNTA (⏱) ----
+                const mmP = String(Math.floor(secsPregunta / 60)).padStart(2, '0');
+                const ssP = String(secsPregunta % 60).padStart(2, '0');
+                const tiempoPreguntaEl = document.getElementById('tiempoPregunta');
+                if (tiempoPreguntaEl) {
+                    tiempoPreguntaEl.textContent = `⏱ Tiempo pregunta: ${mmP}:${ssP}`;
+                }
+
+                // ---- Pintar TIEMPO GLOBAL ARRIBA ----
+                // Si hay T1, se muestra T1; si no, se usa el de pregunta como fallback
+                const secsDisplay = (secsQuiz !== null) ? secsQuiz : secsPregunta;
+                const mmQ = String(Math.floor(secsDisplay / 60)).padStart(2, '0');
+                const ssQ = String(secsDisplay % 60).padStart(2, '0');
+                const display = document.getElementById('tiempoNumero');
+                const caja = document.getElementById('displayTiempo');
+                if (display) display.textContent = `${mmQ}:${ssQ}`;
+                if (caja) {
+                    const crit = (secsQuiz !== null ? secsQuiz : secsPregunta) <= 10;
+                    caja.classList.toggle('critico', crit);
+                }
+
+                // ---- Cortes autoritativos ----
+                // Si se acabó el QUIZ (T1) -> terminar juego
+                if (secsQuiz !== null && secsQuiz <= 0) {
+                    clearInterval(intervaloTemporizador);
+                    mostrarResultados();
+                    return;
+                }
+                // Si se acabó la PREGUNTA (T2) -> pasar a la siguiente
+                if (secsPregunta <= 0) {
+                    clearInterval(intervaloTemporizador);
+                    mostrarPregunta(indice + 1);
+                    return;
+                }
+            }
+
+
+            tick();
+            intervaloTemporizador = setInterval(tick, 1000);
         }
+
 
         // ✅ NUEVA FUNCIÓN: Temporizador sincronizado con servidor
         function iniciarTemporizadorSincronizado(indicePregunta) {

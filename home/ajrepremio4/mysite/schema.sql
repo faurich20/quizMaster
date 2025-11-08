@@ -92,6 +92,21 @@ CREATE TABLE IF NOT EXISTS respuestas (
 );
 
 
+CREATE TABLE IF NOT EXISTS participante_pregunta_tiempos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sesion_id INT NOT NULL,
+  participante_id INT NOT NULL,
+  pregunta_id INT NOT NULL,
+  abierto_en DATETIME NOT NULL,
+  expira_en DATETIME NOT NULL,
+  respondido_en DATETIME NULL,
+  UNIQUE KEY uniq_pp (sesion_id, participante_id, pregunta_id),
+  FOREIGN KEY (sesion_id) REFERENCES sesiones_juego(id) ON DELETE CASCADE,
+  FOREIGN KEY (participante_id) REFERENCES participantes(id) ON DELETE CASCADE,
+  FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
+);
+
+
 -- ALTER TABLE participantes
 --ADD CONSTRAINT uniq_participante_sesion
 --UNIQUE (sesion_id, nombre_usuario);

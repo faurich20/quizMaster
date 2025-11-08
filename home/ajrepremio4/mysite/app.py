@@ -474,29 +474,190 @@ def unirse_juego():
         'quiz': quiz
     })
 
+
+@app.route('/api/pregunta/<int:id_pregunta>/abrir', methods=['POST'])
+def abrir_pregunta(id_pregunta):
+    """
+    Crea (idempotente) el temporizador T2 de esta pregunta para un participante.
+    Regresa expira_en = min(abierto_en + tiempo_limite, expira_temporizador_global)
+    """
+    datos = request.get_json() or {}
+    id_participante = int(datos.get('id_participante'))
+    id_sesion = int(datos.get('id_sesion'))
+
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Traer tiempo_limite de la pregunta y expira_temporizador global de la sesión
+        cursor.execute("SELECT tiempo_limite FROM preguntas WHERE id=%s", (id_pregunta,))
+        preg = cursor.fetchone()
+        if not preg:
+            return jsonify({'error': 'Pregunta no encontrada'}), 404
+
+        cursor.execute("SELECT expira_temporizador FROM sesiones_juego WHERE id=%s", (id_sesion,))
+        ses = cursor.fetchone()
+        if not ses:
+            return jsonify({'error': 'Sesión no encontrada'}), 404
+
+        ahora = datetime.utcnow()
+        #tiempo_limite = int(preg.get('tiempo_limite') or 30)
+        try:
+            tiempo_limite = int(preg['tiempo_limite'])
+        except:
+            tiempo_limite = 30
+        expira_global = ses.get('expira_temporizador')  # puede ser None si no se inició
+
+        # ¿Existe ya T2?
+        cursor.execute("""
+            SELECT * FROM participante_pregunta_tiempos
+            WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
+            LIMIT 1
+        """, (id_sesion, id_participante, id_pregunta))
+        row = cursor.fetchone()
+
+        if row:
+            expira_en = row['expira_en']
+            abierto_en = row['abierto_en']
+        else:
+            #abierto_en = ahora
+            cursor.execute("SELECT NOW() as ahora_utc")
+            abierto_en = cursor.fetchone()['ahora_utc']
+
+
+            # Asegurar que tiempo_limite es entero real
+            try:
+                tiempo_limite = int(preg['tiempo_limite'])
+            except:
+                tiempo_limite = 30
+
+            # Calcular expiración real de la pregunta
+            expira_propuesta = abierto_en + timedelta(seconds=tiempo_limite)
+
+            # Si existe temporizador global, limitarlo
+            if expira_global is not None:
+                expira_en = expira_propuesta if expira_propuesta < expira_global else expira_propuesta
+            else:
+                expira_en = expira_propuesta
+
+
+            cursor.execute("""
+                INSERT INTO participante_pregunta_tiempos
+                (sesion_id, participante_id, pregunta_id, abierto_en, expira_en)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (id_sesion, id_participante, id_pregunta, abierto_en, expira_en))
+            conexion.commit()
+
+        return jsonify({
+            'abierto_en': abierto_en.isoformat(sep=' '),
+            'expira_en': expira_en.isoformat(sep=' '),
+        })
+    except Exception as e:
+        conexion.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conexion.close()
+
+@app.route('/api/pregunta/<int:id_pregunta>/tiempo', methods=['GET'])
+def tiempo_pregunta(id_pregunta):
+    """
+    Devuelve abierto_en y expira_en para el participante/pregunta.
+    Requiere ?participante_id= & sesion_id=
+    """
+    try:
+        participante_id = int(request.args.get('participante_id'))
+        sesion_id = int(request.args.get('sesion_id'))
+    except:
+        return jsonify({'error': 'Parámetros inválidos'}), 400
+
+    conexion = obtener_bd()
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
+    try:
+        cursor.execute("""
+            SELECT abierto_en, expira_en, respondido_en
+            FROM participante_pregunta_tiempos
+            WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
+            LIMIT 1
+        """, (sesion_id, participante_id, id_pregunta))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'existe': False}), 200
+        return jsonify({
+            'existe': True,
+            'abierto_en': row['abierto_en'].isoformat(sep=' '),
+            'expira_en': row['expira_en'].isoformat(sep=' '),
+            'respondido_en': row['respondido_en'].isoformat(sep=' ') if row['respondido_en'] else None
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conexion.close()
+
 @app.route('/api/guardar_respuesta', methods=['POST'])
 def guardar_respuesta():
-    datos = request.json
-    
+    datos = request.json or {}
+    id_participante = int(datos.get('id_participante'))
+    id_pregunta = int(datos.get('id_pregunta'))
+    id_opcion = int(datos.get('id_opcion'))
+    tiempo_respuesta = float(datos.get('tiempo_respuesta') or 0)
+    puntos_ganados = int(datos.get('puntos_ganados') or 0)
+
     conexion = obtener_bd()
-    cursor = conexion.cursor()
-    
+    cursor = conexion.cursor(pymysql.cursors.DictCursor)
+
     try:
+        # Traer sesion_id desde participante
+        cursor.execute("SELECT sesion_id FROM participantes WHERE id=%s", (id_participante,))
+        part = cursor.fetchone()
+        if not part:
+            return jsonify({'error': 'Participante no encontrado'}), 404
+        sesion_id = part['sesion_id']
+
+        # Traer expira global (T1)
+        cursor.execute("SELECT expira_temporizador FROM sesiones_juego WHERE id=%s", (sesion_id,))
+        ses = cursor.fetchone()
+        expira_global = ses.get('expira_temporizador')
+
+        ahora = datetime.utcnow()
+
+        # Validar T1 (si existe y ya venció → fuera de tiempo)
+        if expira_global and ahora > expira_global:
+            return jsonify({'error': 'El quiz ya terminó (T1 vencido)'}), 400
+
+        # Validar T2: debe existir (al abrir la pregunta) y no estar vencido
+        cursor.execute("""
+            SELECT expira_en, respondido_en
+            FROM participante_pregunta_tiempos
+            WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
+            LIMIT 1
+        """, (sesion_id, id_participante, id_pregunta))
+        t2 = cursor.fetchone()
+        if not t2:
+            return jsonify({'error': 'La pregunta no fue abierta aún para este participante'}), 400
+        if t2['respondido_en']:
+            return jsonify({'error': 'Esta pregunta ya fue respondida'}), 400
+        if ahora > t2['expira_en']:
+            return jsonify({'error': 'Tiempo de la pregunta agotado (T2 vencido)'}), 400
+
+        # Registrar la respuesta
         cursor.execute('''
-            INSERT INTO respuestas (id_participante, id_pregunta, id_opcion, 
-                               tiempo_respuesta, puntos_ganados)
+            INSERT INTO respuestas (id_participante, id_pregunta, id_opcion, tiempo_respuesta, puntos_ganados)
             VALUES (%s, %s, %s, %s, %s)
-        ''', (datos.get('id_participante'), datos.get('id_pregunta'),
-              datos.get('id_opcion'), datos.get('tiempo_respuesta'),
-              datos.get('puntos_ganados', 0)))
-        
+        ''', (id_participante, id_pregunta, id_opcion, tiempo_respuesta, puntos_ganados))
+
+        # Marcar respondido_en
+        cursor.execute('''
+            UPDATE participante_pregunta_tiempos
+            SET respondido_en=%s
+            WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
+        ''', (ahora, sesion_id, id_participante, id_pregunta))
+
         # Actualizar puntuación del participante
         cursor.execute('''
             UPDATE participantes 
             SET puntuacion_total = puntuacion_total + %s
             WHERE id = %s
-        ''', (datos.get('puntos_ganados', 0), datos.get('id_participante')))
-        
+        ''', (puntos_ganados, id_participante))
+
         conexion.commit()
         return jsonify({'exito': True})
     except Exception as e:
@@ -504,6 +665,9 @@ def guardar_respuesta():
         return jsonify({'error': str(e)}), 500
     finally:
         conexion.close()
+
+
+
 
 @app.route('/api/resultados_juego/<int:sesion_id>')
 def resultados_juego(sesion_id):
