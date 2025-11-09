@@ -609,6 +609,11 @@
                 const progreso = await respuesta.json();
 
                 if (progreso.id_ultima_pregunta && preguntas.length > 0) {
+
+                    // ✅ Recuperar puntuación guardada
+                    puntuacion = progreso.puntuacion_total || 0;
+                    console.log("✅ Puntuación restaurada:", puntuacion);
+
                     const ultimoIndice = preguntas.findIndex(p => p.id === progreso.id_ultima_pregunta);
 
                     if (ultimoIndice >= 0 && ultimoIndice < preguntas.length - 1) {
@@ -617,6 +622,7 @@
                         document.getElementById('pantallaJuego').classList.add('activa');
                         mostrarPregunta(preguntaActual);
                         iniciarVerificacionSesion();
+
                     } else if (ultimoIndice === preguntas.length - 1) {
                         puntuacion = progreso.puntuacion_total || 0;
                         mostrarResultados();
@@ -1009,6 +1015,8 @@
                         puntos_ganados: puntos
                     })
                 });
+                // ✅ Notificar a otras pestañas que esta pregunta fue respondida
+                localStorage.setItem(`resp_${idSesion}_${idParticipante}`, Date.now());
             } catch (error) {
                 console.error('Error guardando respuesta:', error);
             }
@@ -1024,7 +1032,20 @@
 
             document.getElementById('pantallaJuego').classList.remove('activa');
             document.getElementById('pantallaResultados').classList.add('activa');
-            document.getElementById('puntuacionFinal').textContent = Math.round(puntuacion);
+
+            // ✅ Obtener la puntuación REAL desde BD
+            try {
+                const progresoResp = await fetch(`/api/participante/${idParticipante}/progreso`);
+                const progresoData = await progresoResp.json();
+
+                puntuacion = progresoData.puntuacion_total || 0; // actualizar variable local
+                document.getElementById('puntuacionFinal').textContent = Math.round(puntuacion);
+
+            } catch (err) {
+                console.error("Error obteniendo puntuación final:", err);
+                document.getElementById('puntuacionFinal').textContent = Math.round(puntuacion); // fallback
+            }
+
 
             try {
                 const respuesta = await fetch(`/api/resultados_juego/${idSesion}`);
@@ -1146,6 +1167,20 @@
             elemento.classList.add('mostrar');
             setTimeout(() => elemento.classList.remove('mostrar'), 5000);
         }
+
+        // ✅ SINCRONIZACIÓN ENTRE PESTAÑAS
+        window.addEventListener('storage', (e) => {
+            if (e.key === `resp_${idSesion}_${idParticipante}`) {
+
+                // detener timer
+                if (intervaloTemporizador) clearInterval(intervaloTemporizador);
+
+                // avanzar a la siguiente pregunta inmediatamente
+                mostrarPregunta(preguntaActual + 1);
+            }
+        });
+
+
     </script>
 
 </body>
