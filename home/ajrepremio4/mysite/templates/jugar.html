@@ -977,6 +977,12 @@
         }
 
         async function seleccionarRespuesta(indiceOpcion, idPregunta, idOpcion) {
+            console.log("======== RESPUESTA SELECCIONADA ========");
+            console.log("id_pregunta:", idPregunta);
+            console.log("id_opcion:", idOpcion);
+            console.log("participante:", idParticipante, "sesion:", idSesion);
+            console.log("TiempoInicioPregunta:", tiempoInicioPregunta, "Ahora:", Date.now());
+
             if (intervaloTemporizador) {
                 clearInterval(intervaloTemporizador);
                 intervaloTemporizador = null;
@@ -986,13 +992,16 @@
             const opcionSeleccionada = pregunta.opciones[indiceOpcion];
             const esCorrecta = opcionSeleccionada.es_correcta;
 
-            // Calcular tiempo utilizado desde que se mostró la pregunta
+            // Calcular tiempo utilizado
             const tiempoTranscurrido = (Date.now() - tiempoInicioPregunta) / 1000;
+            console.log("Tiempo transcurrido:", tiempoTranscurrido.toFixed(3), "seg");
+            console.log("Correcta:", esCorrecta);
             const tiempoUtilizado = Math.min(tiempoTranscurrido, pregunta.tiempo_limite);
-
+            console.log("Tiempo utilizado:", tiempoUtilizado.toFixed(3), "seg");
             const puntos = esCorrecta ? Math.max(100, 1000 - (tiempoUtilizado * 10)) : 0;
-            if (esCorrecta) puntuacion += puntos;
-
+            console.log("Puntos calculados:", puntos);
+            
+            // Mostrar feedback visual
             const botones = document.querySelectorAll('.btn-respuesta');
             botones.forEach((boton, i) => {
                 boton.disabled = true;
@@ -1003,8 +1012,11 @@
                 }
             });
 
+            // ✅ Enviar al backend y SOLO sumar si fue aceptado
+            let guardadoOK = false;
+
             try {
-                await fetch('/api/guardar_respuesta', {
+                const resp = await fetch('/api/guardar_respuesta', {                 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1013,18 +1025,53 @@
                         id_opcion: idOpcion,
                         tiempo_respuesta: tiempoUtilizado,
                         puntos_ganados: puntos
-                    })
+                    }) 
+                    
+                    
                 });
-                // ✅ Notificar a otras pestañas que esta pregunta fue respondida
-                localStorage.setItem(`resp_${idSesion}_${idParticipante}`, Date.now());
+                console.log("📤 Enviando al backend:", {
+                    id_participante: idParticipante,
+                    id_pregunta: idPregunta,
+                    id_opcion: idOpcion,
+                    tiempo_respuesta: tiempoUtilizado,
+                    puntos_ganados: puntos
+                });
+
+                const data = await resp.json().catch(() => ({}));
+                console.log("📥 Respuesta backend (status):", resp.status);
+                console.log("📥 Respuesta backend (json):", data);
+
+
+                guardadoOK = resp.ok && data && data.exito;
+
+                if (!guardadoOK) {
+                    console.warn('❌ Respuesta NO guardada en servidor:', data?.error);
+                    alert('⚠️ Tu respuesta no se guardó a tiempo o ya estaba respondida.');
+                }
             } catch (error) {
                 console.error('Error guardando respuesta:', error);
+                alert('⚠️ Error de conexión al guardar. No se sumarán puntos.');
             }
 
+            // ✅ SOLO ahora sumamos puntos localmente si el servidor validó
+            if (guardadoOK && esCorrecta) {
+                puntuacion += puntos;
+            }
+
+            // Notificar sincronización entre pestañas SOLO si el backend aceptó
+            if (guardadoOK) {
+                localStorage.setItem(`resp_${idSesion}_${idParticipante}`, Date.now());
+            }
+
+            // Pasar a la siguiente pregunta después de 2s
             setTimeout(() => {
                 mostrarPregunta(preguntaActual + 1);
             }, 2000);
+
+            
         }
+
+
 
         async function mostrarResultados() {
             if (intervaloVerificacionSesion) clearInterval(intervaloVerificacionSesion);

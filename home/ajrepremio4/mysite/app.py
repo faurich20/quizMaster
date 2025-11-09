@@ -4,6 +4,7 @@ from db import obtener_conexion as obtener_conexion_db
 from flask_mail import Mail, Message
 import io
 import pymysql
+from datetime import timezone
 import hashlib, secrets
 import string, json
 import re
@@ -595,76 +596,95 @@ def tiempo_pregunta(id_pregunta):
 @app.route('/api/guardar_respuesta', methods=['POST'])
 def guardar_respuesta():
     datos = request.json or {}
+    print("\n🔵 [DEBUG guardar_respuesta] Datos recibidos:", datos)
+
     id_participante = int(datos.get('id_participante'))
     id_pregunta = int(datos.get('id_pregunta'))
     id_opcion = int(datos.get('id_opcion'))
     tiempo_respuesta = float(datos.get('tiempo_respuesta') or 0)
     puntos_ganados = int(datos.get('puntos_ganados') or 0)
 
+    print(f"➡️ id_participante={id_participante}, id_pregunta={id_pregunta}, id_opcion={id_opcion}, puntos={puntos_ganados}")
+
     conexion = obtener_bd()
     cursor = conexion.cursor(pymysql.cursors.DictCursor)
 
     try:
-        # Traer sesion_id desde participante
         cursor.execute("SELECT sesion_id FROM participantes WHERE id=%s", (id_participante,))
         part = cursor.fetchone()
+        print("📌 Participante:", part)
         if not part:
+            print("❌ Participante no encontrado")
             return jsonify({'error': 'Participante no encontrado'}), 404
+
         sesion_id = part['sesion_id']
 
-        # Traer expira global (T1)
         cursor.execute("SELECT expira_temporizador FROM sesiones_juego WHERE id=%s", (sesion_id,))
         ses = cursor.fetchone()
+        print("⏱ expira_global:", ses.get('expira_temporizador'))
+
+        # Tiempo actual
+        cursor.execute("SELECT NOW() as ahora_sql")
+        ahora_sql = cursor.fetchone()['ahora_sql']
+        print("⏱ ahora_sql:", ahora_sql)
+
         expira_global = ses.get('expira_temporizador')
-
-        ahora = datetime.utcnow()
-
-        # Validar T1 (si existe y ya venció → fuera de tiempo)
-        if expira_global and ahora > expira_global:
+        if expira_global and ahora_sql > expira_global:
+            print("⛔ T1 vencido → Quiz finalizado mientras se respondía")
             return jsonify({'error': 'El quiz ya terminó (T1 vencido)'}), 400
 
-        # Validar T2: debe existir (al abrir la pregunta) y no estar vencido
+        # Validar temporizador de pregunta (T2)
         cursor.execute("""
-            SELECT expira_en, respondido_en
+            SELECT abierto_en, expira_en, respondido_en
             FROM participante_pregunta_tiempos
             WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
-            LIMIT 1
         """, (sesion_id, id_participante, id_pregunta))
         t2 = cursor.fetchone()
+        print("⏱ T2:", t2)
+
         if not t2:
+            print("❌ T2 no existe → no se abrió la pregunta antes")
             return jsonify({'error': 'La pregunta no fue abierta aún para este participante'}), 400
+
         if t2['respondido_en']:
+            print("⚠️ Pregunta ya respondida → ignorando repetido")
             return jsonify({'error': 'Esta pregunta ya fue respondida'}), 400
-        if ahora > t2['expira_en']:
+
+        if ahora_sql > t2['expira_en']:
+            print("⛔ T2 vencido → tiempo agotado")
             return jsonify({'error': 'Tiempo de la pregunta agotado (T2 vencido)'}), 400
 
-        # Registrar la respuesta
-        cursor.execute('''
+        print("✅ Registrando respuesta y sumando puntos...")
+        cursor.execute("""
             INSERT INTO respuestas (id_participante, id_pregunta, id_opcion, tiempo_respuesta, puntos_ganados)
             VALUES (%s, %s, %s, %s, %s)
-        ''', (id_participante, id_pregunta, id_opcion, tiempo_respuesta, puntos_ganados))
+        """, (id_participante, id_pregunta, id_opcion, tiempo_respuesta, puntos_ganados))
 
-        # Marcar respondido_en
-        cursor.execute('''
+        cursor.execute("""
             UPDATE participante_pregunta_tiempos
             SET respondido_en=%s
             WHERE sesion_id=%s AND participante_id=%s AND pregunta_id=%s
-        ''', (ahora, sesion_id, id_participante, id_pregunta))
+        """, (ahora_sql, sesion_id, id_participante, id_pregunta))
 
-        # Actualizar puntuación del participante
-        cursor.execute('''
-            UPDATE participantes 
+        cursor.execute("""
+            UPDATE participantes
             SET puntuacion_total = puntuacion_total + %s
             WHERE id = %s
-        ''', (puntos_ganados, id_participante))
+        """, (puntos_ganados, id_participante))
 
         conexion.commit()
+        print("✅ PUNTOS SUMADOS CORRECTAMENTE")
         return jsonify({'exito': True})
+
     except Exception as e:
         conexion.rollback()
+        print("🔥 ERROR EN guardar_respuesta:", str(e))
         return jsonify({'error': str(e)}), 500
+
     finally:
         conexion.close()
+        print("🔚 Conexión cerrada\n")
+
 
 
 
